@@ -20,7 +20,8 @@
 typedef enum I2CDevice {
     I2CDEV_1,
     I2CDEV_2,
-    I2CDEV_MAX = I2CDEV_2,
+    I2CDEV_3,
+    I2CDEV_MAX = I2CDEV_3,
 } I2CDevice;
 
 void i2cInit(I2CDevice index);
