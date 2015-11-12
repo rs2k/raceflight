@@ -94,7 +94,11 @@ static void mpu6500SpiInit(void)
 
     GPIO_SetBits(MPU6500_CS_GPIO,   MPU6500_CS_PIN);
 
+#ifdef STM32F40_41xxx
+    spiSetDivisor(MPU6500_SPI_INSTANCE, SPI_0_65625MHZ_CLOCK_DIVIDER);
+#else
     spiSetDivisor(MPU6500_SPI_INSTANCE, SPI_9MHZ_CLOCK_DIVIDER);
+#endif
 
     hardwareInitialised = true;
 }
@@ -107,8 +111,13 @@ bool mpu6500SpiDetect(void)
 
     mpu6500ReadRegister(MPU_RA_WHO_AM_I, 1, &tmp);
 
+#if defined(SPARKY2)
+    if (tmp != MPU9250_WHO_AM_I_CONST)
+        return false;
+#else
     if (tmp != MPU6500_WHO_AM_I_CONST)
         return false;
+#endif
 
     return true;
 }

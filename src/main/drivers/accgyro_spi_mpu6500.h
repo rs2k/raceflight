@@ -15,6 +15,8 @@
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define MPU9250_WHO_AM_I_CONST              (0x71)
+
 #pragma once
 
 bool mpu6500SpiDetect(void);
