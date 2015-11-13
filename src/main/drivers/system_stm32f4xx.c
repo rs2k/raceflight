@@ -27,17 +27,17 @@
 
 void systemReset(void)
 {
-    // Generate system reset
-    SCB->AIRCR = AIRCR_VECTKEY_MASK | (uint32_t)0x04;
+//	Generate system reset
+//	SCB->AIRCR = AIRCR_VECTKEY_MASK | (uint32_t)0x04;
 }
 
 void systemResetToBootloader(void) {
-    // 1FFFF000 -> 20000200 -> SP
-    // 1FFFF004 -> 1FFFF021 -> PC
+//	1FFFF000 -> 20000200 -> SP
+//	1FFFF004 -> 1FFFF021 -> PC
 
-    *((uint32_t *)0x2001FFFC) = 0xDEADBEEF; // 128KB SRAM STM32F40X
+//	*((uint32_t *)0x2001FFFC) = 0xDEADBEEF; // 128KB SRAM STM32F40X;
 
-    systemReset();
+//	systemReset();;
 }
 
 void enableGPIOPowerUsageAndNoiseReductions(void)

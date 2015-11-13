@@ -248,7 +248,7 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
 
 #if defined(REVO)
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
-    { TIM12, GPIOB, Pin_14, TIM_Channel_1, TIM8_BRK_TIM12_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource14, GPIO_AF_TIM12}, // S1_IN
+    { TIM12, GPIOB, Pin_14, TIM_Channel_1, TIM8_BRK_TIM12_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource14, GPIO_AF_TIM12}, // PPM (5th pin on FlexiIO port)
     { TIM12, GPIOB, Pin_15, TIM_Channel_2, TIM8_BRK_TIM12_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource15, GPIO_AF_TIM12}, // S2_IN - GPIO_PartialRemap_TIM3
     { TIM8, GPIOC, Pin_6, TIM_Channel_1, TIM8_CC_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource6, GPIO_AF_TIM8}, // S3_IN
     { TIM8, GPIOC, Pin_7, TIM_Channel_2, TIM8_CC_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource7, GPIO_AF_TIM8}, // S4_IN

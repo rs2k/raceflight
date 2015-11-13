@@ -30,6 +30,7 @@
 #include "nvic.h"
 
 #include "system.h"
+#include "debug.h"
 
 #ifndef EXTI_CALLBACK_HANDLER_COUNT
 #define EXTI_CALLBACK_HANDLER_COUNT 1
@@ -82,20 +83,25 @@ void EXTI15_10_IRQHandler(void)
 {
     extiHandler(EXTI15_10_IRQn);
 }
-
-#if defined(CC3D)
 void EXTI3_IRQHandler(void)
 {
     extiHandler(EXTI3_IRQn);
 }
-#endif
 
-#if defined (COLIBRI_RACE)
 void EXTI9_5_IRQHandler(void)
 {
     extiHandler(EXTI9_5_IRQn);
 }
-#endif
+
+void EXTI4_IRQHandler(void)
+{
+    extiHandler(EXTI4_IRQn);
+}
+void EXTI0_IRQHandler(void)
+{
+    extiHandler(EXTI0_IRQn);
+}
+
 
 // cycles per microsecond
 static uint32_t usTicks = 0;
