@@ -17,12 +17,19 @@
 
 #pragma once
 
+#if defined(STM32F40_41xxx)
+#define SPI_0_65625MHZ_CLOCK_DIVIDER 128 // 0.65625 MHz
+#define SPI_11_5MHZ_CLOCK_DIVIDER      8 // 11.5 MHz
+#define SPI_21HZ_CLOCK_DIVIDER         4 // 21 MHz
+#define SPI_42MHZ_CLOCK_DIVIDER        2 // 42 MHz
 #define SPI_0_5625MHZ_CLOCK_DIVIDER 128
+#define SPI_9MHZ_CLOCK_DIVIDER      8
 #define SPI_18MHZ_CLOCK_DIVIDER     2
+#else
+#define SPI_0_5625MHZ_CLOCK_DIVIDER 128
 #define SPI_9MHZ_CLOCK_DIVIDER      4
-#define SPI_0_65625MHZ_CLOCK_DIVIDER 128
-#define SPI_21MHZ_CLOCK_DIVIDER     4
-#define SPI_42MHZ_CLOCK_DIVIDER     2
+#define SPI_18MHZ_CLOCK_DIVIDER     2
+#endif
 
 bool spiInit(SPI_TypeDef *instance);
 void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor);

@@ -43,7 +43,7 @@
 #include "accgyro_spi_mpu6500.h"
 #include "accgyro_mpu.h"
 
-//#define DEBUG_MPU_DATA_READY_INTERRUPT
+#define DEBUG_MPU_DATA_READY_INTERRUPT
 
 static bool mpuReadRegisterI2C(uint8_t reg, uint8_t length, uint8_t* data);
 static bool mpuWriteRegisterI2C(uint8_t reg, uint8_t data);
@@ -187,27 +187,28 @@ static void mpu6050FindRevision(void)
 
 void MPU_DATA_READY_EXTI_Handler(void)
 {
-    if (EXTI_GetITStatus(mpuIntExtiConfig->exti_line) == RESET) {
-        return;
+    if (EXTI_GetITStatus(mpuIntExtiConfig->exti_line) != RESET) {
+        debug[2] = EXTI_GetITStatus(mpuIntExtiConfig->exti_line);
+    	EXTI_ClearITPendingBit(mpuIntExtiConfig->exti_line);
+        debug[3] = EXTI_GetITStatus(mpuIntExtiConfig->exti_line);
+        mpuDataReady = true;
+
+    #ifdef DEBUG_MPU_DATA_READY_INTERRUPT
+        // Measure the delta in micro seconds between calls to the interrupt handler
+        static uint32_t lastCalledAt = 0;
+        static int32_t callDelta = 0;
+
+        uint32_t now = micros();
+        callDelta = now - lastCalledAt;
+
+        //UNUSED(callDelta);
+        debug[0] = callDelta;
+        debug[1] = mpuIntExtiConfig->exti_line;
+
+        lastCalledAt = now;
+    #endif
     }
 
-    EXTI_ClearITPendingBit(mpuIntExtiConfig->exti_line);
-
-    mpuDataReady = true;
-
-#ifdef DEBUG_MPU_DATA_READY_INTERRUPT
-    // Measure the delta in micro seconds between calls to the interrupt handler
-    static uint32_t lastCalledAt = 0;
-    static int32_t callDelta = 0;
-
-    uint32_t now = micros();
-    callDelta = now - lastCalledAt;
-
-    //UNUSED(callDelta);
-    debug[0] = callDelta;
-
-    lastCalledAt = now;
-#endif
 }
 
 void configureMPUDataReadyInterruptHandling(void)

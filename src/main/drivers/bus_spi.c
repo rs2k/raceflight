@@ -135,6 +135,7 @@ void initSpi1(void)
     // NSS as gpio slave select
     gpio.pin = Pin_4;
     gpio.mode = Mode_Out_PP;
+    gpio.speed = Speed_50MHz;
     gpioInit(GPIOA, &gpio);
 #endif
 #if defined(COLIBRI) || defined(SPARKY2)
