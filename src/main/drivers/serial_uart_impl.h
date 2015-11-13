@@ -26,4 +26,5 @@ void uartStartTxDMA(uartPort_t *s);
 uartPort_t *serialUSART1(uint32_t baudRate, portMode_t mode, portOptions_t options);
 uartPort_t *serialUSART2(uint32_t baudRate, portMode_t mode, portOptions_t options);
 uartPort_t *serialUSART3(uint32_t baudRate, portMode_t mode, portOptions_t options);
+uartPort_t *serialUSART6(uint32_t baudRate, portMode_t mode, portOptions_t options);
 

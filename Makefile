@@ -175,7 +175,7 @@ LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405_bl.ld
 endif
 ifeq ($(TARGET),SPARKY2)
 DEVICE_FLAGS += -DHSE_VALUE=8000000
-LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405.ld
+LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405_bl.ld
 .DEFAULT_GOAL := binary
 endif
 TARGET_FLAGS = -D$(TARGET)

@@ -32,7 +32,7 @@
 #include "drivers/serial_softserial.h"
 #endif
 
-#if defined(USE_USART1) || defined(USE_USART2) || defined(USE_USART3)
+#if defined(USE_USART1) || defined(USE_USART2) || defined(USE_USART3) || defined(USE_USART6)
 #include "drivers/serial_uart.h"
 #endif
 
@@ -65,6 +65,9 @@ const serialPortIdentifier_e serialPortIdentifiers[SERIAL_PORT_COUNT] = {
 #endif
 #ifdef USE_USART3
     SERIAL_PORT_USART3,
+#endif
+#ifdef USE_USART6
+    SERIAL_PORT_USART6,
 #endif
 #ifdef USE_SOFTSERIAL1
     SERIAL_PORT_SOFTSERIAL1,
@@ -254,7 +257,7 @@ serialPort_t *openSerialPort(
     portMode_t mode,
     portOptions_t options)
 {
-#if (!defined(USE_VCP) && !defined(USE_USART1) && !defined(USE_USART2) && !defined(USE_USART3) && !defined(USE_SOFTSERIAL1) && !defined(USE_SOFTSERIAL1))
+#if (!defined(USE_VCP) && !defined(USE_USART1) && !defined(USE_USART2) && !defined(USE_USART3) && !defined(USE_USART6) && !defined(USE_SOFTSERIAL1) && !defined(USE_SOFTSERIAL1))
     UNUSED(callback);
     UNUSED(baudRate);
     UNUSED(mode);
@@ -288,6 +291,11 @@ serialPort_t *openSerialPort(
 #ifdef USE_USART3
         case SERIAL_PORT_USART3:
             serialPort = uartOpen(USART3, callback, baudRate, mode, options);
+            break;
+#endif
+#ifdef USE_USART6
+        case SERIAL_PORT_USART6:
+            serialPort = uartOpen(USART6, callback, baudRate, mode, options);
             break;
 #endif
 #ifdef USE_SOFTSERIAL1

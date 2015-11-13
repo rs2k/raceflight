@@ -108,6 +108,10 @@ serialPort_t *uartOpen(USART_TypeDef *USARTx, serialReceiveCallbackPtr callback,
     } else if (USARTx == USART3) {
         s = serialUSART3(baudRate, mode, options);
 #endif
+#ifdef USE_USART6
+    } else if (USARTx == USART6) {
+        s = serialUSART6(baudRate, mode, options);
+#endif
     } else {
         return (serialPort_t *)s;
     }

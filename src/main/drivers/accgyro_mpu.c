@@ -188,9 +188,7 @@ static void mpu6050FindRevision(void)
 void MPU_DATA_READY_EXTI_Handler(void)
 {
     if (EXTI_GetITStatus(mpuIntExtiConfig->exti_line) != RESET) {
-        debug[2] = EXTI_GetITStatus(mpuIntExtiConfig->exti_line);
     	EXTI_ClearITPendingBit(mpuIntExtiConfig->exti_line);
-        debug[3] = EXTI_GetITStatus(mpuIntExtiConfig->exti_line);
         mpuDataReady = true;
 
     #ifdef DEBUG_MPU_DATA_READY_INTERRUPT
@@ -203,7 +201,6 @@ void MPU_DATA_READY_EXTI_Handler(void)
 
         //UNUSED(callDelta);
         debug[0] = callDelta;
-        debug[1] = mpuIntExtiConfig->exti_line;
 
         lastCalledAt = now;
     #endif
