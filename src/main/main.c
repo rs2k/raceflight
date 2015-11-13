@@ -320,6 +320,7 @@ void init(void)
 #ifdef USE_SPI
     spiInit(SPI1);
     spiInit(SPI2);
+    spiInit(SPI3);
 #endif
 
 #ifdef USE_HARDWARE_REVISION_DETECTION
@@ -356,7 +357,7 @@ void init(void)
     }
 #else
     i2cInit(I2C_DEVICE);
-#if defined(REVO)
+#if defined(REVO) || defined(SPARKY2)
     if (!doesConfigurationUsePort(SERIAL_PORT_USART3)) {
 #ifdef I2C_DEVICE_EXT
         i2cInit(I2C_DEVICE_EXT);

@@ -164,6 +164,19 @@ const extiConfig_t *selectMPUIntExtiConfig(void)
     return &revoMPUIntExtiConfig;
 #endif
 
+#if defined(SPARKY2)
+    static const extiConfig_t sparky2MPUIntExtiConfig = {
+            .gpioAHB1Peripherals = RCC_AHB1Periph_GPIOC,
+            .gpioPort = GPIOC,
+            .gpioPin = Pin_5,
+            .exti_port_source = EXTI_PortSourceGPIOC,
+            .exti_pin_source = EXTI_PinSource5,
+            .exti_line = EXTI_Line5,
+            .exti_irqn = EXTI9_5_IRQn
+    };
+    return &sparky2MPUIntExtiConfig;
+#endif
+
 #if defined(MOTOLAB) || defined(SPARKY)
     static const extiConfig_t MotolabF3MPU6050Config = {
             .gpioAHBPeripherals = RCC_AHBPeriph_GPIOA,
@@ -702,6 +715,10 @@ bool sensorsAutodetect(sensorAlignmentConfig_t *sensorAlignmentConfig, uint8_t a
     } else {
         magneticDeclination = 0.0f; // TODO investigate if this is actually needed if there is no mag sensor or if the value stored in the config should be used.
     }
+
+#if defined(USE_GYRO_SPI_MPU6500)
+    spiSetDivisor(MPU6500_SPI_INSTANCE, SPI_42MHZ_CLOCK_DIVIDER);
+#endif
 
     return true;
 }
