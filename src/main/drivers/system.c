@@ -100,12 +100,11 @@ void EXTI4_IRQHandler(void)
 {
     extiHandler(EXTI4_IRQn);
 }
-#endif
 void EXTI0_IRQHandler(void)
 {
     extiHandler(EXTI0_IRQn);
 }
-
+#endif
 
 // cycles per microsecond
 static uint32_t usTicks = 0;

@@ -46,7 +46,7 @@ void gyroUpdateSampleRate(void) {
     int minLooptime;
 
     gyroSamplePeriod = 125; // gyro sampling rate 8khz
-    minLooptime = 250;      // 4khz sampling
+    minLooptime = 160;      // 4khz sampling
 
     //gyroSamplePeriod = 1000; // gyro sampling rate 1khz
     //minLooptime = 1000;      // Full 1khz sampling

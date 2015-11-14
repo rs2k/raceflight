@@ -133,7 +133,7 @@ void mpu6000SpiGyroInit(uint16_t lpf)
 
     spiResetErrorCounter(MPU6000_SPI_INSTANCE);
 
-    spiSetDivisor(MPU6000_SPI_INSTANCE, SPI_0_5625MHZ_CLOCK_DIVIDER);
+    spiSetDivisor(MPU6000_SPI_INSTANCE, SPI_21HZ_CLOCK_DIVIDER); //highspeed
 
     // Accel and Gyro DLPF Setting
     mpu6000WriteRegister(MPU6000_CONFIG, mpuLowPassFilter);
@@ -161,7 +161,7 @@ static void mpu6000AccAndGyroInit(void) {
         return;
     }
 
-    spiSetDivisor(MPU6000_SPI_INSTANCE, SPI_0_65625MHZ_CLOCK_DIVIDER); //low speed for initilzation
+    spiSetDivisor(MPU6000_SPI_INSTANCE, SPI_0_5625MHZ_CLOCK_DIVIDER); //low speed for initilzation
 
     // Device Reset
     mpu6000WriteRegister(MPU_RA_PWR_MGMT_1, BIT_H_RESET);
@@ -203,7 +203,7 @@ static void mpu6000AccAndGyroInit(void) {
     delayMicroseconds(1);
 #endif
 
-    spiSetDivisor(MPU6000_SPI_INSTANCE, SPI_0_5625MHZ_CLOCK_DIVIDER); //high speed
+    spiSetDivisor(MPU6000_SPI_INSTANCE, SPI_21HZ_CLOCK_DIVIDER); //high speed
     delayMicroseconds(1);
 
     mpuSpi6000InitDone = true;
@@ -214,7 +214,7 @@ bool mpu6000SpiDetect(void)
     uint8_t in;
     uint8_t attemptsRemaining = 5;
 
-    spiSetDivisor(MPU6000_SPI_INSTANCE, SPI_0_65625MHZ_CLOCK_DIVIDER);
+    spiSetDivisor(MPU6000_SPI_INSTANCE, SPI_0_5625MHZ_CLOCK_DIVIDER); //low speed
 
     mpu6000WriteRegister(MPU_RA_PWR_MGMT_1, BIT_H_RESET);
 
