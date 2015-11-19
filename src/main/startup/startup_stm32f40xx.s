@@ -1,11 +1,11 @@
 /**
   ******************************************************************************
-  * @file      startup_stm32f40xx.s
+  * @file      startup_stm32f40_41xxx.s
   * @author    MCD Application Team
-  * @version   V1.3.0
-  * @date      08-November-2013
-  * @brief     STM32F40xxx/41xxx Devices vector table for RIDE7 toolchain.
-  *            Same as startup_stm32f40xx.s and maintained for legacy purpose             
+  * @version   V1.6.1
+  * @date      21-October-2015
+  * @brief     STM32F40xxx/41xxx Devices vector table for Atollic TrueSTUDIO toolchain.  
+  *            Same as startup_stm32f40_41xxx.s and maintained for legacy purpose   
   *            This module performs:
   *                - Set the initial SP
   *                - Set the initial PC == Reset_Handler,
@@ -20,7 +20,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2013 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -109,6 +109,7 @@ LoopFillZerobss:
 
 /* Call the clock system intitialization function.*/
   bl  SystemInit   
+
 /* Call the application's entry point.*/
   bl  main
   bx  lr    
@@ -242,8 +243,8 @@ g_pfnVectors:
   .word     DCMI_IRQHandler                   /* DCMI                         */                   
   .word     CRYP_IRQHandler                   /* CRYP crypto                  */                   
   .word     HASH_RNG_IRQHandler               /* Hash and Rng                 */
-  .word     FPU_IRQHandler                    /* FPU                          */                         
-                            
+  .word     FPU_IRQHandler                    /* FPU                          */
+                        
 /*******************************************************************************
 *
 * Provide weak aliases for each Exception handler to the Default_Handler. 
@@ -522,6 +523,6 @@ g_pfnVectors:
    .thumb_set HASH_RNG_IRQHandler,Default_Handler   
 
    .weak      FPU_IRQHandler                  
-   .thumb_set FPU_IRQHandler,Default_Handler 
-
+   .thumb_set FPU_IRQHandler,Default_Handler  
+   
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

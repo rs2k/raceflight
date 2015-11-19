@@ -2,23 +2,29 @@
   ******************************************************************************
   * @file    stm32f4xx_ltdc.h
   * @author  MCD Application Team
-  * @version V1.3.0
-  * @date    08-November-2013
+  * @version V1.6.1
+  * @date    21-October-2015
   * @brief   This file contains all the functions prototypes for the LTDC firmware 
   *          library.
   ******************************************************************************
   * @attention
   *
-  * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
-  * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE
-  * TIME. AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY
-  * DIRECT, INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING
-  * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
-  * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
-  * <h2><center>&copy; COPYRIGHT 2013 STMicroelectronics</center></h2>
+  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        http://www.st.com/software_license_agreement_liberty_v2
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  *
   ******************************************************************************
-  */ 
+  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32F4xx_LTDC_H
@@ -63,24 +69,24 @@ typedef struct
                                                  width. This parameter must range from 0x000 to 0xFFF. */
 
   uint32_t LTDC_VerticalSync;               /*!< configures the number of Vertical synchronization 
-                                                 heigh. This parameter must range from 0x000 to 0x7FF. */
+                                                 height. This parameter must range from 0x000 to 0x7FF. */
 
   uint32_t LTDC_AccumulatedHBP;             /*!< configures the accumulated horizontal back porch width.
                                                  This parameter must range from LTDC_HorizontalSync to 0xFFF. */
 
-  uint32_t LTDC_AccumulatedVBP;             /*!< configures the accumulated vertical back porch heigh.
+  uint32_t LTDC_AccumulatedVBP;             /*!< configures the accumulated vertical back porch height.
                                                  This parameter must range from LTDC_VerticalSync to 0x7FF. */
             
   uint32_t LTDC_AccumulatedActiveW;         /*!< configures the accumulated active width. This parameter 
                                                  must range from LTDC_AccumulatedHBP to 0xFFF. */
 
-  uint32_t LTDC_AccumulatedActiveH;         /*!< configures the accumulated active heigh. This parameter 
+  uint32_t LTDC_AccumulatedActiveH;         /*!< configures the accumulated active height. This parameter 
                                                  must range from LTDC_AccumulatedVBP to 0x7FF. */
 
   uint32_t LTDC_TotalWidth;                 /*!< configures the total width. This parameter 
                                                  must range from LTDC_AccumulatedActiveW to 0xFFF. */
 
-  uint32_t LTDC_TotalHeigh;                 /*!< configures the total heigh. This parameter 
+  uint32_t LTDC_TotalHeigh;                 /*!< configures the total height. This parameter 
                                                  must range from LTDC_AccumulatedActiveH to 0x7FF. */
             
   uint32_t LTDC_BackgroundRedValue;         /*!< configures the background red value.

@@ -33,7 +33,7 @@ typedef uint16_t timCCR_t;
 typedef uint16_t timCCER_t;
 typedef uint16_t timSR_t;
 typedef uint16_t timCNT_t;
-#elif defined(STM32F40_41xxx)
+#elif defined(STM32F40_41xxx) || defined (STM32F411xE)
 typedef uint32_t timCCR_t;
 typedef uint32_t timCCER_t;
 typedef uint32_t timSR_t;
@@ -74,7 +74,7 @@ typedef struct {
     uint8_t gpioPinSource;             // TODO - this can be removed and pinSource calculated from pin
     uint8_t alternateFunction;
 #endif
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
     uint8_t gpioPinSource;             // TODO - this can be removed and pinSource calculated from pin
     uint8_t alternateFunction;
 #endif

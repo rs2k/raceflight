@@ -111,7 +111,7 @@ void initSpi1(void)
 #endif
 #endif
 
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx)  || defined(STM32F411xE)
     // Specific to the STM32F405
     // SPI1 Driver
     // PA7    17    SPI1_MOSI
@@ -131,7 +131,8 @@ void initSpi1(void)
     gpio.mode = Mode_AF_PP;
     gpioInit(GPIOA, &gpio);
 
-#if defined(ANYFC)  || defined(REVO)
+#if defined(REVO)
+    // Used for MPU6000 gyro and accelerometer
     // NSS as gpio slave select
     gpio.pin = Pin_4;
     gpio.mode = Mode_Out_PP;
@@ -258,8 +259,8 @@ void initSpi2(void)
 #endif
 #endif
 
-#ifdef STM32F40_41xxx
-    // Specific to the STM32F405
+#if defined(STM32F40_41xxx)  || defined(STM32F411xE)
+    // Specific to the STM32F405 //and STM32F411
     // SPI2 Driver
     // PC3    17    SPI2_MOSI
     // PC2    16    SPI2_MISO
@@ -284,6 +285,15 @@ void initSpi2(void)
     gpio.pin = Pin_2;
     gpio.mode = Mode_AF_PP;
     gpioInit(GPIOC, &gpio);
+
+#ifdef REVONANO
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+    // NSS as gpio slave select
+    // Used for MPU9250 gyro and accelerometer
+    gpio.pin = Pin_12;
+    gpio.mode = Mode_Out_PP;
+    gpioInit(GPIOB, &gpio);
+#endif
 
 #ifdef COLIBRI
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
@@ -349,8 +359,8 @@ void initSpi3(void)
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI3, ENABLE);
     RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI3, ENABLE);
 
-#ifdef STM32F40_41xxx
-    // Specific to the STM32F405
+#if defined(STM32F40_41xxx)  || defined(STM32F411xE)
+    // Specific to the STM32F405 //and STM32F411
     // SPI3 Driver
     // PC12    17    SPI3_MOSI
     // PC11    16    SPI3_MISO
@@ -461,7 +471,7 @@ uint32_t spiTimeoutUserCallback(SPI_TypeDef *instance)
         return spi3ErrorCount;
     }
 #endif
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
     else if  (instance == SPI3) {
         spi3ErrorCount++;
         return spi3ErrorCount;
@@ -485,7 +495,7 @@ uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t data)
 #ifdef STM32F10X
     SPI_I2S_SendData(instance, data);
 #endif
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
     SPI_I2S_SendData(instance, data);
 #endif
     spiTimeout = 1000;
@@ -499,7 +509,7 @@ uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t data)
 #ifdef STM32F10X
     return ((uint8_t)SPI_I2S_ReceiveData(instance));
 #endif
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
     return ((uint8_t)SPI_I2S_ReceiveData(instance));
 #endif
 }
@@ -523,7 +533,7 @@ bool spiTransfer(SPI_TypeDef *instance, uint8_t *out, const uint8_t *in, int len
 #ifdef STM32F10X
         SPI_I2S_SendData(instance, b);
 #endif
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
         SPI_I2S_SendData(instance, b);
 #endif
         while (SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_RXNE) == RESET) {
@@ -537,7 +547,7 @@ bool spiTransfer(SPI_TypeDef *instance, uint8_t *out, const uint8_t *in, int len
 #ifdef STM32F10X
         b = SPI_I2S_ReceiveData(instance);
 #endif
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
         b = SPI_I2S_ReceiveData(instance);
 #endif
         if (out)

@@ -222,7 +222,7 @@ void configureMPUDataReadyInterruptHandling(void)
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 #endif
 
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
     /* Enable SYSCFG clock otherwise the EXTI irq handlers are not called */
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 #endif
@@ -235,7 +235,7 @@ void configureMPUDataReadyInterruptHandling(void)
     gpioExtiLineConfig(mpuIntExtiConfig->exti_port_source, mpuIntExtiConfig->exti_pin_source);
 #endif
 
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
     gpioExtiLineConfig(mpuIntExtiConfig->exti_port_source, mpuIntExtiConfig->exti_pin_source);
 #endif
 
@@ -277,7 +277,7 @@ void mpuIntExtiInit(void)
         return;
     }
 
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
         if (mpuIntExtiConfig->gpioAHB1Peripherals) {
             RCC_AHB1PeriphClockCmd(mpuIntExtiConfig->gpioAHB1Peripherals, ENABLE);
         }

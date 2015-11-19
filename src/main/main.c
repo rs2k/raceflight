@@ -136,6 +136,10 @@ void SetSysClock(bool overclock);
 // from system_stm32f4xx.c
 void SetSysClock(void);
 #endif
+#ifdef STM32F411xE
+// from system_stm32f4xx.c
+void SetSysClock(void);
+#endif
 
 typedef enum {
     SYSTEM_STATE_INITIALISING   = 0,

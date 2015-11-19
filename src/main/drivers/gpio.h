@@ -70,7 +70,7 @@ typedef enum
 } GPIO_Mode;
 #endif
 
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
 /*
 typedef enum
 {
@@ -145,7 +145,7 @@ typedef struct
 } gpio_config_t;
 
 #ifndef UNIT_TEST
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
 static inline void digitalHi(GPIO_TypeDef *p, uint16_t i) { p->BSRRL = i; }		
 static inline void digitalLo(GPIO_TypeDef *p, uint16_t i)     { p->BSRRH = i; }		
 #else

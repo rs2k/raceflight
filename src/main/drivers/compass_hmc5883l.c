@@ -234,7 +234,7 @@ void hmc5883lInit(void)
             RCC_APB2PeriphClockCmd(hmc5883Config->gpioAPB2Peripherals, ENABLE);
         }
 #endif
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
         if (hmc5883Config->gpioAHB1Peripherals) {
             RCC_AHB1PeriphClockCmd(hmc5883Config->gpioAHB1Peripherals, ENABLE);
         }

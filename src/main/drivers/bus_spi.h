@@ -17,7 +17,7 @@
 
 #pragma once
 
-#if defined(STM32F40_41xxx)
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
 #define SPI_0_65625MHZ_CLOCK_DIVIDER 128 // 0.65625 MHz
 #define SPI_11_5MHZ_CLOCK_DIVIDER      8 // 11.5 MHz
 #define SPI_21HZ_CLOCK_DIVIDER         4 // 21 MHz

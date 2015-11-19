@@ -164,6 +164,19 @@ const extiConfig_t *selectMPUIntExtiConfig(void)
     return &revoMPUIntExtiConfig;
 #endif
 
+#if defined(REVONANO)
+    static const extiConfig_t revonanoMPUIntExtiConfig = {
+            .gpioAHB1Peripherals = RCC_AHB1Periph_GPIOA,
+            .gpioPort = GPIOA,
+            .gpioPin = Pin_15,
+            .exti_port_source = EXTI_PortSourceGPIOA,
+            .exti_pin_source = EXTI_PinSource15,
+            .exti_line = EXTI_Line15,
+            .exti_irqn = EXTI15_10_IRQn
+    };
+    return &revonanoMPUIntExtiConfig;
+#endif
+
 #if defined(SPARKY2)
     static const extiConfig_t sparky2MPUIntExtiConfig = {
             .gpioAHB1Peripherals = RCC_AHB1Periph_GPIOC,

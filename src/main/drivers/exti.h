@@ -19,7 +19,7 @@
 #pragma once
 
 typedef struct extiConfig_s {
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
     uint32_t gpioAHB1Peripherals;
 #endif
 #ifdef STM32F303

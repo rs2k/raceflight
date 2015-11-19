@@ -100,10 +100,6 @@ void EXTI4_IRQHandler(void)
 {
     extiHandler(EXTI4_IRQn);
 }
-void EXTI0_IRQHandler(void)
-{
-    extiHandler(EXTI0_IRQn);
-}
 #endif
 
 // cycles per microsecond
@@ -166,7 +162,7 @@ void systemInit(void)
 
     // cache RCC->CSR value to use it in isMPUSoftreset() and others
     cachedRccCsrValue = RCC->CSR;
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
     /* Accounts for OP Bootloader, set the Vector Table base address as specified in .ld file */
     extern void *isr_vector_table_base;
     NVIC_SetVectorTable((uint32_t)&isr_vector_table_base, 0x0);

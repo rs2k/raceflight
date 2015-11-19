@@ -81,7 +81,7 @@ static void mpu6500SpiInit(void)
     GPIO_Init(MPU6500_CS_GPIO, &GPIO_InitStructure);
 #endif
 
-#ifdef STM32F10X
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
     RCC_APB2PeriphClockCmd(MPU6500_CS_GPIO_CLK_PERIPHERAL, ENABLE);
 
     gpio_config_t gpio;
@@ -94,7 +94,7 @@ static void mpu6500SpiInit(void)
 
     GPIO_SetBits(MPU6500_CS_GPIO,   MPU6500_CS_PIN);
 
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
     spiSetDivisor(MPU6500_SPI_INSTANCE, SPI_0_65625MHZ_CLOCK_DIVIDER);
 #else
     spiSetDivisor(MPU6500_SPI_INSTANCE, SPI_9MHZ_CLOCK_DIVIDER);
@@ -111,7 +111,7 @@ bool mpu6500SpiDetect(void)
 
     mpu6500ReadRegister(MPU_RA_WHO_AM_I, 1, &tmp);
 
-#if defined(SPARKY2)
+#if defined(SPARKY2) || defined(REVONANO)
     if (tmp != MPU9250_WHO_AM_I_CONST)
         return false;
 #else

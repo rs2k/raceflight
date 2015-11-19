@@ -761,11 +761,8 @@ void loop(void)
     currentTime = micros();
     if (gyroSyncCheckUpdate() || (int32_t)(currentTime - (loopTime + GYRO_WATCHDOG_DELAY)) >= 0) {
 
-        loopTime = currentTime + targetLooptime - 100;
+        loopTime = currentTime + targetLooptime;
 
-        //debug[1] = loopTime;
-        //debug[2] = targetLooptime;
-        //debug[3] = GYRO_WATCHDOG_DELAY;
         haveProcessedRxOnceBeforeLoop = false;
 
         // Determine current flight mode. When no acc needed in pid calculations we should only read gyro to reduce latency

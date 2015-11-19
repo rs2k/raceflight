@@ -131,7 +131,7 @@ serialPort_t *uartOpen(USART_TypeDef *USARTx, serialReceiveCallbackPtr callback,
     // Receive DMA or IRQ
     DMA_InitTypeDef DMA_InitStructure;
     if (mode & MODE_RX) {
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
         if (s->rxDMAStream) {
             DMA_StructInit(&DMA_InitStructure);
             DMA_InitStructure.DMA_PeripheralBaseAddr = s->rxDMAPeripheralBaseAddr;
@@ -157,7 +157,7 @@ serialPort_t *uartOpen(USART_TypeDef *USARTx, serialReceiveCallbackPtr callback,
 #endif
 
             DMA_InitStructure.DMA_BufferSize = s->port.rxBufferSize;
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
             DMA_InitStructure.DMA_Channel = s->rxDMAChannel;
             DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;
             DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
@@ -185,7 +185,7 @@ serialPort_t *uartOpen(USART_TypeDef *USARTx, serialReceiveCallbackPtr callback,
 
     // Transmit DMA or IRQ
     if (mode & MODE_TX) {
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
         if (s->txDMAStream) {
             DMA_StructInit(&DMA_InitStructure);
             DMA_InitStructure.DMA_PeripheralBaseAddr = s->txDMAPeripheralBaseAddr;
@@ -210,7 +210,7 @@ serialPort_t *uartOpen(USART_TypeDef *USARTx, serialReceiveCallbackPtr callback,
             DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
 #endif
             DMA_InitStructure.DMA_BufferSize = s->port.txBufferSize;
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
             DMA_InitStructure.DMA_Channel = s->txDMAChannel;
             DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
             DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
@@ -254,7 +254,7 @@ void uartSetMode(serialPort_t *instance, portMode_t mode)
 
 void uartStartTxDMA(uartPort_t *s)
 {
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
     DMA_Cmd(s->txDMAStream, DISABLE);
     DMA_MemoryTargetConfig(s->txDMAStream,(uint32_t)&s->port.txBuffer[s->port.txBufferTail],DMA_Memory_0);
     //s->txDMAStream->M0AR = (uint32_t)&s->port.txBuffer[s->port.txBufferTail];
@@ -284,7 +284,7 @@ void uartStartTxDMA(uartPort_t *s)
 uint8_t uartTotalRxBytesWaiting(serialPort_t *instance)
 {
     uartPort_t *s = (uartPort_t*)instance;
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
     if (s->rxDMAStream) {
         uint32_t rxDMAHead = s->rxDMAStream->NDTR;
 #else
@@ -317,7 +317,7 @@ uint8_t uartTotalTxBytesFree(serialPort_t *instance)
         bytesUsed = s->port.txBufferSize + s->port.txBufferHead - s->port.txBufferTail;
     }
 
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
     if (s->txDMAStream) {
         /*
          * When we queue up a DMA request, we advance the Tx buffer tail before the transfer finishes, so we must add
@@ -352,7 +352,7 @@ uint8_t uartTotalTxBytesFree(serialPort_t *instance)
 bool isUartTransmitBufferEmpty(serialPort_t *instance)
 {
     uartPort_t *s = (uartPort_t *)instance;
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
     if (s->txDMAStream)
 #else
     if (s->txDMAChannel)
@@ -367,7 +367,7 @@ uint8_t uartRead(serialPort_t *instance)
     uint8_t ch;
     uartPort_t *s = (uartPort_t *)instance;
 
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
     if (s->rxDMAStream) {
 #else
     if (s->rxDMAChannel) {
@@ -397,7 +397,7 @@ void uartWrite(serialPort_t *instance, uint8_t ch)
         s->port.txBufferHead++;
     }
 
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
     if (s->txDMAStream) {
         if (!(s->txDMAStream->CR & 1))
 #else
