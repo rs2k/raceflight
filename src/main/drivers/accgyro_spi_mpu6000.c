@@ -198,7 +198,7 @@ static void mpu6000AccAndGyroInit(void) {
     mpu6000WriteRegister(MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 1 << 4 | 0 << 3 | 0 << 2 | 0 << 1 | 0 << 0);  // INT_ANYRD_2CLEAR
     delayMicroseconds(1);
 
-#if defined(USE_MPU_DATA_READY_SIGNAL) || defined(REVO)
+#if defined(USE_MPU_DATA_READY_SIGNAL)
     mpu6000WriteRegister(MPU_RA_INT_ENABLE, MPU_RF_DATA_RDY_EN);
     delayMicroseconds(1);
 #endif
@@ -212,7 +212,7 @@ static void mpu6000AccAndGyroInit(void) {
 bool mpu6000SpiDetect(void)
 {
     uint8_t in;
-    uint8_t attemptsRemaining = 5;
+    uint8_t attemptsRemaining = 20;
 
     spiSetDivisor(MPU6000_SPI_INSTANCE, SPI_SLOW_CLOCK); //low speed
 

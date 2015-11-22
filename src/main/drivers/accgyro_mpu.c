@@ -50,6 +50,17 @@ static bool mpuWriteRegisterI2C(uint8_t reg, uint8_t data);
 
 static void mpu6050FindRevision(void);
 
+static int gyro_i_count = 0;
+static volatile bool mpuDataReady;
+static bool filterFull = false;
+static int gyroADCnums = 0;
+static int16_t gyroADCtable0[4];
+static int16_t gyroADCtable1[4];
+static int16_t gyroADCtable2[4];
+static int32_t gyroTotal0 = 0;
+static int32_t gyroTotal1 = 0;
+static int32_t gyroTotal2 = 0;
+
 #ifdef USE_SPI
 static bool detectSPISensorsAndUpdateDetectionResult(void);
 #endif
@@ -185,23 +196,43 @@ static void mpu6050FindRevision(void)
 
 void MPU_DATA_READY_EXTI_Handler(void)
 {
-    if (EXTI_GetITStatus(mpuIntExtiConfig->exti_line) != RESET) {
-    	EXTI_ClearITPendingBit(mpuIntExtiConfig->exti_line);
-        mpuDataReady = true;
 
-    #ifdef DEBUG_MPU_DATA_READY_INTERRUPT
-        // Measure the delta in micro seconds between calls to the interrupt handler
-        static uint32_t lastCalledAt = 0;
-        static int32_t callDelta = 0;
+#if defined (REVO)
+    if (EXTI_GetITStatus(EXTI_Line4) != RESET) {
+    	EXTI_ClearITPendingBit(EXTI_Line4);
+#elif defined (REVONANO)
+	if (EXTI_GetITStatus(EXTI_Line15) != RESET) {
+		EXTI_ClearITPendingBit(EXTI_Line15);
+#else
+	if (EXTI_GetITStatus(mpuIntExtiConfig->exti_line) != RESET) {
+		EXTI_ClearITPendingBit(mpuIntExtiConfig->exti_line);
+#endif
 
-        uint32_t now = micros();
-        callDelta = now - lastCalledAt;
+		gyro_i_count++;
+		mpuGyroReadCollect();
 
-        //UNUSED(callDelta);
+#ifdef DEBUG_MPU_DATA_READY_INTERRUPT
+		static uint32_t lastCalledAt = 0;
+		uint32_t now = micros();
+        uint32_t callDelta = now - lastCalledAt;
         debug[0] = callDelta;
+		lastCalledAt = now;
+#endif
 
-        lastCalledAt = now;
-    #endif
+		if (gyro_i_count >= 4) { //TODO: cycle time hard coded
+
+			gyro_i_count = 0;
+
+    		mpuDataReady = true;
+#ifdef DEBUG_MPU_DATA_READY_INTERRUPT
+			static uint32_t lastCalledAt1 = 0;
+			uint32_t now1 = micros();
+	        uint32_t callDelta1 = now1 - lastCalledAt1;
+	        debug[1] = callDelta1;
+    		lastCalledAt1 = now;
+#endif
+		}
+
     }
 
 }
@@ -209,9 +240,8 @@ void MPU_DATA_READY_EXTI_Handler(void)
 
 void configureMPUDataReadyInterruptHandling(void)
 {
-#if defined(REVO)
+#if defined(USE_MPU_DATA_READY_SIGNAL) && defined(REVO)
 
-	debug[1] = 99;
 	GPIO_InitTypeDef GPIO_InitStruct;
 	EXTI_InitTypeDef EXTI_InitStruct;
 	NVIC_InitTypeDef NVIC_InitStruct;
@@ -251,10 +281,12 @@ void configureMPUDataReadyInterruptHandling(void)
 	NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
 	/* Add to NVIC */
 	NVIC_Init(&NVIC_InitStruct);
-#endif
-#if defined(REVONANO)
 
-	debug[1] = 99;
+	registerExtiCallbackHandler(EXTI4_IRQn, MPU_DATA_READY_EXTI_Handler);
+
+	EXTI_ClearITPendingBit(EXTI_Line4);
+#elif defined(USE_MPU_DATA_READY_SIGNAL) && defined(REVONANO)
+
 	GPIO_InitTypeDef GPIO_InitStruct;
 	EXTI_InitTypeDef EXTI_InitStruct;
 	NVIC_InitTypeDef NVIC_InitStruct;
@@ -294,8 +326,11 @@ void configureMPUDataReadyInterruptHandling(void)
 	NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
 	/* Add to NVIC */
 	NVIC_Init(&NVIC_InitStruct);
-#endif
-#ifdef USE_MPU_DATA_READY_SIGNAL
+
+	registerExtiCallbackHandler(EXTI15_10_IRQn, MPU_DATA_READY_EXTI_Handler);
+
+	EXTI_ClearITPendingBit(EXTI_Line15);
+#elif defined(USE_MPU_DATA_READY_SIGNAL)
 
 #ifdef STM32F10X
     // enable AFIO for EXTI support
@@ -433,14 +468,14 @@ bool mpuAccRead(int16_t *accData)
         return false;
     }
 
-    accData[0] = (int16_t)((data[0] << 8) | data[1]);
-    accData[1] = (int16_t)((data[2] << 8) | data[3]);
-    accData[2] = (int16_t)((data[4] << 8) | data[5]);
+    accData[0] = (int16_t)((data[0] << 8) | data[1]) * 1.25;
+    accData[1] = (int16_t)((data[2] << 8) | data[3]) * 1.25;
+    accData[2] = (int16_t)((data[4] << 8) | data[5]) * 1.25;
 
     return true;
 }
 
-bool mpuGyroRead(int16_t *gyroADC)
+bool mpuGyroReadCollect(void)
 {
     uint8_t data[6];
 
@@ -449,9 +484,50 @@ bool mpuGyroRead(int16_t *gyroADC)
         return false;
     }
 
-    gyroADC[0] = (int16_t)((data[0] << 8) | data[1]);
-    gyroADC[1] = (int16_t)((data[2] << 8) | data[3]);
-    gyroADC[2] = (int16_t)((data[4] << 8) | data[5]);
+    gyroTotal0 -= gyroADCtable0[gyroADCnums];
+    gyroTotal1 -= gyroADCtable1[gyroADCnums];
+    gyroTotal2 -= gyroADCtable2[gyroADCnums];
+
+    gyroADCtable0[gyroADCnums] = (int16_t)((data[0] << 8) | data[1]);
+    gyroADCtable1[gyroADCnums] = (int16_t)((data[2] << 8) | data[3]);
+    gyroADCtable2[gyroADCnums] = (int16_t)((data[4] << 8) | data[5]);
+
+    gyroTotal0 += gyroADCtable0[gyroADCnums];
+    gyroTotal1 += gyroADCtable1[gyroADCnums];
+    gyroTotal2 += gyroADCtable2[gyroADCnums];
+
+    gyroADCnums++;
+    if (gyroADCnums >= 4) {
+    	gyroADCnums = 0;
+    	filterFull = true;
+    }
+
+    return true;
+}
+
+bool mpuGyroRead(int16_t *gyroADC)
+{
+
+	if ( !filterFull ) {
+
+	    uint8_t data[6];
+
+	    bool ack = mpuConfiguration.read(mpuConfiguration.gyroReadXRegister, 6, data);
+	    if (!ack) {
+	        return false;
+	    }
+
+	    gyroADC[0] = (int16_t)((data[0] << 8) | data[1]);
+		gyroADC[1] = (int16_t)((data[2] << 8) | data[3]);
+		gyroADC[2] = (int16_t)((data[4] << 8) | data[5]);
+
+	} else {
+
+		gyroADC[0] = (int16_t)((gyroTotal0 + 2) / 4);
+		gyroADC[1] = (int16_t)((gyroTotal1 + 2) / 4);
+		gyroADC[2] = (int16_t)((gyroTotal2 + 2) / 4);
+
+	}
 
     return true;
 }

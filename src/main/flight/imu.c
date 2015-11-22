@@ -347,6 +347,7 @@ static bool imuIsAccelerometerHealthy(void)
 
     accMagnitude = accMagnitude * 100 / ((int32_t)acc_1G * acc_1G);
 
+    return true;
     // Accept accel readings only in range 0.85g - 1.15g
     return (72 < accMagnitude) && (accMagnitude < 133);
 }

@@ -29,7 +29,7 @@
 #define SPI_SLOW_CLOCK       128 //00.56250 MHz
 #define SPI_STANDARD_CLOCK     4 //09.00000 MHz
 #define SPI_FAST_CLOCK         2 //18.00000 MHz
-#define SPI_ULTRA_FAST_CLOCK   2 //18.00000 MHz
+#define SPI_ULTRAFAST_CLOCK    2 //18.00000 MHz
 
 #endif
 

@@ -203,11 +203,11 @@ ifeq ($(TARGET),REVO)
 ifeq ($(OPBL),NO)
 DEVICE_FLAGS += -DHSE_VALUE=8000000
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405.ld
-.DEFAULT_GOAL := binary
 else
 
 DEVICE_FLAGS += -DHSE_VALUE=8000000
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405_bl.ld
+.DEFAULT_GOAL := binary
 
 endif
 
@@ -833,7 +833,7 @@ OPTIMIZE	 = -O0
 LTO_FLAGS	 = $(OPTIMIZE)
 else
 ifeq ($(TARGET),$(filter $(TARGET),REVO REVONANO SPARKY2))
-OPTIMIZE	 = -Os
+OPTIMIZE	 = -O2
 else
 OPTIMIZE	 = -Os
 endif

@@ -28,6 +28,7 @@ extern gyro_t gyro;
 
 uint32_t targetLooptime;
 static uint8_t mpuDividerDrops;
+static uint8_t gyroFilterRate;
 
 bool getMpuDataStatus(gyro_t *gyro)
 {
@@ -42,15 +43,18 @@ bool gyroSyncCheckUpdate(void) {
 }
 
 void gyroUpdateSampleRate(void) {
-    int gyroSamplePeriod;
-    int minLooptime;
 
-    gyroSamplePeriod = 1000; // gyro sampling rate 8khz
-    minLooptime = 1000;      // 4khz sampling
+    int gyroFrequency;
+    int gyroSampleRate;
+
+    gyroFrequency  = 125;   // gyro sampling rate 8khz
+    gyroSampleRate = 125; // 8khz sampling
+    targetLooptime = 500;  // Wanted looptim
 
     // calculate gyro divider and targetLooptime (expected cycleTime)
-    mpuDividerDrops  = (minLooptime + gyroSamplePeriod -1 ) / gyroSamplePeriod - 1;
-    targetLooptime = (mpuDividerDrops + 1) * gyroSamplePeriod;
+    mpuDividerDrops = ( gyroSampleRate / gyroFrequency ) - 1;
+    gyroFilterRate  = ( targetLooptime / gyroSampleRate );
+
 }
 
 uint8_t gyroMPU6xxxGetDividerDrops(void) {

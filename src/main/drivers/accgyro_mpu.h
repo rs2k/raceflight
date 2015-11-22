@@ -182,6 +182,7 @@ uint8_t determineMPULPF(uint16_t lpf);
 void configureMPUDataReadyInterruptHandling(void);
 void mpuIntExtiInit(void);
 bool mpuAccRead(int16_t *accData);
+bool mpuGyroReadCollect(void);
 bool mpuGyroRead(int16_t *gyroADC);
 mpuDetectionResult_t *detectMpu(const extiConfig_t *configToUse);
 void checkMPUDataReady(bool *mpuDataReadyPtr);

@@ -55,7 +55,6 @@ MEMORY
 REGION_ALIAS("CCSRAM", SRAM);
 REGION_ALIAS("RAM", SRAM);
 
-
 /* Section Definitions */
 SECTIONS
 {
