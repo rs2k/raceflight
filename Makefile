@@ -199,10 +199,20 @@ DEVICE_FLAGS = -DSTM32F411xE
 endif
 
 ifeq ($(TARGET),REVO)
+
+ifeq ($(OPBL),NO)
+DEVICE_FLAGS += -DHSE_VALUE=8000000
+LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405.ld
+.DEFAULT_GOAL := binary
+else
+
 DEVICE_FLAGS += -DHSE_VALUE=8000000
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405_bl.ld
-.DEFAULT_GOAL := binary
+
 endif
+
+endif
+
 ifeq ($(TARGET),REVONANO)
 DEVICE_FLAGS += -DHSE_VALUE=8000000
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f411_bl.ld
@@ -822,8 +832,8 @@ ifeq ($(DEBUG),GDB)
 OPTIMIZE	 = -O0
 LTO_FLAGS	 = $(OPTIMIZE)
 else
-ifeq ($(TARGET),$(filter $(TARGET),REVO REVONANO))
-OPTIMIZE	 = -O3
+ifeq ($(TARGET),$(filter $(TARGET),REVO REVONANO SPARKY2))
+OPTIMIZE	 = -Os
 else
 OPTIMIZE	 = -Os
 endif

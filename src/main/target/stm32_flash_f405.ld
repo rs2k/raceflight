@@ -29,6 +29,9 @@
 *****************************************************************************
 */
 
+/* Entry Point */
+ENTRY(Reset_Handler)
+
 /* Generate a link error if heap and stack don't fit into RAM */
 _Min_Heap_Size = 0;      /* required amount of heap  */
 _Min_Stack_Size = 0x400; /* required amount of stack */
@@ -36,9 +39,9 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 /* Specify the memory areas */
 MEMORY
 {
-	FLASH (rx)      : ORIGIN = 0x08000000, LENGTH = 0x040000 - 0x64
-	INFOX (rx)      : ORIGIN = 0x08000000 + 0x040000 - 0x64, LENGTH = 0x64
-	RAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 128K
+	FLASH (rx)      : ORIGIN = 0x08000000, LENGTH = 0x0e0000 - 0x64
+	INFOX (rx)      : ORIGIN = 0x08000000 + 0x0e0000 - 0x64, LENGTH = 0x64
+	RAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 256K
 	MEMORY_B1 (rx)  : ORIGIN = 0x60000000, LENGTH = 0K
 }
 

@@ -36,6 +36,8 @@
 #define EXTI_CALLBACK_HANDLER_COUNT 1
 #endif
 
+extern volatile bool mpuDataReady = false;
+
 typedef struct extiCallbackHandlerConfig_s {
     IRQn_Type irqn;
     extiCallbackHandlerFunc* fn;
@@ -79,10 +81,36 @@ static void extiHandler(IRQn_Type irqn)
 
 }
 
+#if defined (REVONANO)
+void EXTI15_10_IRQHandler(void) {
+
+	/* Make sure that interrupt flag is set */
+	if (EXTI_GetITStatus(EXTI_Line15) != RESET) {
+		/* Do your stuff when PD0 is changed */
+
+		//MPU_DATA_READY_EXTI_Handler(void);
+		mpuDataReady = true;
+		/* Clear interrupt flag */
+		EXTI_ClearITPendingBit(EXTI_Line15);
+        // Measure the delta in micro seconds between calls to the interrupt handler
+        static uint32_t lastCalledAt = 0;
+        static int32_t callDelta = 0;
+
+        uint32_t now = micros();
+        callDelta = now - lastCalledAt;
+
+        //UNUSED(callDelta);
+        debug[0] = callDelta;
+
+        lastCalledAt = now;
+	}
+}
+#else
 void EXTI15_10_IRQHandler(void)
 {
     extiHandler(EXTI15_10_IRQn);
 }
+#endif
 #if defined(CC3D)
 void EXTI3_IRQHandler(void)
 {
@@ -96,9 +124,32 @@ void EXTI9_5_IRQHandler(void)
 }
 #endif
 #if defined (REVO)
-void EXTI4_IRQHandler(void)
-{
-    extiHandler(EXTI4_IRQn);
+/* Set interrupt handlers */
+/* Handle interrupt */
+void EXTI4_IRQHandler(void) {
+
+	/* Make sure that interrupt flag is set */
+	if (EXTI_GetITStatus(EXTI_Line4) != RESET) {
+		/* Do your stuff when PD0 is changed */
+
+		/* Clear interrupt flag */
+		EXTI_ClearITPendingBit(EXTI_Line4);
+
+		//MPU_DATA_READY_EXTI_Handler(void);
+		mpuDataReady = true;
+
+		// Measure the delta in micro seconds between calls to the interrupt handler
+        static uint32_t lastCalledAt = 0;
+        //static uint32_t callDelta = 0;
+
+        uint32_t now = micros();
+        uint32_t callDelta = now - lastCalledAt;
+
+        //UNUSED(callDelta);
+        debug[0] = callDelta;
+
+        lastCalledAt = now;
+	}
 }
 #endif
 

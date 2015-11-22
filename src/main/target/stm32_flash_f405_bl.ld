@@ -29,18 +29,31 @@
 *****************************************************************************
 */
 
+/* Entry Point */
+ENTRY(Reset_Handler)
+
 /* Generate a link error if heap and stack don't fit into RAM */
 _Min_Heap_Size = 0;      /* required amount of heap  */
 _Min_Stack_Size = 0x400; /* required amount of stack */
 
 /* Specify the memory areas */
+
+/*
+0x08000000 to 0x08100000 1024kb full flash,
+0x08000000 to 0x08020000 128kb OPBL,
+0x08020000 to 0x08080000 384kb firmware,
+0x08080000 to 0x080A0000 128kb config,
+*/
+
 MEMORY
 {
-	FLASH (rx)      : ORIGIN = 0x08020000, LENGTH = 0x0e0000 - 0x1000 - 0x64
-	INFOX (rx)      : ORIGIN = 0x08020000 + 0x0e0000 - 0x1000, LENGTH = 0x64
-	RAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 256K
-	MEMORY_B1 (rx)  : ORIGIN = 0x60000000, LENGTH = 0K
+	FLASH (rx)      : ORIGIN = 0x08020000, LENGTH = 0x000A0000 
+	RAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 0x00020000
+	MEMORY_B1 (rx)  : ORIGIN = 0x60000000, LENGTH = 0x00000000
 }
+
+REGION_ALIAS("CCSRAM", RAM);
+REGION_ALIAS("SRAM", RAM);
 
 /* Section Definitions */
 SECTIONS

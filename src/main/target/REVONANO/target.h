@@ -57,8 +57,8 @@
 #define LED1
 
 // MPU9250 interrupts
-#define USE_MPU_DATA_READY_SIGNAL
-#define EXTI_CALLBACK_HANDLER_COUNT 2 // MPU data ready (mag disabled)
+//#define USE_MPU_DATA_READY_SIGNAL
+#define EXTI_CALLBACK_HANDLER_COUNT 1 // MPU data ready (mag disabled)
 
 
 #define USABLE_TIMER_CHANNEL_COUNT 12
@@ -87,17 +87,20 @@
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 #define USE_SPI_DEVICE_2
-#define USE_SPI_DEVICE_3
+//#define USE_SPI_DEVICE_3
 
 #define USE_I2C
-#define I2C_DEVICE (I2CDEV_1)
+#define I2C_DEVICE (I2CDEV_3)
 
-#define SENSORS_SET (SENSOR_ACC|SENSOR_MAG)
+//#define USE_FLASHFS
+//#define USE_FLASH_M25P16
 
-#define LED_STRIP
-#define LED_STRIP_TIMER TIM5
+//#define SENSORS_SET (SENSOR_ACC|SENSOR_MAG)
 
-#define GPS
+//#define LED_STRIP
+//#define LED_STRIP_TIMER TIM5
+
+//#define GPS
 #define BLACKBOX
 #define TELEMETRY
 #define SERIAL_RX

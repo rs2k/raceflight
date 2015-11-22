@@ -18,17 +18,19 @@
 #pragma once
 
 #if defined(STM32F40_41xxx) || defined (STM32F411xE)
-#define SPI_0_65625MHZ_CLOCK_DIVIDER 128 // 0.65625 MHz
-#define SPI_11_5MHZ_CLOCK_DIVIDER      8 // 11.5 MHz
-#define SPI_21HZ_CLOCK_DIVIDER         4 // 21 MHz
-#define SPI_42MHZ_CLOCK_DIVIDER        2 // 42 MHz
-#define SPI_0_5625MHZ_CLOCK_DIVIDER 128
-#define SPI_9MHZ_CLOCK_DIVIDER      8
-#define SPI_18MHZ_CLOCK_DIVIDER     2
+
+#define SPI_SLOW_CLOCK      128 //00.65625 MHz
+#define SPI_STANDARD_CLOCK    8 //11.50000 MHz
+#define SPI_FAST_CLOCK        4 //21.00000 MHz
+#define SPI_ULTRAFAST_CLOCK   2 //42.00000 MHz
+
 #else
-#define SPI_0_5625MHZ_CLOCK_DIVIDER 128
-#define SPI_9MHZ_CLOCK_DIVIDER      4
-#define SPI_18MHZ_CLOCK_DIVIDER     2
+
+#define SPI_SLOW_CLOCK       128 //00.56250 MHz
+#define SPI_STANDARD_CLOCK     4 //09.00000 MHz
+#define SPI_FAST_CLOCK         2 //18.00000 MHz
+#define SPI_ULTRA_FAST_CLOCK   2 //18.00000 MHz
+
 #endif
 
 bool spiInit(SPI_TypeDef *instance);

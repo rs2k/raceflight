@@ -93,8 +93,12 @@ void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, es
         #define FLASH_PAGE_SIZE                 ((uint16_t)0x800)
     #endif
 
-	#if defined(STM32F40_41xxx) || defined (STM32F411xE)
+	#if defined(STM32F40_41xxx)
     	#define FLASH_PAGE_SIZE                 ((uint32_t)0x20000)
+	#endif
+
+	#if defined (STM32F411xE)
+		#define FLASH_PAGE_SIZE                 ((uint32_t)0x10000)
 	#endif
 
 #endif
@@ -110,8 +114,10 @@ void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, es
 #endif
 
 #if defined(FLASH_SIZE)
-#if defined(STM32F40_41xxx) || defined (STM32F411xE)
-    #define FLASH_PAGE_COUNT 8 // just to make calculations work
+#if defined(STM32F40_41xxx)
+    #define FLASH_PAGE_COUNT 4 // just to make calculations work
+#elif defined (STM32F411xE)
+	#define FLASH_PAGE_COUNT 4 // just to make calculations work
 #else
 	#define FLASH_PAGE_COUNT ((FLASH_SIZE * 0x400) / FLASH_PAGE_SIZE)
 #endif
@@ -131,8 +137,19 @@ void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, es
 #define FLASH_TO_RESERVE_FOR_CONFIG 0x1000
 #endif
 
+
+#if defined(REVO) || defined(SPARKY2)
+//dedicated flash storage since we have so much storage space
+//#define CONFIG_START_FLASH_ADDRESS (0x080E0000) //0x080E0000 to 0x080FFFFF (FLASH_Sector_11
+#define CONFIG_START_FLASH_ADDRESS (0x08080000) //0x08080000 to 0x080A0000 (FLASH_Sector_8)
+#elif defined (REVONANO)
+//dedicated flash storage since we have so much storage space
+#define CONFIG_START_FLASH_ADDRESS (0x08060000) //0x08060000 to 0x08080000 (FLASH_Sector_7)
+#else
 // use the last flash pages for storage
 #define CONFIG_START_FLASH_ADDRESS (0x08000000 + (uint32_t)((FLASH_PAGE_SIZE * FLASH_PAGE_COUNT) - FLASH_TO_RESERVE_FOR_CONFIG))
+#endif
+
 
 master_t masterConfig;                 // master config struct with data independent from profiles
 profile_t *currentProfile;
@@ -382,6 +399,7 @@ static void resetConf(void)
 
     // Clear all configuration
     memset(&masterConfig, 0, sizeof(master_t));
+
     setProfile(0);
     setControlRateProfile(0);
 
@@ -657,7 +675,6 @@ static bool isEEPROMContentValid(void)
 {
     const master_t *temp = (const master_t *) CONFIG_START_FLASH_ADDRESS;
     uint8_t checksum = 0;
-
     // check version number
     if (EEPROM_CONF_VERSION != temp->version)
         return false;
@@ -912,6 +929,12 @@ void writeEEPROM(void)
     // write it
     FLASH_Unlock();
     while (attemptsRemaining--) {
+#ifdef STM32F40_41xxx
+        FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
+#endif
+#ifdef STM32F411xE
+        FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
+#endif
 #ifdef STM32F303
         FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
 #endif
@@ -920,8 +943,11 @@ void writeEEPROM(void)
 #endif
         for (wordOffset = 0; wordOffset < sizeof(master_t); wordOffset += 4) {
             if (wordOffset % FLASH_PAGE_SIZE == 0) {
-#if defined(STM32F40_41xxx) || defined (STM32F411xE)
-            	status = FLASH_EraseSector(FLASH_Sector_11, VoltageRange_3);
+#if defined(STM32F40_41xxx)
+            	//status = FLASH_EraseSector(FLASH_Sector_11, VoltageRange_3); //0x080E0000 to 0x08100000
+            	status = FLASH_EraseSector(FLASH_Sector_8, VoltageRange_3); //0x08080000 to 0x080A0000
+#elif defined (STM32F411xE)
+            	status = FLASH_EraseSector(FLASH_Sector_7, VoltageRange_3); //0x08060000 to 0x08080000
 #else
                 status = FLASH_ErasePage(CONFIG_START_FLASH_ADDRESS + wordOffset);
 #endif
@@ -952,6 +978,7 @@ void writeEEPROM(void)
 
 void ensureEEPROMContainsValidData(void)
 {
+
     if (isEEPROMContentValid()) {
         return;
     }
@@ -963,6 +990,7 @@ void resetEEPROM(void)
 {
     resetConf();
     writeEEPROM();
+
 }
 
 void saveConfigAndNotify(void)

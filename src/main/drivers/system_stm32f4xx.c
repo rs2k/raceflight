@@ -27,44 +27,112 @@
 
 void systemReset(void)
 {
-//	Generate system reset
-//	SCB->AIRCR = AIRCR_VECTKEY_MASK | (uint32_t)0x04;
+	NVIC_CoreReset();
 }
 
 void systemResetToBootloader(void) {
-//	1FFFF000 -> 20000200 -> SP
-//	1FFFF004 -> 1FFFF021 -> PC
-
-//	*((uint32_t *)0x2001FFFC) = 0xDEADBEEF; // 128KB SRAM STM32F40X;
-
-//	systemReset();;
+	NVIC_CoreReset();
 }
 
 void enableGPIOPowerUsageAndNoiseReductions(void)
 {
+
     RCC_AHB1PeriphClockCmd(
         RCC_AHB1Periph_GPIOA |
         RCC_AHB1Periph_GPIOB |
         RCC_AHB1Periph_GPIOC |
         RCC_AHB1Periph_GPIOD |
         RCC_AHB1Periph_GPIOE |
-        RCC_AHB1Periph_GPIOF,
-        ENABLE
+#ifdef STM32F40_41xxx
+        RCC_AHB1Periph_GPIOF |
+        RCC_AHB1Periph_GPIOG |
+        RCC_AHB1Periph_GPIOH |
+        RCC_AHB1Periph_GPIOI |
+#endif
+        RCC_AHB1Periph_CRC |
+        RCC_AHB1Periph_FLITF |
+        RCC_AHB1Periph_SRAM1 |
+        RCC_AHB1Periph_SRAM2 |
+        RCC_AHB1Periph_BKPSRAM |
+        RCC_AHB1Periph_DMA1 |
+        RCC_AHB1Periph_DMA2 |
+		0, ENABLE
     );
 
-    gpio_config_t gpio;
+    RCC_AHB2PeriphClockCmd(
+        0, ENABLE);
+#ifdef STM32F40_41xxx
+    RCC_AHB3PeriphClockCmd(
+        0, ENABLE);
+#endif
+    RCC_APB1PeriphClockCmd(
+        RCC_APB1Periph_TIM2 |
+        RCC_APB1Periph_TIM3 |
+        RCC_APB1Periph_TIM4 |
+        RCC_APB1Periph_TIM5 |
+        RCC_APB1Periph_TIM6 |
+        RCC_APB1Periph_TIM7 |
+        RCC_APB1Periph_TIM12 |
+        RCC_APB1Periph_TIM13 |
+        RCC_APB1Periph_TIM14 |
+        RCC_APB1Periph_WWDG |
+        RCC_APB1Periph_SPI2 |
+        RCC_APB1Periph_SPI3 |
+        RCC_APB1Periph_USART2 |
+        RCC_APB1Periph_USART3 |
+        RCC_APB1Periph_UART4 |
+        RCC_APB1Periph_UART5 |
+        RCC_APB1Periph_I2C1 |
+        RCC_APB1Periph_I2C2 |
+        RCC_APB1Periph_I2C3 |
+        RCC_APB1Periph_CAN1 |
+        RCC_APB1Periph_CAN2 |
+        RCC_APB1Periph_PWR |
+        RCC_APB1Periph_DAC |
+        0, ENABLE);
 
-    gpio.mode = Mode_AIN;
+    RCC_APB2PeriphClockCmd(
+        RCC_APB2Periph_TIM1 |
+        RCC_APB2Periph_TIM8 |
+        RCC_APB2Periph_USART1 |
+        RCC_APB2Periph_USART6 |
+        RCC_APB2Periph_ADC |
+        RCC_APB2Periph_ADC1 |
+        RCC_APB2Periph_ADC2 |
+        RCC_APB2Periph_ADC3 |
+        RCC_APB2Periph_SDIO |
+        RCC_APB2Periph_SPI1 |
+        RCC_APB2Periph_SYSCFG |
+        RCC_APB2Periph_TIM9 |
+        RCC_APB2Periph_TIM10 |
+        RCC_APB2Periph_TIM11 |
+        0, ENABLE);
 
-    gpio.pin = Pin_All & ~(Pin_13|Pin_14|Pin_15);  // Leave JTAG pins alone
-    gpioInit(GPIOA, &gpio);
+    GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_StructInit(&GPIO_InitStructure);
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP; // default is un-pulled input
 
-    gpio.pin = Pin_All;
-    gpioInit(GPIOB, &gpio);
-    gpioInit(GPIOC, &gpio);
-    gpioInit(GPIOD, &gpio);
-    gpioInit(GPIOE, &gpio);
-    gpioInit(GPIOF, &gpio);
+    GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_All;
+    GPIO_InitStructure.GPIO_Pin &= ~(GPIO_Pin_11 | GPIO_Pin_12); // leave USB D+/D- alone
+
+    GPIO_InitStructure.GPIO_Pin &= ~(GPIO_Pin_13 | GPIO_Pin_14); // leave JTAG pins alone
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+    GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_All;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+    GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_All;
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
+    GPIO_Init(GPIOD, &GPIO_InitStructure);
+    GPIO_Init(GPIOE, &GPIO_InitStructure);
+
+#ifdef STM32F40_41xxx
+    GPIO_Init(GPIOF, &GPIO_InitStructure);
+    GPIO_Init(GPIOG, &GPIO_InitStructure);
+    GPIO_Init(GPIOH, &GPIO_InitStructure);
+    GPIO_Init(GPIOI, &GPIO_InitStructure);
+#endif
+
 }
 
 bool isMPUSoftReset(void)

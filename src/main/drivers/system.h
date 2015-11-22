@@ -41,6 +41,8 @@ typedef void extiCallbackHandlerFunc(void);
 void registerExtiCallbackHandler(IRQn_Type irqn, extiCallbackHandlerFunc *fn);
 void unregisterExtiCallbackHandler(IRQn_Type irqn, extiCallbackHandlerFunc *fn);
 
+extern volatile bool mpuDataReady;
+
 extern uint32_t cachedRccCsrValue;
 
 typedef enum {

@@ -178,7 +178,7 @@ void init(void)
     // Configure the Flash Latency cycles and enable prefetch buffer
     SetSysClock(masterConfig.emf_avoidance);
 #endif
-#ifdef STM32F40_41xxx
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
     SetSysClock();
 #endif
 

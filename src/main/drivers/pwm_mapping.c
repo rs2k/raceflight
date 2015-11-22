@@ -391,7 +391,7 @@ static const uint16_t airPWM[] = {
 };
 #endif
 
-#ifdef REVONANO //TODO:  SET FOR REVONANO
+#ifdef REVONANO
 static const uint16_t multiPPM[] = {
     PWM1  | (MAP_TO_PPM_INPUT << 8),     // PPM input
     PWM7  | (MAP_TO_MOTOR_OUTPUT << 8),      // Swap to servo if needed

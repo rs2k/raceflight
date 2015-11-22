@@ -95,9 +95,9 @@ static void mpu6500SpiInit(void)
     GPIO_SetBits(MPU6500_CS_GPIO,   MPU6500_CS_PIN);
 
 #if defined(STM32F40_41xxx) || defined (STM32F411xE)
-    spiSetDivisor(MPU6500_SPI_INSTANCE, SPI_0_65625MHZ_CLOCK_DIVIDER);
+    spiSetDivisor(MPU6500_SPI_INSTANCE, SPI_SLOW_CLOCK);
 #else
-    spiSetDivisor(MPU6500_SPI_INSTANCE, SPI_9MHZ_CLOCK_DIVIDER);
+    spiSetDivisor(MPU6500_SPI_INSTANCE, SPI_STANDARD_CLOCK);
 #endif
 
     hardwareInitialised = true;

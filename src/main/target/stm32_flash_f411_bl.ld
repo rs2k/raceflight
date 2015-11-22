@@ -3,8 +3,8 @@
 **
 **  File        : stm32_flash.ld
 **
-**  Abstract    : Linker script for STM32F407VG Device with
-**                1024KByte FLASH, 128KByte RAM
+**  Abstract    : Linker script for STM32F11 Device with
+**                512KByte FLASH, 128KByte RAM
 **
 **                Set heap size, stack size and stack location according
 **                to application requirements.
@@ -29,18 +29,32 @@
 *****************************************************************************
 */
 
+/* Entry Point */
+ENTRY(Reset_Handler)
+
 /* Generate a link error if heap and stack don't fit into RAM */
-_Min_Heap_Size = 0;      /* required amount of heap  */
-_Min_Stack_Size = 0x400; /* required amount of stack */
+_Min_Heap_Size = 0x2000;      /* required amount of heap  */
+_Min_Stack_Size = 0x4000; /* required amount of stack */
 
 /* Specify the memory areas */
+
+/*
+0x08000000 to 0x08080000 512kb full flash,
+0x08000000 to 0x08010000 64kb OPBL,
+0x08010000 to 0x08060000 320kb firmware,
+0x08060000 to 0x08080000 128kb config,
+*/
+
 MEMORY
 {
-	FLASH (rx)      : ORIGIN = 0x08020000, LENGTH = 400k - 0x1000 - 0x64
-	INFOX (rx)      : ORIGIN = 0x08020000 + 0x0e0000 - 0x1000, LENGTH = 0x64
-	RAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 256K
-	MEMORY_B1 (rx)  : ORIGIN = 0x60000000, LENGTH = 0K
+	FLASH (rx)      : ORIGIN = 0x08010000, LENGTH = 0x00070000 
+	SRAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 0x00020000
+	MEMORY_B1 (rx)  : ORIGIN = 0x60000000, LENGTH = 0x00000000
 }
+
+REGION_ALIAS("CCSRAM", SRAM);
+REGION_ALIAS("RAM", SRAM);
+
 
 /* Section Definitions */
 SECTIONS

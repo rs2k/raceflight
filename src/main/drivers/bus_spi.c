@@ -21,6 +21,7 @@
 #include <platform.h>
 
 #include "build_config.h"
+#include "debug.h"
 
 #include "gpio.h"
 
@@ -259,8 +260,8 @@ void initSpi2(void)
 #endif
 #endif
 
-#if defined(STM32F40_41xxx)  || defined(STM32F411xE)
-    // Specific to the STM32F405 //and STM32F411
+#if defined(STM32F40_41xxx)
+    // Specific to the STM32F405
     // SPI2 Driver
     // PC3    17    SPI2_MOSI
     // PC2    16    SPI2_MISO
@@ -287,7 +288,7 @@ void initSpi2(void)
     gpioInit(GPIOC, &gpio);
 
 #ifdef REVONANO
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
     // NSS as gpio slave select
     // Used for MPU9250 gyro and accelerometer
     gpio.pin = Pin_12;
@@ -308,6 +309,41 @@ void initSpi2(void)
     GPIO_PinAFConfig(GPIOC, GPIO_PinSource3, GPIO_AF_SPI2);
 #endif
 
+#if defined(STM32F411xE)
+
+    // SPI2 Driver
+    // PB15    17    SPI2_MOSI
+    // PB14    16    SPI2_MISO
+    // PB13    15    SPI2_SCK
+    // PB12    14    SPI2_NSS
+
+    gpio_config_t gpio;
+
+    // MOSI + SCK as output
+    gpio.mode = Mode_AF_PP;
+    gpio.pin = Pin_13 | Pin_15;
+    gpio.speed = Speed_50MHz;
+    gpioInit(GPIOB, &gpio);
+
+    // MISO as input
+    gpio.mode = Mode_AF_PP;
+    gpio.pin = Pin_14;
+    gpioInit(GPIOB, &gpio);
+
+#ifdef REVONANO
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+    // NSS as gpio slave select
+    // Used for MPU9250 gyro and accelerometer
+    gpio.pin = Pin_12;
+    gpio.mode = Mode_Out_PP;
+    gpio.speed = Speed_50MHz;
+    gpioInit(GPIOB, &gpio);
+#endif
+
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_SPI2);
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource14, GPIO_AF_SPI2);
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource15, GPIO_AF_SPI2);
+#endif
 
     // Init SPI2 hardware
     SPI_I2S_DeInit(SPI2);
@@ -433,7 +469,7 @@ void initSpi3(void)
 
 bool spiInit(SPI_TypeDef *instance)
 {
-#if (!(defined(USE_SPI_DEVICE_1) && defined(USE_SPI_DEVICE_2) && defined(USE_SPI_DEVICE_3)))
+#if ( !( defined(USE_SPI_DEVICE_1) && defined(USE_SPI_DEVICE_2) && defined(USE_SPI_DEVICE_3)) )
     UNUSED(instance);
 #endif
 
