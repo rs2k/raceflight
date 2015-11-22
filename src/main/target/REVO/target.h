@@ -25,6 +25,10 @@
 #define LED1_PIN    Pin_4  // Orange LEDs - PB4
 #define LED1_PERIPHERAL RCC_AHB1Periph_GPIOB
 
+#define BEEP_GPIO GPIOB
+#define BEEP_PIN Pin_4 // PA2 (Beeper)
+#define BEEP_PERIPHERAL RCC_AHB1Periph_GPIOB
+
 #define INVERTER_PIN Pin_0 // PC0 used as inverter select GPIO
 #define INVERTER_GPIO GPIOC
 #define INVERTER_PERIPHERAL RCC_AHB1Periph_GPIOC
@@ -61,6 +65,7 @@
 //#define MS4525_BUS I2C_DEVICE_EXT
 
 #define INVERTER
+#define BEEPER
 #define LED0
 #define LED1
 
@@ -96,10 +101,14 @@
 #define USART6_APB2_PERIPHERALS RCC_APB2Periph_USART6
 #define USART6_AHB1_PERIPHERALS RCC_AHB1Periph_GPIOC
 
-#define SERIAL_PORT_COUNT 3
+#define SERIAL_PORT_COUNT 4
 
-#define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define USE_SERIAL_1WIRE
+#define ESC_COUNT 6
+#define S1W_TX_GPIO         GPIOA
+#define S1W_TX_PIN          GPIO_Pin_9
+#define S1W_RX_GPIO         GPIOA
+#define S1W_RX_PIN          GPIO_Pin_10
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -108,7 +117,21 @@
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_1)
 
-#define SENSORS_SET (SENSOR_ACC|SENSOR_MAG)
+#define USE_ADC
+
+#define CURRENT_METER_ADC_GPIO      GPIOC
+#define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_1
+#define CURRENT_METER_ADC_CHANNEL   ADC_Channel_11
+
+#define VBAT_ADC_GPIO               GPIOC
+#define VBAT_ADC_GPIO_PIN           GPIO_Pin_2
+#define VBAT_ADC_CHANNEL            ADC_Channel_12
+
+#define RSSI_ADC_GPIO               GPIOA
+#define RSSI_ADC_GPIO_PIN           GPIO_Pin_0
+#define RSSI_ADC_CHANNEL            ADC_Channel_0
+
+#define SENSORS_SET (SENSOR_ACC)
 
 #define LED_STRIP
 #define LED_STRIP_TIMER TIM5

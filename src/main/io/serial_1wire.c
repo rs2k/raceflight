@@ -53,6 +53,27 @@ const escHardware_t escHardware[ESC_COUNT] = {
   { GPIOA, 8 },
   { GPIOB, 4 },
   { GPIOA, 2 }
+#elif REVO
+  { GPIOB, 0 },
+  { GPIOB, 1 },
+  { GPIOA, 3 },
+  { GPIOA, 2 },
+  { GPIOA, 1 },
+  { GPIOA, 0 }
+#elif REVONANO
+  { GPIOA, 10 },
+  { GPIOB, 3 },
+  { GPIOB, 8 },
+  { GPIOB, 9 },
+  { GPIOA, 0 },
+  { GPIOA, 1 }
+#elif SPARKY2
+  { GPIOB, 0 },
+  { GPIOB, 1 },
+  { GPIOA, 3 },
+  { GPIOA, 2 },
+  { GPIOA, 1 },
+  { GPIOA, 0 }
 #elif SPRACINGF3
   { GPIOA, 6 },
   { GPIOA, 7 },
@@ -138,6 +159,16 @@ static void gpioSetOne(uint32_t escIndex, GPIO_Mode mode) {
 }
 #endif
 
+#if defined (STM32F40_41xxx) || defined (STM32F411xE) //TODO need to look at this
+#define disable_hardware_uart  __disable_irq()
+#define enable_hardware_uart   __enable_irq()
+#define ESC_HI(escIndex)       ((escHardware[escIndex].gpio->IDR & (1U << escHardware[escIndex].pinpos)) != (uint32_t)Bit_RESET)
+#define RX_HI                  ((S1W_RX_GPIO->IDR & S1W_RX_PIN) != (uint32_t)Bit_RESET)
+#define ESC_SET_HI(escIndex)   escHardware[escIndex].gpio->BSRRL = (1U << escHardware[escIndex].pinpos)
+#define ESC_SET_LO(escIndex)   escHardware[escIndex].gpio->BSRRH = (1U << escHardware[escIndex].pinpos)
+#define TX_SET_HIGH            S1W_TX_GPIO->BSRRL = S1W_TX_PIN
+#define TX_SET_LO              S1W_TX_GPIO->BSRRH = S1W_TX_PIN
+#else
 #define disable_hardware_uart  __disable_irq()
 #define enable_hardware_uart   __enable_irq()
 #define ESC_HI(escIndex)       ((escHardware[escIndex].gpio->IDR & (1U << escHardware[escIndex].pinpos)) != (uint32_t)Bit_RESET)
@@ -146,6 +177,12 @@ static void gpioSetOne(uint32_t escIndex, GPIO_Mode mode) {
 #define ESC_SET_LO(escIndex)   escHardware[escIndex].gpio->BRR = (1U << escHardware[escIndex].pinpos)
 #define TX_SET_HIGH            S1W_TX_GPIO->BSRR = S1W_TX_PIN
 #define TX_SET_LO              S1W_TX_GPIO->BRR = S1W_TX_PIN
+#endif
+
+#if defined (STM32F40_41xxx) || defined (STM32F411xE) //TODO need to look at this
+#define ESC_INPUT(escIndex)    escHardware[escIndex].gpio->MODER &= ~(GPIO_MODER_MODER0 << (escHardware[escIndex].pinpos * 2))
+#define ESC_OUTPUT(escIndex)   escHardware[escIndex].gpio->MODER |= GPIO_Mode_OUT << (escHardware[escIndex].pinpos * 2)
+#endif
 
 #ifdef STM32F303xC
 #define ESC_INPUT(escIndex)    escHardware[escIndex].gpio->MODER &= ~(GPIO_MODER_MODER0 << (escHardware[escIndex].pinpos * 2))

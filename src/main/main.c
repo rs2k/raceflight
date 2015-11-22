@@ -560,12 +560,123 @@ int main(void) {
     }
 }
 
+void UsageFault_Handler(void)
+{
+    // fall out of the sky
+    uint8_t requiredState = SYSTEM_STATE_CONFIG_LOADED | SYSTEM_STATE_MOTORS_READY;
+    if ((systemState & requiredState) == requiredState) {
+        stopMotors();
+    }
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+    GPIO_InitTypeDef GPIO_InitDef;
+
+    GPIO_InitDef.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_13;
+    GPIO_InitDef.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitDef.GPIO_Mode = GPIO_Mode_OUT;
+    GPIO_InitDef.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_InitDef.GPIO_Speed = GPIO_Speed_100MHz;
+    //Initialize pins
+    GPIO_Init(GPIOC, &GPIO_InitDef);
+
+    volatile int i;
+    while (true) {
+        // Toggle leds
+        GPIO_ToggleBits(GPIOC, GPIO_Pin_14);
+        for (i = 0; i < 50000; i++);
+        GPIO_ToggleBits(GPIOC, GPIO_Pin_14 | GPIO_Pin_13);
+        for (i = 0; i < 50000; i++);
+        // Waste some tome
+    }
+    while (1);
+}
+
+
+void BusFault_Handler(void)
+{
+    // fall out of the sky
+    uint8_t requiredState = SYSTEM_STATE_CONFIG_LOADED | SYSTEM_STATE_MOTORS_READY;
+    if ((systemState & requiredState) == requiredState) {
+        stopMotors();
+    }
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+    GPIO_InitTypeDef GPIO_InitDef;
+
+    GPIO_InitDef.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_13;
+    GPIO_InitDef.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitDef.GPIO_Mode = GPIO_Mode_OUT;
+    GPIO_InitDef.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_InitDef.GPIO_Speed = GPIO_Speed_100MHz;
+    //Initialize pins
+    GPIO_Init(GPIOC, &GPIO_InitDef);
+
+    volatile int i;
+    while (true) {
+        // Toggle leds
+        GPIO_ToggleBits(GPIOC, GPIO_Pin_14);
+        for (i = 0; i < 5000000; i++);
+        GPIO_ToggleBits(GPIOC, GPIO_Pin_14 | GPIO_Pin_13);
+        for (i = 0; i < 5000000; i++);
+        // Waste some tome
+    }
+    while (1);
+}
+
+void MemMang_Handler(void)
+{
+    // fall out of the sky
+    uint8_t requiredState = SYSTEM_STATE_CONFIG_LOADED | SYSTEM_STATE_MOTORS_READY;
+    if ((systemState & requiredState) == requiredState) {
+        stopMotors();
+    }
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+    GPIO_InitTypeDef GPIO_InitDef;
+
+    GPIO_InitDef.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_13;
+    GPIO_InitDef.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitDef.GPIO_Mode = GPIO_Mode_OUT;
+    GPIO_InitDef.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_InitDef.GPIO_Speed = GPIO_Speed_100MHz;
+    //Initialize pins
+    GPIO_Init(GPIOC, &GPIO_InitDef);
+
+    volatile int i;
+    while (true) {
+        // Toggle leds
+        GPIO_ToggleBits(GPIOC, GPIO_Pin_14);
+        for (i = 0; i < 500000; i++);
+        GPIO_ToggleBits(GPIOC, GPIO_Pin_14 | GPIO_Pin_13);
+        for (i = 0; i < 500000; i++);
+        // Waste some tome
+    }
+    while (1);
+}
+
 void HardFault_Handler(void)
 {
     // fall out of the sky
     uint8_t requiredState = SYSTEM_STATE_CONFIG_LOADED | SYSTEM_STATE_MOTORS_READY;
     if ((systemState & requiredState) == requiredState) {
         stopMotors();
+    }
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+    GPIO_InitTypeDef GPIO_InitDef;
+
+    GPIO_InitDef.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_13;
+    GPIO_InitDef.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitDef.GPIO_Mode = GPIO_Mode_OUT;
+    GPIO_InitDef.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_InitDef.GPIO_Speed = GPIO_Speed_100MHz;
+    //Initialize pins
+    GPIO_Init(GPIOC, &GPIO_InitDef);
+
+    volatile int i;
+    while (true) {
+        // Toggle leds
+        GPIO_ToggleBits(GPIOC, GPIO_Pin_14);
+        for (i = 0; i < 500000; i++);
+        GPIO_ToggleBits(GPIOC, GPIO_Pin_14 | GPIO_Pin_13);
+        for (i = 0; i < 500000; i++);
+        // Waste some tome
     }
     while (1);
 }

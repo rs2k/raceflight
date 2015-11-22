@@ -48,11 +48,12 @@ _Min_Stack_Size = 0x4000; /* required amount of stack */
 MEMORY
 {
 	FLASH (rx)      : ORIGIN = 0x08020000, LENGTH = 0x000A0000 
+    CCM (rwx)       : ORIGIN = 0x10000000, LENGTH = 64K
 	RAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 0x00020000
-	MEMORY_B1 (rx)  : ORIGIN = 0x60000000, LENGTH = 0x00000000
+	MEMORY_B1 (rx)  : ORIGIN = 0x60000000, LENGTH = 0K
 }
 
-REGION_ALIAS("CCSRAM", RAM);
+REGION_ALIAS("CCSRAM", CCM);
 REGION_ALIAS("SRAM", RAM);
 
 /* Section Definitions */

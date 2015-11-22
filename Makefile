@@ -158,6 +158,7 @@ USBCORE_SRC = $(notdir $(wildcard $(USBCORE_DIR)/src/*.c))
 USBOTG_DIR	= $(ROOT)/lib/main/STM32_USB_OTG_Driver
 USBOTG_SRC = $(notdir $(wildcard $(USBOTG_DIR)/src/*.c))
 EXCLUDES	= usb_bsp_template.c \
+		usb_conf_template.c \
 		usb_hcd_int.c \
 		usb_hcd.c \
 		usb_otg.c
@@ -591,6 +592,8 @@ CC3D_SRC = \
 REVO_SRC = startup_stm32f40xx.s \
 		   drivers/accgyro_mpu.c \
 		   drivers/accgyro_spi_mpu6000.c \
+		   drivers/adc.c \
+		   drivers/adc_stm32f4xx.c \
 		   drivers/barometer_ms5611.c \
 		   drivers/compass_hmc5883l.c \
 		   drivers/adc.c \
@@ -606,7 +609,6 @@ REVO_SRC = startup_stm32f40xx.s \
 		   drivers/pwm_output.c \
 		   drivers/pwm_rx.c \
 		   drivers/serial_softserial.c \
-		   drivers/serial_escserial.c \
 		   drivers/serial_uart.c \
 		   drivers/serial_uart_stm32f4xx.c \
 		   drivers/sound_beeper_stm32f4xx.c \
@@ -623,6 +625,8 @@ REVONANO_SRC = startup_stm32f411xe.s \
 		   drivers/accgyro_mpu.c \
 		   drivers/accgyro_mpu6500.c \
 		   drivers/accgyro_spi_mpu6500.c \
+		   drivers/adc.c \
+		   drivers/adc_stm32f4xx.c \
 		   drivers/barometer_ms5611.c \
 		   drivers/compass_hmc5883l.c \
 		   drivers/adc.c \
@@ -638,7 +642,6 @@ REVONANO_SRC = startup_stm32f411xe.s \
 		   drivers/pwm_output.c \
 		   drivers/pwm_rx.c \
 		   drivers/serial_softserial.c \
-		   drivers/serial_escserial.c \
 		   drivers/serial_uart.c \
 		   drivers/serial_uart_stm32f4xx.c \
 		   drivers/sound_beeper_stm32f4xx.c \
@@ -671,7 +674,6 @@ SPARKY2_SRC = \
 		   drivers/pwm_output.c \
 		   drivers/pwm_rx.c \
 		   drivers/serial_softserial.c \
-		   drivers/serial_escserial.c \
 		   drivers/serial_uart.c \
 		   drivers/serial_uart_stm32f4xx.c \
 		   drivers/sound_beeper_stm32f4xx.c \
@@ -833,7 +835,7 @@ OPTIMIZE	 = -O0
 LTO_FLAGS	 = $(OPTIMIZE)
 else
 ifeq ($(TARGET),$(filter $(TARGET),REVO REVONANO SPARKY2))
-OPTIMIZE	 = -O2
+OPTIMIZE	 = -O0
 else
 OPTIMIZE	 = -Os
 endif

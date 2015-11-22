@@ -98,7 +98,7 @@ void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, es
 	#endif
 
 	#if defined (STM32F411xE)
-		#define FLASH_PAGE_SIZE                 ((uint32_t)0x10000)
+		#define FLASH_PAGE_SIZE                 ((uint32_t)0x20000)
 	#endif
 
 #endif

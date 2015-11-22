@@ -119,6 +119,9 @@ static void usbVcpWrite(serialPort_t *instance, uint8_t c)
     }
 }
 
+/*
+ * unused functions
+ *
 static void usbVcpBeginWrite(serialPort_t *instance)
 {
     vcpPort_t *port = container_of(instance, vcpPort_t, port);
@@ -131,13 +134,13 @@ static void usbVcpEndWrite(serialPort_t *instance)
     port->buffering = false;
     usbVcpFlush(port);
 }
-
+*/
 uint8_t usbTxBytesFree() {
     // Because we block upon transmit and don't buffer bytes, our "buffer" capacity is effectively unlimited.
     return 255;
 }
 
-const struct serialPortVTable usbVTable[] = { { usbVcpWrite, usbVcpAvailable, usbTxBytesFree, usbVcpRead, usbVcpSetBaudRate, isUsbVcpTransmitBufferEmpty, usbVcpSetMode } };
+const struct serialPortVTable usbVTable[] = { { usbVcpWrite, usbVcpAvailable, usbTxBytesFree, usbVcpRead, usbVcpSetBaudRate, isUsbVcpTransmitBufferEmpty, usbVcpSetMode, 0, 0 } };
 
 serialPort_t *usbVcpOpen(void)
 {

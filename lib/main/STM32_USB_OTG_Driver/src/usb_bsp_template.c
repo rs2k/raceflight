@@ -110,6 +110,8 @@ void USB_OTG_BSP_EnableInterrupt(void)
 
 void USB_OTG_BSP_DriveVBUS(uint32_t speed, uint8_t state)
 {
+	(void)speed;
+	(void)state;
 
 }
 
@@ -122,7 +124,7 @@ void USB_OTG_BSP_DriveVBUS(uint32_t speed, uint8_t state)
 
 void  USB_OTG_BSP_ConfigVBUS(uint32_t speed)
 {
-
+	(void)speed;
 }
 
 /**

@@ -99,6 +99,7 @@ void ust_cpy(LINE_CODING* plc2, const LINE_CODING* plc1)
  */
 static uint16_t VCP_Ctrl(uint32_t Cmd, uint8_t* Buf, uint32_t Len)
 {
+	(void)Len;
    LINE_CODING* plc = (LINE_CODING*)Buf;
 
    assert_param(Len>=sizeof(LINE_CODING));
@@ -197,6 +198,7 @@ uint8_t usbAvailable(void) {
  *******************************************************************************/
 uint32_t CDC_Receive_DATA(uint8_t* recvBuf, uint32_t len)
 {
+	(void)len;
     uint8_t ch = 0;
 
     if (usbAvailable()) {
