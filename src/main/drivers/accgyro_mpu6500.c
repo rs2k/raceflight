@@ -110,7 +110,7 @@ void mpu6500GyroInit(uint16_t lpf)
     delayMicroseconds(1);
     // Data ready interrupt configuration
     mpuConfiguration.write(MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 1 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 0 << 0);  // INT_ANYRD_2CLEAR, BYPASS_EN
-#if defined(USE_MPU_DATA_READY_SIGNAL) || defined(REVONANO)
+#if defined(USE_MPU_DATA_READY_SIGNAL) || defined(REVONANO) || defined(SPARKY2)
     delayMicroseconds(1);
     mpuConfiguration.write(MPU_RA_INT_ENABLE, 0x01); // RAW_RDY_EN interrupt enable
 #endif
