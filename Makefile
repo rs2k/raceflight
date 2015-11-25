@@ -636,8 +636,6 @@ REVONANO_SRC = startup_stm32f411xe.s \
 		   drivers/gpio_stm32f4xx.c \
 		   drivers/inverter.c \
 		   drivers/light_led_stm32f4xx.c \
-		   drivers/light_ws2811strip.c \
-		   drivers/light_ws2811strip_stm32f4xx.c \
 		   drivers/pwm_mapping.c \
 		   drivers/pwm_output.c \
 		   drivers/pwm_rx.c \
@@ -648,8 +646,6 @@ REVONANO_SRC = startup_stm32f411xe.s \
 		   drivers/system_stm32f4xx.c \
 		   drivers/timer.c \
 		   drivers/timer_stm32f4xx.c \
-		   drivers/flash_m25p16.c \
-		   io/flashfs.c \
 		   $(HIGHEND_SRC) \
 		   $(COMMON_SRC) \
 		   $(VCPF4_SRC)
@@ -835,7 +831,7 @@ OPTIMIZE	 = -O0
 LTO_FLAGS	 = $(OPTIMIZE)
 else
 ifeq ($(TARGET),$(filter $(TARGET),REVO REVONANO SPARKY2))
-OPTIMIZE	 = -O0
+OPTIMIZE	 = -Os
 else
 OPTIMIZE	 = -Os
 endif

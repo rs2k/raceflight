@@ -25,6 +25,10 @@
 #define LED1_PIN    Pin_13  // Orange LEDs - PC13
 #define LED1_PERIPHERAL RCC_AHB1Periph_GPIOC
 
+#define BEEP_GPIO GPIOC
+#define BEEP_PIN Pin_13 // Orange LEDs - PC13
+#define BEEP_PERIPHERAL RCC_AHB1Periph_GPIOC
+
 #define INVERTER_PIN Pin_15 // PC15 used as inverter select GPIO
 #define INVERTER_GPIO GPIOC
 #define INVERTER_PERIPHERAL RCC_AHB1Periph_GPIOC
@@ -35,29 +39,29 @@
 #define MPU6500_CS_PIN        GPIO_Pin_12
 #define MPU6500_SPI_INSTANCE  SPI2
 
-#define ACC
-#define USE_ACC_MPU6500
-#define USE_ACC_SPI_MPU6500
-#define ACC_MPU6500_ALIGN CW270_DEG
+//#define ACC
+//#define USE_ACC_MPU6500
+//#define USE_ACC_SPI_MPU6500
+//#define ACC_MPU6500_ALIGN CW270_DEG
 
 #define GYRO
 #define USE_GYRO_MPU6500
 #define USE_GYRO_SPI_MPU6500
 #define GYRO_MPU6500_ALIGN CW270_DEG
 
-#define MAG
+//#define MAG
 //#define USE_MAG_HMC5883
 
-#define BARO
-#define USE_BARO_MS5611
+//#define BARO
+//#define USE_BARO_MS5611
 
 #define INVERTER
-//#define BEEPER
+#define BEEPER
 #define LED0
 #define LED1
 
 // MPU9250 interrupts
-//#define USE_MPU_DATA_READY_SIGNAL
+#define USE_MPU_DATA_READY_SIGNAL
 #define EXTI_CALLBACK_HANDLER_COUNT 1 // MPU data ready (mag disabled)
 
 
@@ -92,8 +96,23 @@
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_3)
 
-//#define USE_FLASHFS
-//#define USE_FLASH_M25P16
+#define USE_ADC
+
+//FLEXI-IO	6
+#define CURRENT_METER_ADC_GPIO      GPIOA
+#define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_7
+#define CURRENT_METER_ADC_CHANNEL   ADC_Channel_7
+
+//FLEXI-IO	7
+#define VBAT_ADC_GPIO               GPIOA
+#define VBAT_ADC_GPIO_PIN           GPIO_Pin_6
+#define VBAT_ADC_CHANNEL            ADC_Channel_6
+
+//FLEXI-IO	8
+#define RSSI_ADC_GPIO               GPIOA
+#define RSSI_ADC_GPIO_PIN           GPIO_Pin_5
+#define RSSI_ADC_CHANNEL            ADC_Channel_5
+
 
 //#define SENSORS_SET (SENSOR_ACC|SENSOR_MAG)
 
@@ -101,9 +120,9 @@
 //#define LED_STRIP_TIMER TIM5
 
 //#define GPS
-#define BLACKBOX
+//#define BLACKBOX
 #define TELEMETRY
 #define SERIAL_RX
-#define GTUNE
+//#define GTUNE
 #define USE_SERVOS
 #define USE_CLI
