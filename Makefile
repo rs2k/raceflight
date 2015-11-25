@@ -21,7 +21,7 @@ TARGET		?= NAZE
 OPTIONS		?=
 
 # compile for OpenPilot BootLoader support
-OPBL ?=no
+OPBL ?=NO
 
 # Debugger optons, must be empty or GDB
 DEBUG ?=
@@ -221,7 +221,11 @@ LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f411_bl.ld
 endif
 ifeq ($(TARGET),SPARKY2)
 DEVICE_FLAGS += -DHSE_VALUE=8000000
+ifeq ($(OPBL),NO)
+LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405.ld
+else
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405_bl.ld
+endif
 .DEFAULT_GOAL := binary
 endif
 TARGET_FLAGS = -D$(TARGET)
