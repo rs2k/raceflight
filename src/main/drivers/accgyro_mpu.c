@@ -274,9 +274,9 @@ void configureMPUDataReadyInterruptHandling(void)
 	/* Add IRQ vector to NVIC */
 	NVIC_InitStruct.NVIC_IRQChannel = EXTI4_IRQn;
 	/* Set priority */
-	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);;
+	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
 	/* Set sub priority */
-	NVIC_InitStruct.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);;
+	NVIC_InitStruct.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
 	/* Enable interrupt */
 	NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
 	/* Add to NVIC */
@@ -285,6 +285,53 @@ void configureMPUDataReadyInterruptHandling(void)
 	registerExtiCallbackHandler(EXTI4_IRQn, MPU_DATA_READY_EXTI_Handler);
 
 	EXTI_ClearITPendingBit(EXTI_Line4);
+
+#elif defined(USE_MPU_DATA_READY_SIGNAL) && defined(SPARKY2)
+
+    GPIO_InitTypeDef GPIO_InitStruct;
+    EXTI_InitTypeDef EXTI_InitStruct;
+    NVIC_InitTypeDef NVIC_InitStruct;
+
+    /* Enable clock for SYSCFG */
+    RCC_APB2PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+    /* Enable clock for SYSCFG */
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+
+    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN;
+    GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_5;
+    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
+    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource5);
+
+    /* PD0 is connected to EXTI_Line0 */
+    EXTI_InitStruct.EXTI_Line = EXTI_Line5;
+    /* Enable interrupt */
+    EXTI_InitStruct.EXTI_LineCmd = ENABLE;
+    /* Interrupt mode */
+    EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
+    /* Triggers on rising and falling edge */
+    EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
+    /* Add to EXTI */
+    EXTI_Init(&EXTI_InitStruct);
+
+    /* Add IRQ vector to NVIC */
+    NVIC_InitStruct.NVIC_IRQChannel = EXTI9_5_IRQn;
+    /* Set priority */
+    NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
+    /* Set sub priority */
+    NVIC_InitStruct.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
+    /* Enable interrupt */
+    NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
+    /* Add to NVIC */
+    NVIC_Init(&NVIC_InitStruct);
+
+	registerExtiCallbackHandler(EXTI9_5_IRQn, MPU_DATA_READY_EXTI_Handler);
+
+	EXTI_ClearITPendingBit(EXTI_Line5);
+
 #elif defined(USE_MPU_DATA_READY_SIGNAL) && defined(REVONANO)
 
 	GPIO_InitTypeDef GPIO_InitStruct;
@@ -319,9 +366,9 @@ void configureMPUDataReadyInterruptHandling(void)
 	/* Add IRQ vector to NVIC */
 	NVIC_InitStruct.NVIC_IRQChannel = EXTI15_10_IRQn;
 	/* Set priority */
-	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);;
+	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
 	/* Set sub priority */
-	NVIC_InitStruct.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);;
+	NVIC_InitStruct.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
 	/* Enable interrupt */
 	NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
 	/* Add to NVIC */
@@ -330,6 +377,7 @@ void configureMPUDataReadyInterruptHandling(void)
 	registerExtiCallbackHandler(EXTI15_10_IRQn, MPU_DATA_READY_EXTI_Handler);
 
 	EXTI_ClearITPendingBit(EXTI_Line15);
+
 #elif defined(USE_MPU_DATA_READY_SIGNAL)
 
 #ifdef STM32F10X
