@@ -203,6 +203,9 @@ void MPU_DATA_READY_EXTI_Handler(void)
 #elif defined (REVONANO)
 	if (EXTI_GetITStatus(EXTI_Line15) != RESET) {
 		EXTI_ClearITPendingBit(EXTI_Line15);
+#elif defined (SPARKY2)
+	if (EXTI_GetITStatus(EXTI_Line5) != RESET) {
+		EXTI_ClearITPendingBit(EXTI_Line5);
 #else
 	if (EXTI_GetITStatus(mpuIntExtiConfig->exti_line) != RESET) {
 		EXTI_ClearITPendingBit(mpuIntExtiConfig->exti_line);
