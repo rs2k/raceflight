@@ -89,34 +89,7 @@ void EXTI3_IRQHandler(void)
     extiHandler(EXTI3_IRQn);
 }
 #endif
-#if defined (SPARKY2)
-void EXTI9_5_IRQHandler(void)
-{
-    /* Make sure that interrupt flag is set */
-    if (EXTI_GetITStatus(EXTI_Line5) != RESET) {
-        /* Do your stuff when PD0 is changed */
-
-        /* Clear interrupt flag */
-        EXTI_ClearITPendingBit(EXTI_Line5);
-
-        //MPU_DATA_READY_EXTI_Handler(void);
-        mpuDataReady = true;
-
-        // Measure the delta in micro seconds between calls to the interrupt handler
-        static uint32_t lastCalledAt = 0;
-        //static uint32_t callDelta = 0;
-
-        uint32_t now = micros();
-        uint32_t callDelta = now - lastCalledAt;
-
-        //UNUSED(callDelta);
-        debug[0] = callDelta;
-
-        lastCalledAt = now;
-    }
-}
-#endif
-#if defined (COLIBRI_RACE)
+#if defined (COLIBRI_RACE) || defined (SPARKY2)
 void EXTI9_5_IRQHandler(void)
 {
     extiHandler(EXTI9_5_IRQn);
