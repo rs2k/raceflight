@@ -54,9 +54,10 @@ static int gyro_i_count = 0;
 static volatile bool mpuDataReady;
 static bool filterFull = false;
 static int gyroADCnums = 0;
-static int16_t gyroADCtable0[4];
-static int16_t gyroADCtable1[4];
-static int16_t gyroADCtable2[4];
+#define gyroFilterLevel 2 //todo move to gyro_sync and calculate.
+static int16_t gyroADCtable0[gyroFilterLevel];
+static int16_t gyroADCtable1[gyroFilterLevel];
+static int16_t gyroADCtable2[gyroFilterLevel];
 static int32_t gyroTotal0 = 0;
 static int32_t gyroTotal1 = 0;
 static int32_t gyroTotal2 = 0;
@@ -222,7 +223,7 @@ void MPU_DATA_READY_EXTI_Handler(void)
 		lastCalledAt = now;
 #endif
 
-		if (gyro_i_count >= 4) { //TODO: cycle time hard coded
+		if (gyro_i_count >= gyroFilterLevel) {
 
 			gyro_i_count = 0;
 
@@ -548,7 +549,7 @@ bool mpuGyroReadCollect(void)
     gyroTotal2 += gyroADCtable2[gyroADCnums];
 
     gyroADCnums++;
-    if (gyroADCnums >= 4) {
+    if (gyroADCnums >= gyroFilterLevel) {
     	gyroADCnums = 0;
     	filterFull = true;
     }
@@ -574,9 +575,9 @@ bool mpuGyroRead(int16_t *gyroADC)
 
 	} else {
 
-		gyroADC[0] = (int16_t)((gyroTotal0 + 2) / 4);
-		gyroADC[1] = (int16_t)((gyroTotal1 + 2) / 4);
-		gyroADC[2] = (int16_t)((gyroTotal2 + 2) / 4);
+		gyroADC[0] = (int16_t)( ( gyroTotal0 + (int)(gyroFilterLevel/2) ) / gyroFilterLevel);
+		gyroADC[1] = (int16_t)( ( gyroTotal1 + (int)(gyroFilterLevel/2) ) / gyroFilterLevel);
+		gyroADC[2] = (int16_t)( ( gyroTotal2 + (int)(gyroFilterLevel/2) ) / gyroFilterLevel);
 
 	}
 

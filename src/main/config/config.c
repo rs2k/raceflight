@@ -262,6 +262,10 @@ void resetEscAndServoConfig(escAndServoConfig_t *escAndServoConfig)
     escAndServoConfig->maxthrottle = 1850;
     escAndServoConfig->mincommand = 1000;
     escAndServoConfig->servoCenterPulse = 1500;
+    //escAndServoConfig->minthrottle = 115;
+    //escAndServoConfig->maxthrottle = 800;
+    //escAndServoConfig->mincommand = 110;
+    //escAndServoConfig->servoCenterPulse = 1500;
 }
 
 void resetFlight3DConfig(flight3DConfig_t *flight3DConfig)

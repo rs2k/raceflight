@@ -123,7 +123,8 @@ void gyroUpdate(void)
     }
     alignSensors(gyroADC, gyroADC, gyroAlign);
 
-    filterApply7TapFIR(gyroADC); // Apply filter to gyro
+    //filter now built into accgyro_mpu
+    //filterApply7TapFIR(gyroADC); // Apply filter to gyro
 
     if (!isGyroCalibrationComplete()) {
         performAcclerationCalibration(gyroConfig->gyroMovementCalibrationThreshold);
