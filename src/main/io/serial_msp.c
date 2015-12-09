@@ -142,10 +142,11 @@ void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, es
 
 #define MULTIWII_IDENTIFIER "MWII";
 #define CLEANFLIGHT_IDENTIFIER "CLFL"
+#define BETAFLIGHT_IDENTIFIER "BTFL"
 #define BASEFLIGHT_IDENTIFIER "BAFL";
 
 #define FLIGHT_CONTROLLER_IDENTIFIER_LENGTH 4
-static const char * const flightControllerIdentifier = CLEANFLIGHT_IDENTIFIER; // 4 UPPER CASE alpha numeric characters that identify the flight controller.
+static const char * const flightControllerIdentifier = BETAFLIGHT_IDENTIFIER; // 4 UPPER CASE alpha numeric characters that identify the flight controller.
 
 #define FLIGHT_CONTROLLER_VERSION_LENGTH    3
 #define FLIGHT_CONTROLLER_VERSION_MASK      0xFFF
@@ -355,6 +356,7 @@ static const box_t boxes[CHECKBOX_ITEM_COUNT + 1] = {
     { BOXSERVO3, "SERVO3;", 25 },
     { BOXBLACKBOX, "BLACKBOX;", 26 },
     { BOXFAILSAFE, "FAILSAFE;", 27 },
+    { BOXAIRMODE, "AIR MODE;", 28 },
     { CHECKBOX_ITEM_COUNT, NULL, 0xFF }
 };
 
@@ -640,6 +642,7 @@ void mspInit(serialConfig_t *serialConfig)
 
     activeBoxIdCount = 0;
     activeBoxIds[activeBoxIdCount++] = BOXARM;
+    activeBoxIds[activeBoxIdCount++] = BOXAIRMODE;
 
     if (sensors(SENSOR_ACC)) {
         activeBoxIds[activeBoxIdCount++] = BOXANGLE;
@@ -833,7 +836,8 @@ static bool processOutCommand(uint8_t cmdMSP)
             IS_ENABLED(FLIGHT_MODE(SONAR_MODE)) << BOXSONAR |
             IS_ENABLED(ARMING_FLAG(ARMED)) << BOXARM |
             IS_ENABLED(IS_RC_MODE_ACTIVE(BOXBLACKBOX)) << BOXBLACKBOX |
-            IS_ENABLED(FLIGHT_MODE(FAILSAFE_MODE)) << BOXFAILSAFE;
+            IS_ENABLED(FLIGHT_MODE(FAILSAFE_MODE)) << BOXFAILSAFE |
+            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXAIRMODE)) << BOXAIRMODE;
         for (i = 0; i < activeBoxIdCount; i++) {
             int flag = (tmp & (1 << activeBoxIds[i]));
             if (flag)
@@ -928,7 +932,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         break;
     case MSP_ARMING_CONFIG:
         headSerialReply(2);
-        serialize8(masterConfig.auto_disarm_delay); 
+        serialize8(masterConfig.auto_disarm_delay);
         serialize8(masterConfig.disarm_kill_switch);
         break;
     case MSP_LOOP_TIME:
@@ -1523,7 +1527,7 @@ static bool processInCommand(void)
         }
 #endif
         break;
-        
+
     case MSP_SET_SERVO_MIX_RULE:
 #ifdef USE_SERVOS
         i = read8();
@@ -1541,7 +1545,7 @@ static bool processInCommand(void)
         }
 #endif
         break;
-        
+
     case MSP_RESET_CONF:
         if (!ARMING_FLAG(ARMED)) {
             resetEEPROM();
@@ -1786,25 +1790,50 @@ static bool processInCommand(void)
             // 0xFF -> preinitialize the Passthrough
             // switch all motor lines HI
             usb1WireInitialize();
+            // reply the count of ESC found
+            headSerialReply(1);
+            serialize8(escCount);
+
             // and come back right afterwards
             // rem: App: Wait at least appx. 500 ms for BLHeli to jump into
             // bootloader mode before try to connect any ESC
+
+            return true;
         }
         else {
             // Check for channel number 0..ESC_COUNT-1
-            if (i < ESC_COUNT) {
+            if (i < escCount) {
                 // because we do not come back after calling usb1WirePassthrough
                 // proceed with a success reply first
                 headSerialReply(0);
                 tailSerialReply();
                 // wait for all data to send
-                while (!isSerialTransmitBufferEmpty(mspSerialPort)) {
-                    delay(50);
-                }
+                waitForSerialPortToFinishTransmitting(currentPort->port);
                 // Start to activate here
                 // motor 1 => index 0
+                
+                // search currentPort portIndex
+                /* next lines seems to be unnecessary, because the currentPort always point to the same mspPorts[portIndex]
+                uint8_t portIndex;	
+				for (portIndex = 0; portIndex < MAX_MSP_PORT_COUNT; portIndex++) {
+					if (currentPort == &mspPorts[portIndex]) {
+						break;
+					}
+				}
+				*/
+                mspReleasePortIfAllocated(mspSerialPort); // CloseSerialPort also marks currentPort as UNUSED_PORT
                 usb1WirePassthrough(i);
-                // MPS uart is active again
+                // Wait a bit more to let App read the 0 byte and switch baudrate
+                // 2ms will most likely do the job, but give some grace time
+                delay(10);
+                // rebuild/refill currentPort structure, does openSerialPort if marked UNUSED_PORT - used ports are skiped
+                mspAllocateSerialPorts(&masterConfig.serialConfig);
+                /* restore currentPort and mspSerialPort
+                setCurrentPort(&mspPorts[portIndex]); // not needed same index will be restored
+                */ 
+                // former used MSP uart is active again
+                // restore MSP_SET_1WIRE as current command for correct headSerialReply(0)
+                currentPort->cmdMSP = MSP_SET_1WIRE;
             } else {
                 // ESC channel higher than max. allowed
                 // rem: BLHeliSuite will not support more than 8
@@ -1908,10 +1937,7 @@ void mspProcess(void)
         }
 
         if (isRebootScheduled) {
-            // pause a little while to allow response to be sent
-            while (!isSerialTransmitBufferEmpty(candidatePort->port)) {
-                delay(50);
-            }
+            waitForSerialPortToFinishTransmitting(candidatePort->port);
             stopMotors();
             handleOneshotFeatureChangeOnRestart();
             systemReset();

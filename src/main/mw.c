@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "debug.h"
 #include "platform.h"
 
 #include "common/maths.h"
@@ -38,6 +37,7 @@
 #include "drivers/gpio.h"
 #include "drivers/system.h"
 #include "drivers/serial.h"
+#include "drivers/bus_bst.h"
 #include "drivers/timer.h"
 #include "drivers/pwm_rx.h"
 #include "drivers/gyro_sync.h"
@@ -60,6 +60,7 @@
 #include "io/gps.h"
 #include "io/ledstrip.h"
 #include "io/serial.h"
+#include "io/i2c_bst.h"
 #include "io/serial_cli.h"
 #include "io/serial_msp.h"
 #include "io/statusindicator.h"
@@ -97,7 +98,12 @@ enum {
 #define IBATINTERVAL (6 * 3500)
 #define GYRO_WATCHDOG_DELAY 100  // Watchdog for boards without interrupt for gyro
 #define PREVENT_RX_PROCESS_PRE_LOOP_TRIGGER 80 // Prevent RX processing before expected loop trigger
+#define PREVENT_BARO_READ_PRE_LOOP_TRIGGER 150 // Prevent BARO processing before expected loop trigger
 #define GYRO_RATE 0.001f  // Gyro refresh rate 1khz
+
+// AIR MODE Reset timers
+#define ERROR_RESET_DEACTIVATE_DELAY (1 * 1000)   // 1 sec delay to disable AIR MODE Iterm resetting
+bool allowITermShrinkOnly = false;
 
 uint32_t currentTime = 0;
 uint32_t previousTime = 0;
@@ -277,7 +283,9 @@ void annexCode(void)
         rcCommand[PITCH] = rcCommand_PITCH;
     }
 
-    filterRc();  // rcCommand smoothing function
+    if (masterConfig.rxConfig.rcSmoothing) {
+        filterRc();  // rcCommand smoothing function
+    }
 
     if (feature(FEATURE_VBAT)) {
         if (cmp32(currentTime, vbatLastServiced) >= VBATINTERVAL) {
@@ -480,7 +488,7 @@ typedef enum {
 #define PERIODIC_TASK_COUNT (UPDATE_DISPLAY_TASK + 1)
 
 
-void executePeriodicTasks(void)
+void executePeriodicTasks(bool skipBaroUpdate)
 {
     static int periodicTaskIndex = 0;
 
@@ -495,7 +503,7 @@ void executePeriodicTasks(void)
 
 #ifdef BARO
     case UPDATE_BARO_TASK:
-        if (sensors(SENSOR_BARO)) {
+        if (sensors(SENSOR_BARO) && !(skipBaroUpdate)) {
             baroUpdate(currentTime);
         }
         break;
@@ -561,9 +569,37 @@ void processRx(void)
 
     throttleStatus_e throttleStatus = calculateThrottleStatus(&masterConfig.rxConfig, masterConfig.flight3DConfig.deadband3d_throttle);
 
-    if (throttleStatus == THROTTLE_LOW) {
-        pidResetErrorAngle();
-        pidResetErrorGyro();
+    static bool airModeErrorResetIsEnabled = true; // Should always initialize with reset enabled
+    static uint32_t airModeErrorResetTimeout = 0;  // Timeout for both activate and deactivate mode
+
+    if (throttleStatus == THROTTLE_LOW)  {
+        // When in AIR Mode LOW Throttle and reset was already disabled we will only prevent further growing
+        if ((IS_RC_MODE_ACTIVE(BOXAIRMODE)) && !airModeErrorResetIsEnabled)  {
+            if (calculateRollPitchCenterStatus(&masterConfig.rxConfig) == CENTERED) {
+                allowITermShrinkOnly = true;   // Iterm is now only allowed to shrink
+            } else {
+                allowITermShrinkOnly = false;   // Iterm should considered safe to increase
+            }
+        }
+
+        // Conditions to reset Error
+        if (!ARMING_FLAG(ARMED) || feature(FEATURE_MOTOR_STOP) || ((IS_RC_MODE_ACTIVE(BOXAIRMODE)) && airModeErrorResetIsEnabled) || !IS_RC_MODE_ACTIVE(BOXAIRMODE)) {
+            pidResetErrorGyro();
+            airModeErrorResetTimeout = millis() + ERROR_RESET_DEACTIVATE_DELAY; // Reset de-activate timer
+            airModeErrorResetIsEnabled = true;                                  // Enable Reset again especially after Disarm
+            allowITermShrinkOnly = false;                                       // Disable shrink especially after Disarm
+        }
+    } else {
+        if (!(feature(FEATURE_MOTOR_STOP)) && ARMING_FLAG(ARMED) && IS_RC_MODE_ACTIVE(BOXAIRMODE)) {
+            if (airModeErrorResetIsEnabled) {
+                if (millis() > airModeErrorResetTimeout && calculateRollPitchCenterStatus(&masterConfig.rxConfig) == NOT_CENTERED) {  // Only disable error reset when roll and pitch not centered
+                    airModeErrorResetIsEnabled = false;
+                    allowITermShrinkOnly = false;   // Reset shrinking for Iterm
+                }
+            } else {
+                allowITermShrinkOnly = false;   // Reset shrinking for Iterm
+            }
+        }
     }
 
     // When armed and motors aren't spinning, do beeps and then disarm
@@ -630,7 +666,6 @@ void processRx(void)
     	canUseHorizonMode = false;
 
         if (!FLIGHT_MODE(ANGLE_MODE)) {
-            pidResetErrorAngle();
             ENABLE_FLIGHT_MODE(ANGLE_MODE);
         }
     } else {
@@ -642,7 +677,6 @@ void processRx(void)
         DISABLE_FLIGHT_MODE(ANGLE_MODE);
 
         if (!FLIGHT_MODE(HORIZON_MODE)) {
-            pidResetErrorAngle();
             ENABLE_FLIGHT_MODE(HORIZON_MODE);
         }
     } else {
@@ -714,6 +748,7 @@ void loop(void)
 {
     static uint32_t loopTime;
     static bool haveProcessedRxOnceBeforeLoop = false;
+    bool skipBaroUpdate = false;
 
 #if defined(BARO) || defined(SONAR)
     static bool haveProcessedAnnexCodeOnce = false;
@@ -745,8 +780,12 @@ void loop(void)
 #endif
 
     } else {
+        if ((int32_t)(currentTime - (loopTime - PREVENT_BARO_READ_PRE_LOOP_TRIGGER)) >= 0) {
+            skipBaroUpdate = true;
+        }
+
         // not processing rx this iteration
-        executePeriodicTasks();
+        executePeriodicTasks(skipBaroUpdate);
 
         // if GPS feature is enabled, gpsThread() will be called at some intervals to check for stuck
         // hardware, wrong baud rates, init GPS if needed, etc. Don't use SENSOR_GPS here as gpsThread() can and will
@@ -765,11 +804,11 @@ void loop(void)
 
         haveProcessedRxOnceBeforeLoop = false;
 
+        imuUpdateGyro();
+
         // Determine current flight mode. When no acc needed in pid calculations we should only read gyro to reduce latency
-        if (!flightModeFlags) {
-            imuUpdate(&currentProfile->accelerometerTrims, ONLY_GYRO);  // When no level modes active read only gyro
-        } else {
-            imuUpdate(&currentProfile->accelerometerTrims, ACC_AND_GYRO);  // When level modes active read gyro and acc
+        if (flightModeFlags) {
+            imuUpdateAcc(&currentProfile->accelerometerTrims);  // When level modes active read gyro and acc
         }
 
         // Measure loop rate just after reading the sensors
@@ -850,7 +889,7 @@ void loop(void)
 
         // When no level modes active read acc after motor update
         if (!flightModeFlags) {
-            imuUpdate(&currentProfile->accelerometerTrims, ONLY_ACC);
+        	imuUpdateAcc(&currentProfile->accelerometerTrims);
         }
 
 #ifdef BLACKBOX
@@ -865,6 +904,12 @@ void loop(void)
         telemetryProcess(&masterConfig.rxConfig, masterConfig.flight3DConfig.deadband3d_throttle);
     }
 #endif
+
+#ifdef USE_BST
+    bstProcess();
+    bstMasterWriteLoop();
+#endif
+
 
 #ifdef LED_STRIP
     if (feature(FEATURE_LED_STRIP)) {

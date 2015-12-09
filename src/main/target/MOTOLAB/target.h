@@ -41,14 +41,23 @@
 //#define ENSURE_MPU_DATA_READY_IS_LOW
 
 #define GYRO
-#define USE_GYRO_MPU6050
+#define ACC
 
+#define USE_GYRO_MPU6050
 #define GYRO_MPU6050_ALIGN CW180_DEG
 
-#define ACC
 #define USE_ACC_MPU6050
 
 #define ACC_MPU6050_ALIGN CW180_DEG
+
+#define USE_GYRO_SPI_MPU6000
+#define GYRO_MPU6000_ALIGN CW180_DEG
+#define USE_ACC_SPI_MPU6000
+#define ACC_MPU6000_ALIGN CW180_DEG
+
+#define MPU6000_CS_GPIO GPIOB
+#define MPU6000_CS_PIN GPIO_Pin_12
+#define MPU6000_SPI_INSTANCE SPI2
 
 //#define BARO
 //#define USE_BARO_MS5611
@@ -172,13 +181,13 @@
 #endif
 
 
-//#define SPEKTRUM_BIND
+#define SPEKTRUM_BIND
 // USART2, PB4
 #define BIND_PORT GPIOB
 #define BIND_PIN Pin_4
 
 #define USE_SERIAL_1WIRE
-#define ESC_COUNT 8
+
 #define S1W_TX_GPIO         GPIOB
 #define S1W_TX_PIN          GPIO_Pin_6
 #define S1W_RX_GPIO         GPIOB
