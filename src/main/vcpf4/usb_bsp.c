@@ -89,14 +89,6 @@ void USB_OTG_BSP_Init(USB_OTG_CORE_HANDLE *pdev)
 
   /* this for ID line debug */
 #ifdef VBUS_SENSING_ENABLED
-#ifdef COLIBRI
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_25MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP ;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
-#endif
 #ifdef REVO
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;

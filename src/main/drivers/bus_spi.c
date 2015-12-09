@@ -140,7 +140,7 @@ void initSpi1(void)
     gpio.speed = Speed_50MHz;
     gpioInit(GPIOA, &gpio);
 #endif
-#if defined(COLIBRI) || defined(SPARKY2)
+#if defined(SPARKY2)
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
     // NSS as gpio slave select
     gpio.pin = Pin_4;
@@ -291,14 +291,6 @@ void initSpi2(void)
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
     // NSS as gpio slave select
     // Used for MPU9250 gyro and accelerometer
-    gpio.pin = Pin_12;
-    gpio.mode = Mode_Out_PP;
-    gpioInit(GPIOB, &gpio);
-#endif
-
-#ifdef COLIBRI
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-    // NSS as gpio slave select
     gpio.pin = Pin_12;
     gpio.mode = Mode_Out_PP;
     gpioInit(GPIOB, &gpio);
