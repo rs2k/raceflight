@@ -497,10 +497,10 @@ void configTimeBase(TIM_TypeDef *tim, uint16_t period, uint8_t mhz)
     else
     	TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock / 2 / ((uint32_t)mhz * 1000000)) - 1;
 #elif defined (STM32F411xE)
-    if(tim == TIM1 || tim == TIM8 || tim == TIM9|| tim == TIM10|| tim == TIM11)
+    if(tim == TIM1 || tim == TIM9 || tim == TIM10 || tim == TIM11)
 		TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock / ((uint32_t)mhz * 1000000)) - 1;
     else
-    	TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock / 2 / ((uint32_t)mhz * 1000000)) - 1;
+    	TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock / 1 / ((uint32_t)mhz * 1000000)) - 1;
 #else
     TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock / ((uint32_t)mhz * 1000000)) - 1;
 #endif
@@ -929,12 +929,14 @@ _TIM_IRQ_HANDLER(TIM8_UP_TIM13_IRQHandler, 8);
 # else  // f10x_hd, f30x
 _TIM_IRQ_HANDLER(TIM8_UP_IRQHandler, 8);
 # endif
-# if defined(STM32F40_41xxx) || defined (STM32F411xE)
+# if defined(STM32F40_41xxx)
 #  if USED_TIMERS & TIM_N(13)
 _TIM_IRQ_HANDLER2(TIM8_UP_TIM13_IRQHandler, 8,13);  // both timers are in use
 #  else
 _TIM_IRQ_HANDLER(TIM8_UP_TIM13_IRQHandler, 8);     // timer13 is not used
 #  endif
+# endif
+# if defined (STM32F411xE)
 # endif
 #endif
 #if USED_TIMERS & TIM_N(9)

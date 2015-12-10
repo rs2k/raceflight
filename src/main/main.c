@@ -593,6 +593,7 @@ void UsageFault_Handler(void)
 
 void BusFault_Handler(void)
 {
+
     // fall out of the sky
     uint8_t requiredState = SYSTEM_STATE_CONFIG_LOADED | SYSTEM_STATE_MOTORS_READY;
     if ((systemState & requiredState) == requiredState) {

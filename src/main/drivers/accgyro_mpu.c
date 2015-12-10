@@ -212,9 +212,6 @@ void MPU_DATA_READY_EXTI_Handler(void)
 		EXTI_ClearITPendingBit(mpuIntExtiConfig->exti_line);
 #endif
 
-		gyro_i_count++;
-		mpuGyroReadCollect();
-
 #ifdef DEBUG_MPU_DATA_READY_INTERRUPT
 		static uint32_t lastCalledAt = 0;
 		uint32_t now = micros();
@@ -222,6 +219,12 @@ void MPU_DATA_READY_EXTI_Handler(void)
         debug[0] = callDelta;
 		lastCalledAt = now;
 #endif
+
+		if (callDelta < 100) {
+			return;
+		}
+		gyro_i_count++;
+		mpuGyroReadCollect();
 
 		if (gyro_i_count >= gyroFilterLevel) {
 
@@ -543,6 +546,7 @@ bool mpuGyroReadCollect(void)
     gyroADCtable0[gyroADCnums] = (int16_t)((data[0] << 8) | data[1]);
     gyroADCtable1[gyroADCnums] = (int16_t)((data[2] << 8) | data[3]);
     gyroADCtable2[gyroADCnums] = (int16_t)((data[4] << 8) | data[5]);
+	debug[2] = gyroADCtable2[gyroADCnums];
 
     gyroTotal0 += gyroADCtable0[gyroADCnums];
     gyroTotal1 += gyroADCtable1[gyroADCnums];
@@ -580,6 +584,7 @@ bool mpuGyroRead(int16_t *gyroADC)
 		gyroADC[2] = (int16_t)( ( gyroTotal2 + (int)(gyroFilterLevel/2) ) / gyroFilterLevel);
 
 	}
+	debug[3] = gyroADC[2];
 
     return true;
 }

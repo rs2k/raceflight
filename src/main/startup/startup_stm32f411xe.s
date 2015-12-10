@@ -101,12 +101,6 @@ LoopFillZerobss:
   cmp  r2, r3
   bcc  FillZerobss
 
-/*FPU settings*/
- ldr     r0, =0xE000ED88           /* Enable CP10,CP11 */
- ldr     r1,[r0]
- orr     r1,r1,#(0xF << 20)
- str     r1,[r0]
-
 /* Call the clock system intitialization function.*/
   bl  SystemInit   
 
@@ -180,7 +174,7 @@ g_pfnVectors:
   .word     DMA1_Stream4_IRQHandler           /* DMA1 Stream 4                */                   
   .word     DMA1_Stream5_IRQHandler           /* DMA1 Stream 5                */                   
   .word     DMA1_Stream6_IRQHandler           /* DMA1 Stream 6                */                   
-  .word     0                    /* ADC1, ADC2 and ADC3s         */
+  .word     ADC_IRQHandler                    /* ADC1, ADC2 and ADC3s         */
   .word     0                /* CAN1 TX                      */
   .word     0               /* CAN1 RX0                     */
   .word     0               /* CAN1 RX1                     */
@@ -244,7 +238,10 @@ g_pfnVectors:
   .word     0                   /* CRYP crypto                  */
   .word     0               /* Hash and Rng                 */
   .word     FPU_IRQHandler                    /* FPU                          */
-
+  .word     0                                 /* Reserved                     */
+  .word     0                                 /* Reserved                     */
+  .word     SPI4_IRQHandler                   /* SPI4                         */
+  .word     SPI5_IRQHandler                   /* SPI5                         */
 /*******************************************************************************
 *
 * Provide weak aliases for each Exception handler to the Default_Handler. 
@@ -443,5 +440,11 @@ g_pfnVectors:
 
    .weak      FPU_IRQHandler                  
    .thumb_set FPU_IRQHandler,Default_Handler  
+
+   .weak      SPI4_IRQHandler
+   .thumb_set SPI4_IRQHandler,Default_Handler
+
+   .weak      SPI5_IRQHandler
+   .thumb_set SPI5_IRQHandler,Default_Handler
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

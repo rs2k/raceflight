@@ -214,10 +214,14 @@ LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405_bl.ld
 endif
 
 endif
-
+ 
 ifeq ($(TARGET),REVONANO)
 DEVICE_FLAGS += -DHSE_VALUE=8000000
+ifeq ($(OPBL),NO)
+LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f411.ld
+else
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f411_bl.ld
+endif
 .DEFAULT_GOAL := binary
 endif
 ifeq ($(TARGET),SPARKY2)

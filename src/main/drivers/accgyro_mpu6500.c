@@ -90,7 +90,8 @@ void mpu6500GyroInit(uint16_t lpf)
 
     mpuIntExtiInit();
 
-    uint8_t mpuLowPassFilter = determineMPULPF(lpf);
+    //uint8_t mpuLowPassFilter = determineMPULPF(lpf);
+    uint8_t mpuLowPassFilter = 7; //8khz, DLPF3600
 
     mpuConfiguration.write(MPU_RA_PWR_MGMT_1, MPU6500_BIT_RESET);
     delay(100);
@@ -100,7 +101,7 @@ void mpu6500GyroInit(uint16_t lpf)
     delay(100);
     mpuConfiguration.write(MPU_RA_PWR_MGMT_1, INV_CLK_PLL);
     delayMicroseconds(1);
-    mpuConfiguration.write(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3);
+    mpuConfiguration.write(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3); //Fchoice_b defaults to 00 which makes fchoice 11
     delayMicroseconds(1);
     mpuConfiguration.write(MPU_RA_ACCEL_CONFIG, INV_FSR_8G << 3);
     delayMicroseconds(1);

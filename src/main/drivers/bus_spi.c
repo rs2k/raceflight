@@ -287,15 +287,6 @@ void initSpi2(void)
     gpio.mode = Mode_AF_PP;
     gpioInit(GPIOC, &gpio);
 
-#ifdef REVONANO
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
-    // NSS as gpio slave select
-    // Used for MPU9250 gyro and accelerometer
-    gpio.pin = Pin_12;
-    gpio.mode = Mode_Out_PP;
-    gpioInit(GPIOB, &gpio);
-#endif
-
     GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_SPI2);
     GPIO_PinAFConfig(GPIOC, GPIO_PinSource2, GPIO_AF_SPI2);
     GPIO_PinAFConfig(GPIOC, GPIO_PinSource3, GPIO_AF_SPI2);
