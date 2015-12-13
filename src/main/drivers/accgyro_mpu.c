@@ -54,8 +54,9 @@ static int gyro_i_count = 0;
 static volatile bool mpuDataReady;
 static bool filterFull = false;
 static int gyroADCnums = 0;
-#if defined(REVONANO)
-#define gyroFilterLevel 8 //todo move to gyro_sync and calculate.
+#if defined(REVONANO) || defined(SPARKY2)
+//#define gyroFilterLevel 8 //todo move to gyro_sync and calculate.
+#define gyroFilterLevel 2 //todo move to gyro_sync and calculate.
 #else
 #define gyroFilterLevel 2 //todo move to gyro_sync and calculate.
 #endif

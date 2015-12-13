@@ -46,13 +46,15 @@ void gyroUpdateSampleRate(void) {
 
     int gyroFrequency;
     int gyroSampleRate;
-#if defined(REVONANO)
-    gyroFrequency  = 31;   // gyro sampling rate 8khz
-    gyroSampleRate = 31; // 8khz sampling
+#if defined(REVONANO) || defined(SPARKY2)
+    //gyroFrequency  = 31; // gyro sampling rate 32khz
+    //gyroSampleRate = 31; // 32khz sampling
+    gyroFrequency  = 125;  // gyro sampling rate 8khz
+    gyroSampleRate = 125;  // 8khz sampling
     targetLooptime = 250;  // Wanted looptime
 #else
-    gyroFrequency  = 125;   // gyro sampling rate 8khz
-    gyroSampleRate = 125; // 8khz sampling
+    gyroFrequency  = 125;  // gyro sampling rate 8khz
+    gyroSampleRate = 125;  // 8khz sampling
     targetLooptime = 250;  // Wanted looptime
 #endif
 

@@ -134,7 +134,7 @@ void mpu6000SpiGyroInit(uint8_t lpf)
     spiSetDivisor(MPU6000_SPI_INSTANCE, SPI_FAST_CLOCK); //highspeed
 
     // Accel and Gyro DLPF Setting
-    mpu6000WriteRegister(MPU6000_CONFIG, 7);
+    mpu6000WriteRegister(MPU6000_CONFIG, 0);
     delayMicroseconds(1);
 
     int16_t data[3];
