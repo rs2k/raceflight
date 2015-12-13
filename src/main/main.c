@@ -44,6 +44,7 @@
 #include "drivers/pwm_rx.h"
 #include "drivers/adc.h"
 #include "drivers/bus_i2c.h"
+#include "drivers/bus_bst.h"
 #include "drivers/bus_spi.h"
 #include "drivers/inverter.h"
 #include "drivers/flash_m25p16.h"
@@ -306,6 +307,10 @@ void init(void)
 #endif
     };
 #ifdef NAZE
+#ifdef AFROMINI
+    beeperConfig.gpioMode = Mode_Out_PP;   // AFROMINI override
+    beeperConfig.isInverted = true;
+#endif
     if (hardwareRevision >= NAZE32_REV5) {
         // naze rev4 and below used opendrain to PNP for buzzer. Rev5 and above use PP to NPN.
         beeperConfig.gpioMode = Mode_Out_PP;
@@ -318,6 +323,10 @@ void init(void)
 
 #ifdef INVERTER
     initInverter();
+#endif
+
+#ifdef USE_BST
+    bstInit(BST_DEVICE);
 #endif
 
 
@@ -398,7 +407,7 @@ void init(void)
     }
 #endif
 
-    if (!sensorsAutodetect(&masterConfig.sensorAlignmentConfig, masterConfig.acc_hardware, masterConfig.mag_hardware, masterConfig.baro_hardware, currentProfile->mag_declination)) {
+    if (!sensorsAutodetect(&masterConfig.sensorAlignmentConfig, masterConfig.acc_hardware, masterConfig.mag_hardware, masterConfig.baro_hardware, currentProfile->mag_declination, masterConfig.gyro_lpf)) {
         // if gyro was not detected due to whatever reason, we give up now.
         failureMode(FAILURE_MISSING_ACC);
     }

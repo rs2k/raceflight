@@ -27,6 +27,7 @@ extern int32_t accSum[XYZ_AXIS_COUNT];
 #define DEGREES_TO_DECIDEGREES(angle) (angle * 10)
 #define DECIDEGREES_TO_DEGREES(angle) (angle / 10)
 #define DECIDEGREES_TO_RADIANS(angle) ((angle / 10.0f) * 0.0174532925f)
+#define DEGREES_TO_RADIANS(angle) ((angle) * 0.0174532925f)
 
 typedef union {
     int16_t raw[XYZ_AXIS_COUNT];
@@ -65,12 +66,6 @@ typedef enum {
     ACCPROC_COPY
 } accProcessorState_e;
 
-typedef enum {
-    ONLY_GYRO = 0,
-    ONLY_ACC,
-    ACC_AND_GYRO
-} imuUpdateMode_e;
-
 typedef struct accProcessor_s {
     accProcessorState_e state;
 } accProcessor_t;
@@ -91,4 +86,5 @@ float calculateAccZLowPassFilterRCTimeConstant(float accz_lpf_cutoff);
 int16_t imuCalculateHeading(t_fp_vector *vec);
 
 void imuResetAccelerationSum(void);
-void imuUpdate(rollAndPitchTrims_t *accelerometerTrims, uint8_t imuUpdateSensors);
+void imuUpdateGyro(void);
+void imuUpdateAcc(rollAndPitchTrims_t *accelerometerTrims);

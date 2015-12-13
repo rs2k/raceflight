@@ -13,24 +13,18 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Ported from https://github.com/4712/BLHeliSuite/blob/master/Interfaces/Arduino1Wire/Source/Arduino1Wire_C/Arduino1Wire.c
- *  by Nathan Tsoi <nathan@vertile.com>
  */
 
 #pragma once
 
-#ifdef USE_SERIAL_1WIRE
+#include "drivers/bus_bst.h"
 
-extern uint8_t escCount;
+void bstProcess(void);
 
-typedef struct {
-    GPIO_TypeDef* gpio;
-    uint16_t pinpos;
-    uint16_t pin;
-} escHardware_t;
+//void writeGpsPositionPrameToBST(void);
+//void writeGPSTimeFrameToBST(void);
+//void writeDataToBST(void);
+bool writeGpsPositionPrameToBST(void);
+bool writeRollPitchYawToBST(void);
+bool writeRCChannelToBST(void);
 
-
-void usb1WireInitialize();
-void usb1WirePassthrough(uint8_t escIndex);
-#endif

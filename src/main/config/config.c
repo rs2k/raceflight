@@ -26,6 +26,7 @@
 #include "common/color.h"
 #include "common/axis.h"
 #include "common/maths.h"
+#include "common/filter.h"
 
 #include "drivers/sensor.h"
 #include "drivers/accgyro.h"
@@ -158,7 +159,7 @@ static uint32_t activeFeaturesLatch = 0;
 static uint8_t currentControlRateProfileIndex = 0;
 controlRateConfig_t *currentControlRateProfile;
 
-static const uint8_t EEPROM_CONF_VERSION = 112;
+static const uint8_t EEPROM_CONF_VERSION = 115;
 
 static void resetAccelerometerTrims(flightDynamicsTrims_t *accelerometerTrims)
 {
@@ -173,13 +174,13 @@ static void resetPidProfile(pidProfile_t *pidProfile)
 
     pidProfile->P8[ROLL] = 40;
     pidProfile->I8[ROLL] = 30;
-    pidProfile->D8[ROLL] = 18;
+    pidProfile->D8[ROLL] = 23;
     pidProfile->P8[PITCH] = 40;
     pidProfile->I8[PITCH] = 30;
-    pidProfile->D8[PITCH] = 18;
-    pidProfile->P8[YAW] = 95;
+    pidProfile->D8[PITCH] = 23;
+    pidProfile->P8[YAW] = 100;
     pidProfile->I8[YAW] = 50;
-    pidProfile->D8[YAW] = 10;
+    pidProfile->D8[YAW] = 12;
     pidProfile->P8[PIDALT] = 50;
     pidProfile->I8[PIDALT] = 0;
     pidProfile->D8[PIDALT] = 0;
@@ -192,15 +193,17 @@ static void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->P8[PIDNAVR] = 25; // NAV_P * 10;
     pidProfile->I8[PIDNAVR] = 33; // NAV_I * 100;
     pidProfile->D8[PIDNAVR] = 83; // NAV_D * 1000;
-    pidProfile->P8[PIDLEVEL] = 90;
-    pidProfile->I8[PIDLEVEL] = 10;
+    pidProfile->P8[PIDLEVEL] = 50;
+    pidProfile->I8[PIDLEVEL] = 50;
     pidProfile->D8[PIDLEVEL] = 100;
     pidProfile->P8[PIDMAG] = 40;
     pidProfile->P8[PIDVEL] = 120;
     pidProfile->I8[PIDVEL] = 45;
     pidProfile->D8[PIDVEL] = 1;
 
+    pidProfile->gyro_soft_lpf = 0;   // LOW filtering by default
     pidProfile->dterm_cut_hz = 40;
+    pidProfile->yaw_pterm_cut_hz = 50;
 
     pidProfile->P_f[ROLL] = 1.5f;     // new PID with preliminary defaults test carefully
     pidProfile->I_f[ROLL] = 0.4f;
@@ -208,9 +211,9 @@ static void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->P_f[PITCH] = 1.5f;
     pidProfile->I_f[PITCH] = 0.4f;
     pidProfile->D_f[PITCH] = 0.02f;
-    pidProfile->P_f[YAW] = 3.9f;
-    pidProfile->I_f[YAW] = 0.9f;
-    pidProfile->D_f[YAW] = 0.00f;
+    pidProfile->P_f[YAW] = 4.0f;
+    pidProfile->I_f[YAW] = 0.4f;
+    pidProfile->D_f[YAW] = 0.01f;
     pidProfile->A_level = 6.0f;
     pidProfile->H_level = 6.0f;
     pidProfile->H_sensitivity = 75;
@@ -262,10 +265,6 @@ void resetEscAndServoConfig(escAndServoConfig_t *escAndServoConfig)
     escAndServoConfig->maxthrottle = 1850;
     escAndServoConfig->mincommand = 1000;
     escAndServoConfig->servoCenterPulse = 1500;
-    //escAndServoConfig->minthrottle = 115;
-    //escAndServoConfig->maxthrottle = 800;
-    //escAndServoConfig->mincommand = 110;
-    //escAndServoConfig->servoCenterPulse = 1500;
 }
 
 void resetFlight3DConfig(flight3DConfig_t *flight3DConfig)
@@ -356,7 +355,6 @@ void resetRcControlsConfig(rcControlsConfig_t *rcControlsConfig) {
 }
 
 void resetMixerConfig(mixerConfig_t *mixerConfig) {
-    mixerConfig->pid_at_min_throttle = 1;
     mixerConfig->yaw_motor_direction = 1;
     mixerConfig->yaw_jump_prevention_limit = 200;
 #ifdef USE_SERVOS
@@ -422,11 +420,13 @@ static void resetConf(void)
 #endif
 
     featureSet(FEATURE_FAILSAFE);
+    featureSet(FEATURE_ONESHOT125);
 
     // global settings
     masterConfig.current_profile_index = 0;     // default profile
-    masterConfig.dcm_kp = 10000;                // 1.0 * 10000
-    masterConfig.dcm_ki = 30;                   // 0.003 * 10000
+    masterConfig.dcm_kp = 2500;                // 1.0 * 10000
+    masterConfig.dcm_ki = 0;                    // 0.003 * 10000
+    masterConfig.gyro_lpf = 1;                 // 1KHZ or 8KHZ
 
     resetAccelerometerTrims(&masterConfig.accZero);
 
@@ -436,12 +436,14 @@ static void resetConf(void)
     masterConfig.boardAlignment.pitchDegrees = 0;
     masterConfig.boardAlignment.yawDegrees = 0;
     masterConfig.acc_hardware = ACC_DEFAULT;     // default/autodetect
-    masterConfig.max_angle_inclination = 600;    // 50 degrees
+    masterConfig.max_angle_inclination = 700;    // 70 degrees
     masterConfig.yaw_control_direction = 1;
     masterConfig.gyroConfig.gyroMovementCalibrationThreshold = 32;
 
-    masterConfig.mag_hardware = 1;     // default/autodetect
-    masterConfig.baro_hardware = 1;   // default/autodetect
+    // xxx_hardware: 0:default/autodetect, 1: disable
+    masterConfig.mag_hardware = 0;
+
+    masterConfig.baro_hardware = 0;
 
     resetBatteryConfig(&masterConfig.batteryConfig);
 
@@ -468,12 +470,13 @@ static void resetConf(void)
     masterConfig.rxConfig.rssi_channel = 0;
     masterConfig.rxConfig.rssi_scale = RSSI_SCALE_DEFAULT;
     masterConfig.rxConfig.rssi_ppm_invert = 0;
+    masterConfig.rxConfig.rcSmoothing = 1;
 
     resetAllRxChannelRangeConfigurations(masterConfig.rxConfig.channelRanges);
 
     masterConfig.inputFilteringMode = INPUT_FILTERING_DISABLED;
 
-    masterConfig.retarded_arm = 0;
+    masterConfig.retarded_arm = 0;  // TODO - Cleanup retarded arm support
     masterConfig.disarm_kill_switch = 1;
     masterConfig.auto_disarm_delay = 5;
     masterConfig.small_angle = 25;
@@ -735,12 +738,12 @@ void activateConfig(void)
         &currentProfile->pidProfile
     );
 
-    useGyroConfig(&masterConfig.gyroConfig);
+    useGyroConfig(&masterConfig.gyroConfig, filterGetFIRCoefficientsTable(currentProfile->pidProfile.gyro_soft_lpf));
 
 #ifdef TELEMETRY
     telemetryUseConfig(&masterConfig.telemetryConfig);
 #endif
-
+    currentProfile->pidProfile.pidController = constrain(currentProfile->pidProfile.pidController, 1, 2); // This should prevent UNUSED values. CF 1.11 support
     pidSetController(currentProfile->pidProfile.pidController);
 
 #ifdef GPS
@@ -868,17 +871,17 @@ void validateAndFixConfig(void)
     masterConfig.telemetryConfig.telemetry_inversion = 1;
 #endif
 
-    /*
-     * The retarded_arm setting is incompatible with pid_at_min_throttle because full roll causes the craft to roll over on the ground.
-     * The pid_at_min_throttle implementation ignores yaw on the ground, but doesn't currently ignore roll when retarded_arm is enabled.
-     */
-    if (masterConfig.retarded_arm && masterConfig.mixerConfig.pid_at_min_throttle) {
-        masterConfig.mixerConfig.pid_at_min_throttle = 0;
-    }
-
 #if defined(CC3D) && defined(SONAR) && defined(USE_SOFTSERIAL1)
     if (feature(FEATURE_SONAR) && feature(FEATURE_SOFTSERIAL)) {
         featureClear(FEATURE_SONAR);
+    }
+#endif
+
+#if defined(COLIBRI_RACE)
+    masterConfig.serialConfig.portConfigs[0].functionMask = FUNCTION_MSP;
+    if(featureConfigured(FEATURE_RX_SERIAL)) {
+	    masterConfig.serialConfig.portConfigs[2].functionMask = FUNCTION_RX_SERIAL;
+	    masterConfig.rxConfig.serialrx_provider = SERIALRX_SBUS;
     }
 #endif
 

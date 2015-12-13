@@ -47,9 +47,11 @@
 
 #include "config/runtime_config.h"
 
-extern uint16_t cycleTime;
-extern uint8_t motorCount;
 extern float dT;
+extern float totalErrorRatioLimit;
+extern bool allowITermShrinkOnly;
+
+#define CALC_OFFSET(x) ( (x > 0) ?  x : -x )
 
 int16_t axisPID[3];
 
@@ -62,8 +64,6 @@ uint8_t dynP8[3], dynI8[3], dynD8[3], PIDweight[3];
 
 static int32_t errorGyroI[3] = { 0, 0, 0 };
 static float errorGyroIf[3] = { 0.0f, 0.0f, 0.0f };
-static int32_t errorAngleI[2] = { 0, 0 };
-static float errorAngleIf[2] = { 0.0f, 0.0f };
 
 static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRateConfig,
         uint16_t max_angle_inclination, rollAndPitchTrims_t *angleTrim, rxConfig_t *rxConfig);
@@ -72,15 +72,6 @@ typedef void (*pidControllerFuncPtr)(pidProfile_t *pidProfile, controlRateConfig
         uint16_t max_angle_inclination, rollAndPitchTrims_t *angleTrim, rxConfig_t *rxConfig);            // pid controller function prototype
 
 pidControllerFuncPtr pid_controller = pidRewrite; // which pid controller are we using, defaultMultiWii
-
-void pidResetErrorAngle(void)
-{
-    errorAngleI[ROLL] = 0;
-    errorAngleI[PITCH] = 0;
-
-    errorAngleIf[ROLL] = 0.0f;
-    errorAngleIf[PITCH] = 0.0f;
-}
 
 void pidResetErrorGyro(void)
 {
@@ -108,6 +99,7 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
     float delta;
     int axis;
     float horizonLevelStrength = 1;
+    static float previousErrorGyroIf[3] = { 0.0f, 0.0f, 0.0f };
 
     if (FLIGHT_MODE(HORIZON_MODE)) {
 
@@ -170,15 +162,29 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
         // multiplication of rcCommand corresponds to changing the sticks scaling here
         RateError = AngleRate - gyroRate;
 
+        if (IS_RC_MODE_ACTIVE(BOXAIRMODE)) {
+            RateError = RateError * totalErrorRatioLimit;
+        }
+
         // -----calculate P component
         PTerm = RateError * (pidProfile->P_f[axis]/2) * PIDweight[axis] / 100;
 
-        if (axis == YAW) {
-            PTerm = filterApplyPt1(PTerm, &yawPTermState, YAW_PTERM_FILTER, dT);
+        if (axis == YAW && pidProfile->yaw_pterm_cut_hz) {
+            PTerm = filterApplyPt1(PTerm, &yawPTermState, pidProfile->yaw_pterm_cut_hz, dT);
         }
 
         // -----calculate I component.
         errorGyroIf[axis] = constrainf(errorGyroIf[axis] + RateError * dT * (pidProfile->I_f[axis]/2) * 10, -250.0f, 250.0f);
+
+        if (allowITermShrinkOnly || totalErrorRatioLimit < 0.98f) {
+            if (CALC_OFFSET(errorGyroIf[axis]) < CALC_OFFSET(previousErrorGyroIf[axis])) {
+                previousErrorGyroIf[axis] = errorGyroIf[axis];
+            } else {
+                errorGyroIf[axis] = constrain(errorGyroIf[axis], -CALC_OFFSET(previousErrorGyroIf[axis]), CALC_OFFSET(previousErrorGyroIf[axis]));
+            }
+        } else {
+            previousErrorGyroIf[axis] = errorGyroIf[axis];
+        }
 
         // limit maximum integrator value to prevent WindUp - accumulating extreme values when system is saturated.
         // I coefficient (I8) moved before integration to make limiting independent from PID settings
@@ -226,6 +232,7 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
     int32_t delta;
     int32_t PTerm, ITerm, DTerm;
     static int32_t lastError[3] = { 0, 0, 0 };
+    static int32_t previousErrorGyroI[3] = { 0, 0, 0 };
     int32_t AngleRateTmp, RateError;
 
     int8_t horizonLevelStrength = 100;
@@ -286,11 +293,15 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
         // multiplication of rcCommand corresponds to changing the sticks scaling here
         RateError = AngleRateTmp - (gyroADC[axis] / 4);
 
+        if (IS_RC_MODE_ACTIVE(BOXAIRMODE)) {
+            RateError = RateError * totalErrorRatioLimit;
+        }
+
         // -----calculate P component
         PTerm = (RateError * pidProfile->P8[axis] * PIDweight[axis] / 100) >> 7;
 
-        if (axis == YAW) {
-            PTerm = filterApplyPt1(PTerm, &yawPTermState, YAW_PTERM_FILTER, dT);
+        if (axis == YAW && pidProfile->yaw_pterm_cut_hz) {
+            PTerm = filterApplyPt1(PTerm, &yawPTermState, pidProfile->yaw_pterm_cut_hz, dT);
         }
 
         // -----calculate I component
@@ -303,7 +314,18 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
         // limit maximum integrator value to prevent WindUp - accumulating extreme values when system is saturated.
         // I coefficient (I8) moved before integration to make limiting independent from PID settings
         errorGyroI[axis] = constrain(errorGyroI[axis], (int32_t) - GYRO_I_MAX << 13, (int32_t) + GYRO_I_MAX << 13);
+
         ITerm = errorGyroI[axis] >> 13;
+
+        if (allowITermShrinkOnly || totalErrorRatioLimit < 0.98f) {
+            if (CALC_OFFSET(errorGyroI[axis]) < CALC_OFFSET(previousErrorGyroI[axis])) {
+                previousErrorGyroI[axis] = errorGyroI[axis];
+            } else {
+                errorGyroI[axis] = constrain(errorGyroI[axis], -CALC_OFFSET(previousErrorGyroI[axis]), CALC_OFFSET(previousErrorGyroI[axis]));
+            }
+        } else {
+            previousErrorGyroI[axis] = errorGyroI[axis];
+        }
 
         //-----calculate D-term
         delta = RateError - lastError[axis]; // 16 bits is ok here, the dif between 2 consecutive gyro reads is limited to 800
@@ -318,7 +340,7 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
             delta = filterApplyPt1(delta, &DTermState[axis], pidProfile->dterm_cut_hz, dT);
         }
 
-        DTerm = (delta * 3 * pidProfile->D8[axis] * PIDweight[axis] / 100) >> 8; // Multiplied by 3 to match old scaling
+        DTerm = (delta * 2 * pidProfile->D8[axis] * PIDweight[axis] / 100) >> 8; // Multiplied by 2 to approximately match old scaling
 
         // -----calculate total PID output
         axisPID[axis] = PTerm + ITerm + DTerm;
@@ -341,7 +363,7 @@ void pidSetController(pidControllerType_e type)
 {
     switch (type) {
         default:
-        case PID_CONTROLLER_REWRITE:
+        case PID_CONTROLLER_MWREWRITE:
             pid_controller = pidRewrite;
             break;
         case PID_CONTROLLER_LUX_FLOAT:
