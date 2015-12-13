@@ -447,7 +447,11 @@ static void resetConf(void)
 
     resetTelemetryConfig(&masterConfig.telemetryConfig);
 
+#if defined(REVO) || defined(SPARKY2) || defined(REVONANO)
+    masterConfig.rxConfig.serialrx_provider = 2;
+#else
     masterConfig.rxConfig.serialrx_provider = 0;
+#endif
     masterConfig.rxConfig.spektrum_sat_bind = 0;
     masterConfig.rxConfig.midrc = 1500;
     masterConfig.rxConfig.mincheck = 1100;
@@ -565,7 +569,10 @@ static void resetConf(void)
 #endif
 
 #ifdef BLACKBOX
-#ifdef SPRACINGF3
+#if defined(SPRACINGF3)
+    featureSet(FEATURE_BLACKBOX);
+    masterConfig.blackbox_device = 1;
+#elif defined(REVO) || defined(SPARKY2)
     featureSet(FEATURE_BLACKBOX);
     masterConfig.blackbox_device = 1;
 #else
@@ -573,6 +580,17 @@ static void resetConf(void)
 #endif
     masterConfig.blackbox_rate_num = 1;
     masterConfig.blackbox_rate_denom = 1;
+#endif
+
+#if defined(REVO) || defined(SPARKY2) || defined (REVONANO)
+    featureSet(FEATURE_RX_SERIAL);
+    featureSet(FEATURE_ONESHOT125);
+#endif
+#if defined (REVONANO)
+    masterConfig.serialConfig.portConfigs[2].functionMask = FUNCTION_RX_SERIAL;
+#endif
+#if defined (REVO)
+    masterConfig.serialConfig.portConfigs[1].functionMask = FUNCTION_RX_SERIAL;
 #endif
 
     // alternative defaults settings for ALIENWIIF1 and ALIENWIIF3 targets

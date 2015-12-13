@@ -2217,7 +2217,7 @@ static void cliVersion(char *cmdline)
 {
     UNUSED(cmdline);
 
-    printf("# RaceFlight 15.12.09c/%s %s %s / %s (%s)",
+    printf("# RaceFlight 15.12.12a/%s %s %s / %s (%s)",
         targetName,
         FC_VERSION_STRING,
         buildDate,

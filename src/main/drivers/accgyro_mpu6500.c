@@ -30,6 +30,7 @@
 #include "gyro_sync.h"
 
 #include "sensor.h"
+#include "debug.h"
 #include "accgyro.h"
 #include "accgyro_mpu.h"
 #include "accgyro_mpu6500.h"
@@ -92,6 +93,7 @@ void mpu6500GyroInit(uint16_t lpf)
 
     //uint8_t mpuLowPassFilter = determineMPULPF(lpf);
     uint8_t mpuLowPassFilter = 7; //8khz, DLPF3600
+    //uint8_t mpuLowPassFilter = 1; //1khz, DLPF188
 
     mpuConfiguration.write(MPU_RA_PWR_MGMT_1, MPU6500_BIT_RESET);
     delay(100);
@@ -101,13 +103,18 @@ void mpu6500GyroInit(uint16_t lpf)
     delay(100);
     mpuConfiguration.write(MPU_RA_PWR_MGMT_1, INV_CLK_PLL);
     delayMicroseconds(1);
-    mpuConfiguration.write(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3); //Fchoice_b defaults to 00 which makes fchoice 11
+#if defined (REVONANO) || defined (SPARKY2)
+    mpuConfiguration.write(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_8800_32); //Fchoice_b defaults to 00 which makes fchoice 11
     delayMicroseconds(1);
-    mpuConfiguration.write(MPU_RA_ACCEL_CONFIG, INV_FSR_8G << 3);
+#else
+    mpuConfiguration.write(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_DISABLED); //Fchoice_b defaults to 00 which makes fchoice 11
     delayMicroseconds(1);
     mpuConfiguration.write(MPU_RA_CONFIG, mpuLowPassFilter);
     delayMicroseconds(1);
     mpuConfiguration.write(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops()); // Get Divider Drops
+    delayMicroseconds(1);
+#endif
+    mpuConfiguration.write(MPU_RA_ACCEL_CONFIG, INV_FSR_8G << 3);
     delayMicroseconds(1);
     // Data ready interrupt configuration
     mpuConfiguration.write(MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 1 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 0 << 0);  // INT_ANYRD_2CLEAR, BYPASS_EN

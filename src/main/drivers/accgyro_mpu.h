@@ -144,6 +144,11 @@ enum gyro_fsr_e {
     INV_FSR_2000DPS,
     NUM_GYRO_FSR
 };
+enum fchoice_b {
+	FCB_DISABLED = 0,
+    FCB_8800_32,
+	FCB_3600_32
+};
 enum clock_sel_e {
     INV_CLK_INTERNAL = 0,
     INV_CLK_PLL,

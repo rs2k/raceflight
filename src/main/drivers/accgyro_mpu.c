@@ -54,7 +54,11 @@ static int gyro_i_count = 0;
 static volatile bool mpuDataReady;
 static bool filterFull = false;
 static int gyroADCnums = 0;
+#if defined(REVONANO)
+#define gyroFilterLevel 8 //todo move to gyro_sync and calculate.
+#else
 #define gyroFilterLevel 2 //todo move to gyro_sync and calculate.
+#endif
 static int16_t gyroADCtable0[gyroFilterLevel];
 static int16_t gyroADCtable1[gyroFilterLevel];
 static int16_t gyroADCtable2[gyroFilterLevel];
@@ -216,21 +220,17 @@ void MPU_DATA_READY_EXTI_Handler(void)
 		static uint32_t lastCalledAt = 0;
 		uint32_t now = micros();
         uint32_t callDelta = now - lastCalledAt;
-        debug[0] = callDelta;
+		debug[0] = callDelta;
 		lastCalledAt = now;
 #endif
 
-		if (callDelta < 100) {
-			return;
-		}
+
 		gyro_i_count++;
 		mpuGyroReadCollect();
 
 		if (gyro_i_count >= gyroFilterLevel) {
 
-			gyro_i_count = 0;
 
-    		mpuDataReady = true;
 #ifdef DEBUG_MPU_DATA_READY_INTERRUPT
 			static uint32_t lastCalledAt1 = 0;
 			uint32_t now1 = micros();
@@ -238,6 +238,8 @@ void MPU_DATA_READY_EXTI_Handler(void)
 	        debug[1] = callDelta1;
     		lastCalledAt1 = now;
 #endif
+			gyro_i_count = 0;
+    		mpuDataReady = true;
 		}
 
     }
@@ -253,9 +255,7 @@ void configureMPUDataReadyInterruptHandling(void)
 	EXTI_InitTypeDef EXTI_InitStruct;
 	NVIC_InitTypeDef NVIC_InitStruct;
 
-	/* Enable clock for SYSCFG */
 	RCC_APB2PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-	/* Enable clock for SYSCFG */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 
 	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN;
@@ -267,26 +267,16 @@ void configureMPUDataReadyInterruptHandling(void)
 
 	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource4);
 
-	/* PD0 is connected to EXTI_Line0 */
 	EXTI_InitStruct.EXTI_Line = EXTI_Line4;
-	/* Enable interrupt */
 	EXTI_InitStruct.EXTI_LineCmd = ENABLE;
-	/* Interrupt mode */
 	EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-	/* Triggers on rising and falling edge */
 	EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
-	/* Add to EXTI */
 	EXTI_Init(&EXTI_InitStruct);
 
-	/* Add IRQ vector to NVIC */
 	NVIC_InitStruct.NVIC_IRQChannel = EXTI4_IRQn;
-	/* Set priority */
 	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-	/* Set sub priority */
 	NVIC_InitStruct.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-	/* Enable interrupt */
 	NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
-	/* Add to NVIC */
 	NVIC_Init(&NVIC_InitStruct);
 
 	registerExtiCallbackHandler(EXTI4_IRQn, MPU_DATA_READY_EXTI_Handler);
@@ -299,9 +289,7 @@ void configureMPUDataReadyInterruptHandling(void)
     EXTI_InitTypeDef EXTI_InitStruct;
     NVIC_InitTypeDef NVIC_InitStruct;
 
-    /* Enable clock for SYSCFG */
     RCC_APB2PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-    /* Enable clock for SYSCFG */
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 
     GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN;
@@ -313,26 +301,16 @@ void configureMPUDataReadyInterruptHandling(void)
 
     SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource5);
 
-    /* PD0 is connected to EXTI_Line0 */
     EXTI_InitStruct.EXTI_Line = EXTI_Line5;
-    /* Enable interrupt */
     EXTI_InitStruct.EXTI_LineCmd = ENABLE;
-    /* Interrupt mode */
     EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-    /* Triggers on rising and falling edge */
     EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
-    /* Add to EXTI */
     EXTI_Init(&EXTI_InitStruct);
 
-    /* Add IRQ vector to NVIC */
     NVIC_InitStruct.NVIC_IRQChannel = EXTI9_5_IRQn;
-    /* Set priority */
     NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-    /* Set sub priority */
     NVIC_InitStruct.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-    /* Enable interrupt */
     NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
-    /* Add to NVIC */
     NVIC_Init(&NVIC_InitStruct);
 
 	registerExtiCallbackHandler(EXTI9_5_IRQn, MPU_DATA_READY_EXTI_Handler);
@@ -345,9 +323,7 @@ void configureMPUDataReadyInterruptHandling(void)
 	EXTI_InitTypeDef EXTI_InitStruct;
 	NVIC_InitTypeDef NVIC_InitStruct;
 
-	/* Enable clock for SYSCFG */
 	RCC_APB2PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-	/* Enable clock for SYSCFG */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 
 	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN;
@@ -359,26 +335,16 @@ void configureMPUDataReadyInterruptHandling(void)
 
 	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA, EXTI_PinSource15);
 
-	/* PD0 is connected to EXTI_Line0 */
 	EXTI_InitStruct.EXTI_Line = EXTI_Line15;
-	/* Enable interrupt */
 	EXTI_InitStruct.EXTI_LineCmd = ENABLE;
-	/* Interrupt mode */
 	EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-	/* Triggers on rising and falling edge */
 	EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
-	/* Add to EXTI */
 	EXTI_Init(&EXTI_InitStruct);
 
-	/* Add IRQ vector to NVIC */
 	NVIC_InitStruct.NVIC_IRQChannel = EXTI15_10_IRQn;
-	/* Set priority */
 	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-	/* Set sub priority */
 	NVIC_InitStruct.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-	/* Enable interrupt */
 	NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
-	/* Add to NVIC */
 	NVIC_Init(&NVIC_InitStruct);
 
 	registerExtiCallbackHandler(EXTI15_10_IRQn, MPU_DATA_READY_EXTI_Handler);
@@ -518,14 +484,16 @@ bool mpuAccRead(int16_t *accData)
 {
     uint8_t data[6];
 
+    __disable_irq();
     bool ack = mpuConfiguration.read(MPU_RA_ACCEL_XOUT_H, 6, data);
+    __enable_irq();
     if (!ack) {
         return false;
     }
 
-    accData[0] = (int16_t)((data[0] << 8) | data[1]) * 1.25;
-    accData[1] = (int16_t)((data[2] << 8) | data[3]) * 1.25;
-    accData[2] = (int16_t)((data[4] << 8) | data[5]) * 1.25;
+    accData[0] = (int16_t)((data[0] << 8) | data[1]);
+    accData[1] = (int16_t)((data[2] << 8) | data[3]);
+    accData[2] = (int16_t)((data[4] << 8) | data[5]);
 
     return true;
 }
@@ -534,10 +502,19 @@ bool mpuGyroReadCollect(void)
 {
     uint8_t data[6];
 
+    __disable_irq();
     bool ack = mpuConfiguration.read(mpuConfiguration.gyroReadXRegister, 6, data);
+    __enable_irq();
     if (!ack) {
         return false;
     }
+
+    //if (filterFull) {
+    //	static int i = 0;
+    //	if (i < 5) {
+    //		debug[i++%5] = (int16_t)((data[0] << 8) | data[1]);
+    //	}
+    //}
 
     gyroTotal0 -= gyroADCtable0[gyroADCnums];
     gyroTotal1 -= gyroADCtable1[gyroADCnums];
@@ -546,7 +523,7 @@ bool mpuGyroReadCollect(void)
     gyroADCtable0[gyroADCnums] = (int16_t)((data[0] << 8) | data[1]);
     gyroADCtable1[gyroADCnums] = (int16_t)((data[2] << 8) | data[3]);
     gyroADCtable2[gyroADCnums] = (int16_t)((data[4] << 8) | data[5]);
-	debug[2] = gyroADCtable2[gyroADCnums];
+	//debug[2] = gyroADCtable2[gyroADCnums];
 
     gyroTotal0 += gyroADCtable0[gyroADCnums];
     gyroTotal1 += gyroADCtable1[gyroADCnums];
@@ -563,7 +540,6 @@ bool mpuGyroReadCollect(void)
 
 bool mpuGyroRead(int16_t *gyroADC)
 {
-
 	if ( !filterFull ) {
 
 	    uint8_t data[6];
@@ -584,7 +560,6 @@ bool mpuGyroRead(int16_t *gyroADC)
 		gyroADC[2] = (int16_t)( ( gyroTotal2 + (int)(gyroFilterLevel/2) ) / gyroFilterLevel);
 
 	}
-	debug[3] = gyroADC[2];
 
     return true;
 }

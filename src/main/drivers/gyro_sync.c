@@ -46,10 +46,19 @@ void gyroUpdateSampleRate(void) {
 
     int gyroFrequency;
     int gyroSampleRate;
-
+#if defined(REVONANO)
+    gyroFrequency  = 31;   // gyro sampling rate 8khz
+    gyroSampleRate = 31; // 8khz sampling
+    targetLooptime = 250;  // Wanted looptime
+#else
     gyroFrequency  = 125;   // gyro sampling rate 8khz
     gyroSampleRate = 125; // 8khz sampling
     targetLooptime = 250;  // Wanted looptime
+#endif
+
+//    gyroFrequency  = 1000;   // gyro sampling rate 1khz
+//    gyroSampleRate = 1000; // 1khz sampling
+//    targetLooptime = 1000;  // Wanted looptime
 
     // calculate gyro divider and targetLooptime (expected cycleTime)
     mpuDividerDrops = ( gyroSampleRate / gyroFrequency ) - 1;

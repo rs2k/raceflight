@@ -641,6 +641,9 @@ void SystemCoreClockUpdate(void)
   tmp = AHBPrescTable[((RCC->CFGR & RCC_CFGR_HPRE) >> 4)];
   /* HCLK frequency */
   SystemCoreClock >>= tmp;
+#if defined(STM32F411xE)
+  SystemCoreClock = 96000000;
+#endif
 }
 
 /**

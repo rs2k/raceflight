@@ -714,7 +714,7 @@ void loop(void)
 {
     static uint32_t loopTime;
     static bool haveProcessedRxOnceBeforeLoop = false;
-
+    static int loop_counter = 0;
 #if defined(BARO) || defined(SONAR)
     static bool haveProcessedAnnexCodeOnce = false;
 #endif
@@ -854,9 +854,15 @@ void loop(void)
         }
 
 #ifdef BLACKBOX
-        if (!cliMode && feature(FEATURE_BLACKBOX)) {
-            handleBlackbox();
-        }
+        //loop_counter++;
+        //if (loop_counter == 2) {
+        //	loop_counter=0;
+			if (!cliMode && feature(FEATURE_BLACKBOX)) {
+				//__disable_irq();
+				handleBlackbox();
+				//__enable_irq();
+			}
+        //}
 #endif
     }
 

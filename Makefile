@@ -200,19 +200,13 @@ DEVICE_FLAGS = -DSTM32F411xE
 endif
 
 ifeq ($(TARGET),REVO)
-
+DEVICE_FLAGS += -DHSE_VALUE=8000000
 ifeq ($(OPBL),NO)
-DEVICE_FLAGS += -DHSE_VALUE=8000000
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405.ld
-.DEFAULT_GOAL := binary
 else
-
-DEVICE_FLAGS += -DHSE_VALUE=8000000
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405_bl.ld
-.DEFAULT_GOAL := binary
-
 endif
-
+.DEFAULT_GOAL := binary
 endif
  
 ifeq ($(TARGET),REVONANO)
@@ -224,6 +218,7 @@ LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f411_bl.ld
 endif
 .DEFAULT_GOAL := binary
 endif
+
 ifeq ($(TARGET),SPARKY2)
 DEVICE_FLAGS += -DHSE_VALUE=8000000
 ifeq ($(OPBL),NO)
@@ -233,6 +228,7 @@ LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405_bl.ld
 endif
 .DEFAULT_GOAL := binary
 endif
+
 TARGET_FLAGS = -D$(TARGET)
 
 else ifeq ($(TARGET),$(filter $(TARGET),EUSTM32F103RC PORT103R))

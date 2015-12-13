@@ -114,7 +114,7 @@ static void cycleCounterInit(void)
 {
     RCC_ClocksTypeDef clocks;
     RCC_GetClocksFreq(&clocks);
-    usTicks = clocks.SYSCLK_Frequency / 1000000;
+    usTicks = SystemCoreClock / 1000000;
 }
 
 // SysTick
