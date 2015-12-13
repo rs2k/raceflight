@@ -42,7 +42,7 @@ bool gyroSyncCheckUpdate(void) {
     return getMpuDataStatus(&gyro);
 }
 
-void gyroUpdateSampleRate(uint8_t lpf) {
+void gyroUpdateSampleRate(void) {
 
     int gyroFrequency;
     int gyroSampleRate;

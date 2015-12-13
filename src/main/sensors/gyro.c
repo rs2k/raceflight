@@ -129,7 +129,7 @@ void gyroUpdate(void)
         //filterApply9TapFIR(gyroADC, gyroFIRState, gyroFIRTable); //filter built into accgyro_mpu
     }
 
-    //alignSensors(gyroADC, gyroADC, gyroAlign);
+    alignSensors(gyroADC, gyroADC, gyroAlign);
 
     if (!isGyroCalibrationComplete()) {
         performAcclerationCalibration(gyroConfig->gyroMovementCalibrationThreshold);

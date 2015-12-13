@@ -105,7 +105,7 @@ void mpu6500GyroInit(uint8_t lpf)
 #else
     mpuConfiguration.write(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_DISABLED); //Fchoice_b defaults to 00 which makes fchoice 11
     delayMicroseconds(1);
-    mpuConfiguration.write(MPU_RA_CONFIG, lpf);
+    mpuConfiguration.write(MPU_RA_CONFIG, 7); //7 = 8KHz.
     delayMicroseconds(1);
     mpuConfiguration.write(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops()); // Get Divider Drops
     delayMicroseconds(1);
