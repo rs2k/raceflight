@@ -139,7 +139,7 @@ void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, es
 #endif
 
 
-#if defined(REVO) || defined(SPARKY2)
+#if defined(REVO) || defined(SPARKY2) || defined(ALIENFLIGHTF4)
 //dedicated flash storage since we have so much storage space
 //#define CONFIG_START_FLASH_ADDRESS (0x080E0000) //0x080E0000 to 0x080FFFFF (FLASH_Sector_11
 #define CONFIG_START_FLASH_ADDRESS (0x08080000) //0x08080000 to 0x080A0000 (FLASH_Sector_8)
@@ -449,7 +449,7 @@ static void resetConf(void)
 
     resetTelemetryConfig(&masterConfig.telemetryConfig);
 
-#if defined(REVO) || defined(SPARKY2) || defined(REVONANO)
+#if defined(REVO) || defined(SPARKY2) || defined(REVONANO) || defined(ALIENFLIGHTF4)
     masterConfig.rxConfig.serialrx_provider = 2;
 #else
     masterConfig.rxConfig.serialrx_provider = 0;
@@ -575,7 +575,7 @@ static void resetConf(void)
 #if defined(SPRACINGF3)
     featureSet(FEATURE_BLACKBOX);
     masterConfig.blackbox_device = 1;
-#elif defined(REVO) || defined(SPARKY2)
+#elif defined(REVO) || defined(SPARKY2) || defined(ALIENFLIGHTF4)
     featureSet(FEATURE_BLACKBOX);
     masterConfig.blackbox_device = 1;
 #else
@@ -585,7 +585,7 @@ static void resetConf(void)
     masterConfig.blackbox_rate_denom = 1;
 #endif
 
-#if defined(REVO) || defined(SPARKY2) || defined (REVONANO)
+#if defined(REVO) || defined(SPARKY2) || defined (REVONANO) || defined(ALIENFLIGHTF4)
     featureSet(FEATURE_RX_SERIAL);
     featureSet(FEATURE_ONESHOT125);
 #endif
@@ -604,7 +604,8 @@ static void resetConf(void)
 #ifdef ALIENWII32
     featureSet(FEATURE_RX_SERIAL);
     featureSet(FEATURE_MOTOR_STOP);
-#ifdef ALIENWIIF3
+    featureClear(FEATURE_ONESHOT125);
+#if defined(ALIENWIIF3) || defined(ALIENFLIGHTF4)
     masterConfig.serialConfig.portConfigs[2].functionMask = FUNCTION_RX_SERIAL;
     masterConfig.batteryConfig.vbatscale = 20;
 #else
@@ -615,7 +616,7 @@ static void resetConf(void)
     masterConfig.escAndServoConfig.minthrottle = 1000;
     masterConfig.escAndServoConfig.maxthrottle = 2000;
     masterConfig.motor_pwm_rate = 32000;
-    currentProfile->pidProfile.pidController = 3;
+    currentProfile->pidProfile.pidController = 2;
     currentProfile->pidProfile.P8[ROLL] = 36;
     currentProfile->pidProfile.P8[PITCH] = 36;
     masterConfig.failsafeConfig.failsafe_delay = 2;

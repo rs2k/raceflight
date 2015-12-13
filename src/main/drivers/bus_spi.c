@@ -132,7 +132,7 @@ void initSpi1(void)
     gpio.mode = Mode_AF_PP;
     gpioInit(GPIOA, &gpio);
 
-#if defined(REVO)
+#if defined(REVO) || defined(ALIENFLIGHTF4)
     // Used for MPU6000 gyro and accelerometer
     // NSS as gpio slave select
     gpio.pin = Pin_4;
@@ -287,7 +287,14 @@ void initSpi2(void)
     gpio.mode = Mode_AF_PP;
     gpioInit(GPIOC, &gpio);
 
+    // NSS as gpio slave select
+    // Used for MPU9250 gyro and accelerometer
+    gpio.pin = Pin_12;
+    gpio.mode = Mode_Out_PP;
+    gpioInit(GPIOB, &gpio);
+
     GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_SPI2);
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource12, GPIO_AF_SPI2);
     GPIO_PinAFConfig(GPIOC, GPIO_PinSource2, GPIO_AF_SPI2);
     GPIO_PinAFConfig(GPIOC, GPIO_PinSource3, GPIO_AF_SPI2);
 #endif
@@ -388,6 +395,7 @@ void initSpi3(void)
 
     gpio_config_t gpio;
 
+#ifndef ALIENFLIGHTF4
     // SCK as output
     gpio.mode = Mode_AF_PP;
     gpio.pin = Pin_10;
@@ -424,6 +432,29 @@ void initSpi3(void)
     GPIO_PinAFConfig(GPIOC, GPIO_PinSource10, GPIO_AF_SPI3);
     GPIO_PinAFConfig(GPIOC, GPIO_PinSource11, GPIO_AF_SPI3);
     GPIO_PinAFConfig(GPIOC, GPIO_PinSource12, GPIO_AF_SPI3);
+#else
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+    // MOSI + SCK as output
+    gpio.mode = Mode_AF_PP;
+    gpio.pin = Pin_3 | Pin_5;
+    gpio.speed = Speed_50MHz;
+    gpioInit(GPIOB, &gpio);
+    // MISO as input
+    gpio.pin = Pin_4;
+    gpio.mode = Mode_AF_PP;
+    gpioInit(GPIOB, &gpio);
+
+    // NSS as gpio slave select
+    gpio.pin = Pin_15;
+    gpio.mode = Mode_Out_PP;
+
+    gpioInit(GPIOA, &gpio);
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource3, GPIO_AF_SPI3);
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource4, GPIO_AF_SPI3);
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource5, GPIO_AF_SPI3);
+    GPIO_PinAFConfig(GPIOA, GPIO_PinSource15, GPIO_AF_SPI3);
+#endif
 #endif
 
 

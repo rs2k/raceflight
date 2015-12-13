@@ -52,7 +52,11 @@ typedef struct i2cDevice_t {
 } i2cDevice_t;
 
 static const i2cDevice_t i2cHardwareMap[] = {
+#ifndef ALIENFLIGHTF4
     { I2C1, GPIOB, Pin_8, Pin_9, I2C1_EV_IRQn, I2C1_ER_IRQn, RCC_APB1Periph_I2C1 },
+#else
+    { I2C1, GPIOB, Pin_6, Pin_7, I2C1_EV_IRQn, I2C1_ER_IRQn, RCC_APB1Periph_I2C1 },
+#endif
     { I2C2, GPIOB, Pin_10, Pin_11, I2C2_EV_IRQn, I2C2_ER_IRQn, RCC_APB1Periph_I2C2 },
     { I2C3, GPIOA, Pin_8, Pin_4, I2C3_EV_IRQn, I2C3_ER_IRQn, RCC_APB1Periph_I2C3 },
 };

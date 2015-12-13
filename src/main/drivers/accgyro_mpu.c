@@ -54,7 +54,7 @@ static int gyro_i_count = 0;
 static volatile bool mpuDataReady;
 static bool filterFull = false;
 static int gyroADCnums = 0;
-#if defined(REVONANO) || defined(SPARKY2)
+#if defined(REVONANO) || defined(SPARKY2) || defined(ALIENFLIGHTF4)
 //#define gyroFilterLevel 8 //todo move to gyro_sync and calculate.
 #define gyroFilterLevel 8 //todo move to gyro_sync and calculate.
 #else
@@ -209,16 +209,19 @@ void MPU_DATA_READY_EXTI_Handler(void)
 
 #if defined (REVO)
     if (EXTI_GetITStatus(EXTI_Line4) != RESET) {
-    	EXTI_ClearITPendingBit(EXTI_Line4);
+        EXTI_ClearITPendingBit(EXTI_Line4);
 #elif defined (REVONANO)
-	if (EXTI_GetITStatus(EXTI_Line15) != RESET) {
-		EXTI_ClearITPendingBit(EXTI_Line15);
+    if (EXTI_GetITStatus(EXTI_Line15) != RESET) {
+        EXTI_ClearITPendingBit(EXTI_Line15);
 #elif defined (SPARKY2)
-	if (EXTI_GetITStatus(EXTI_Line5) != RESET) {
-		EXTI_ClearITPendingBit(EXTI_Line5);
+    if (EXTI_GetITStatus(EXTI_Line5) != RESET) {
+        EXTI_ClearITPendingBit(EXTI_Line5);
+#elif defined (ALIENFLIGHTF4)
+    if (EXTI_GetITStatus(EXTI_Line14) != RESET) {
+        EXTI_ClearITPendingBit(EXTI_Line14);
 #else
-	if (EXTI_GetITStatus(mpuIntExtiConfig->exti_line) != RESET) {
-		EXTI_ClearITPendingBit(mpuIntExtiConfig->exti_line);
+    if (EXTI_GetITStatus(mpuIntExtiConfig->exti_line) != RESET) {
+        EXTI_ClearITPendingBit(mpuIntExtiConfig->exti_line);
 #endif
 
 #ifdef DEBUG_MPU_DATA_READY_INTERRUPT
@@ -318,9 +321,55 @@ void configureMPUDataReadyInterruptHandling(void)
     NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStruct);
 
-	registerExtiCallbackHandler(EXTI9_5_IRQn, MPU_DATA_READY_EXTI_Handler);
+    registerExtiCallbackHandler(EXTI9_5_IRQn, MPU_DATA_READY_EXTI_Handler);
 
-	EXTI_ClearITPendingBit(EXTI_Line5);
+    EXTI_ClearITPendingBit(EXTI_Line5);
+
+#elif defined(USE_MPU_DATA_READY_SIGNAL) && defined(ALIENFLIGHTF4)
+
+    GPIO_InitTypeDef GPIO_InitStruct;
+    EXTI_InitTypeDef EXTI_InitStruct;
+    NVIC_InitTypeDef NVIC_InitStruct;
+
+    /* Enable clock for SYSCFG */
+    RCC_APB2PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+    /* Enable clock for SYSCFG */
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+
+    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN;
+    GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_14;
+    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
+    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource14);
+
+    /* PD0 is connected to EXTI_Line0 */
+    EXTI_InitStruct.EXTI_Line = EXTI_Line14;
+    /* Enable interrupt */
+    EXTI_InitStruct.EXTI_LineCmd = ENABLE;
+    /* Interrupt mode */
+    EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
+    /* Triggers on rising and falling edge */
+    EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
+    /* Add to EXTI */
+    EXTI_Init(&EXTI_InitStruct);
+
+    /* Add IRQ vector to NVIC */
+    NVIC_InitStruct.NVIC_IRQChannel = EXTI15_10_IRQn;
+    /* Set priority */
+    NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
+    /* Set sub priority */
+    NVIC_InitStruct.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
+    /* Enable interrupt */
+    NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
+    /* Add to NVIC */
+    NVIC_Init(&NVIC_InitStruct);
+
+    registerExtiCallbackHandler(EXTI15_10_IRQn, MPU_DATA_READY_EXTI_Handler);
+
+    EXTI_ClearITPendingBit(EXTI_Line14);
 
 #elif defined(USE_MPU_DATA_READY_SIGNAL) && defined(REVONANO)
 
