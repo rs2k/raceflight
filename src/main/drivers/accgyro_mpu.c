@@ -43,7 +43,7 @@
 #include "accgyro_spi_mpu6500.h"
 #include "accgyro_mpu.h"
 
-#define DEBUG_MPU_DATA_READY_INTERRUPT
+//#define DEBUG_MPU_DATA_READY_INTERRUPT
 
 static bool mpuReadRegisterI2C(uint8_t reg, uint8_t length, uint8_t* data);
 static bool mpuWriteRegisterI2C(uint8_t reg, uint8_t data);
@@ -483,19 +483,10 @@ bool mpuGyroReadCollect(void)
 {
     uint8_t data[6];
 
-    __disable_irq();
     bool ack = mpuConfiguration.read(mpuConfiguration.gyroReadXRegister, 6, data);
-    __enable_irq();
     if (!ack) {
         return false;
     }
-
-    //if (filterFull) {
-    //	static int i = 0;
-    //	if (i < 5) {
-    //		debug[i++%5] = (int16_t)((data[0] << 8) | data[1]);
-    //	}
-    //}
 
     gyroTotal0 -= gyroADCtable0[gyroADCnums];
     gyroTotal1 -= gyroADCtable1[gyroADCnums];
@@ -504,7 +495,6 @@ bool mpuGyroReadCollect(void)
     gyroADCtable0[gyroADCnums] = (int16_t)((data[0] << 8) | data[1]);
     gyroADCtable1[gyroADCnums] = (int16_t)((data[2] << 8) | data[3]);
     gyroADCtable2[gyroADCnums] = (int16_t)((data[4] << 8) | data[5]);
-	//debug[2] = gyroADCtable2[gyroADCnums];
 
     gyroTotal0 += gyroADCtable0[gyroADCnums];
     gyroTotal1 += gyroADCtable1[gyroADCnums];
