@@ -23,15 +23,34 @@
 
 #include "gpio.h"
 
+
+#include "exti.h"
+#include "debug.h"
+#include "sensor.h"
+#include "accgyro.h"
+#include "accgyro_mpu.h"
+#include "accgyro_spi_mpu6000.h"
+#include "accgyro_mpu6500.h"
+
+
 #define AIRCR_VECTKEY_MASK    ((uint32_t)0x05FA0000)
 
 void systemReset(void)
 {
-	NVIC_CoreReset();
+
+	resetGyro();
+
+	__disable_irq();
+	NVIC_SystemReset();
 }
 
 void systemResetToBootloader(void) {
-	NVIC_CoreReset();
+
+
+	resetGyro();
+
+	__disable_irq();
+	NVIC_SystemReset();
 }
 
 void enableGPIOPowerUsageAndNoiseReductions(void)

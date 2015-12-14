@@ -100,6 +100,11 @@ static bool mpuSpi6000InitDone = false;
 #define DISABLE_MPU6000       GPIO_SetBits(MPU6000_CS_GPIO,   MPU6000_CS_PIN)
 #define ENABLE_MPU6000        GPIO_ResetBits(MPU6000_CS_GPIO, MPU6000_CS_PIN)
 
+void resetGyro (void) {
+    // Device Reset
+    mpu6000WriteRegister(MPU_RA_PWR_MGMT_1, BIT_H_RESET);
+    delay(150);
+}
 
 bool mpu6000WriteRegister(uint8_t reg, uint8_t data)
 {

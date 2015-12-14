@@ -125,9 +125,7 @@ void gyroUpdate(void)
         return;
     }
 
-    if (gyroFIRTable) {
-        //filterApply9TapFIR(gyroADC, gyroFIRState, gyroFIRTable); //filter built into accgyro_mpu
-    }
+    filterApply9TapFIR(gyroADC, gyroFIRState, gyroFIRTable);
 
     alignSensors(gyroADC, gyroADC, gyroAlign);
 
