@@ -28,6 +28,7 @@
 
 #include "gpio.h"
 #include "system.h"
+#include "debug.h"
 
 #include "timer.h"
 #include "timer_impl.h"
@@ -272,21 +273,21 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
 
 #if defined(REVONANO)
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
-	{ TIM2, GPIOB, Pin_10, TIM_Channel_2, TIM2_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource10, GPIO_AF_TIM2},   // PPM
-	{ TIM3, GPIOB, Pin_0,  TIM_Channel_3, TIM3_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource0, GPIO_AF_TIM3},    // S2_IN
-	{ TIM3, GPIOA, Pin_7,  TIM_Channel_3, TIM3_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource7, GPIO_AF_TIM3},    // S3_IN
-	{ TIM3, GPIOA, Pin_6,  TIM_Channel_3, TIM3_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource6, GPIO_AF_TIM3},    // S4_IN
-	{ TIM2, GPIOA, Pin_5,  TIM_Channel_2, TIM2_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource5, GPIO_AF_TIM2},    // S5_IN
-	{ TIM3, GPIOB, Pin_1,  TIM_Channel_3, TIM3_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource1, GPIO_AF_TIM3},    // S6_IN
+	{ TIM2, GPIOB, Pin_10, TIM_Channel_3, TIM2_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource10, GPIO_AF_TIM2},   // PPM
+	{ TIM3, GPIOB, Pin_1,  TIM_Channel_4, TIM3_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource1, GPIO_AF_TIM3},    // S2_IN
+	{ TIM3, GPIOB, Pin_0,  TIM_Channel_3, TIM3_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource0, GPIO_AF_TIM3},    // S3_IN
+	{ TIM3, GPIOA, Pin_7,  TIM_Channel_2, TIM3_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource7, GPIO_AF_TIM3},    // S4_IN
+	{ TIM3, GPIOA, Pin_6,  TIM_Channel_1, TIM3_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource6, GPIO_AF_TIM3},    // S5_IN
+	{ TIM2, GPIOA, Pin_5,  TIM_Channel_1, TIM2_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource5, GPIO_AF_TIM2},    // S6_IN
 
-    { TIM9, GPIOE, Pin_5, TIM_Channel_1, TIM1_BRK_TIM9_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource5, GPIO_AF_TIM9}, // free tim1
-
-	{ TIM1, GPIOA, Pin_10, TIM_Channel_3, TIM1_CC_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource10, GPIO_AF_TIM1}, // S1_OUT
     { TIM2, GPIOB, Pin_3,  TIM_Channel_2, TIM2_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource3, GPIO_AF_TIM2},                // S2_OUT
     { TIM10, GPIOB, Pin_8, TIM_Channel_1, TIM1_UP_TIM10_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource8, GPIO_AF_TIM10},      // S3_OUT
     { TIM11, GPIOB, Pin_9, TIM_Channel_1, TIM1_TRG_COM_TIM11_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource9, GPIO_AF_TIM11}, // S4_OUT
     { TIM5, GPIOA, Pin_0,  TIM_Channel_1, TIM5_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource0, GPIO_AF_TIM5},                // S5_OUT
     { TIM5, GPIOA, Pin_1,  TIM_Channel_2, TIM5_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource1, GPIO_AF_TIM5},                // S6_OUT
+
+	{ TIM1, GPIOA, Pin_10, TIM_Channel_3, TIM1_CC_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource10, GPIO_AF_TIM1}, // S1_OUT
+    { TIM9, GPIOE, Pin_5, TIM_Channel_1, TIM1_BRK_TIM9_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource5, GPIO_AF_TIM9},    // hack
 };
 
 #define USED_TIMERS  ( TIM_N(2) | TIM_N(3) | TIM_N(5) | TIM_N(1) | TIM_N(9) | TIM_N(10) | TIM_N(11) )
@@ -494,15 +495,27 @@ void configTimeBase(TIM_TypeDef *tim, uint16_t period, uint8_t mhz)
     // "The counter clock frequency (CK_CNT) is equal to f CK_PSC / (PSC[15:0] + 1)." - STM32F10x Reference Manual 14.4.11
     // Thus for 1Mhz: 72000000 / 1000000 = 72, 72 - 1 = 71 = TIM_Prescaler
 #if defined (STM32F40_41xxx)
-    if(tim == TIM1 || tim == TIM8 || tim == TIM9|| tim == TIM10|| tim == TIM11)
-		TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock / ((uint32_t)mhz * 1000000)) - 1;
-    else
-    	TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock / 2 / ((uint32_t)mhz * 1000000)) - 1;
+    if(tim == TIM1 || tim == TIM8 || tim == TIM9|| tim == TIM10|| tim == TIM11) {
+    	if (mhz == 8) {
+    		TIM_TimeBaseStructure.TIM_Prescaler = (20) - 1; //Timers for OneShot125 don't work out for STM32F4 running at 168 MHz, so we put in a timer that's 95%
+    	} else {
+    		TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock / ((uint32_t)mhz * 1000000)) - 1;
+    	}
+    } else {
+    	if (mhz == 8) {
+    		TIM_TimeBaseStructure.TIM_Prescaler = (10) - 1; //Timers for OneShot125 don't work out for STM32F4 running at 168 MHz, so we put in a timer that's 95%
+    	} else {
+    		TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock / 2 / ((uint32_t)mhz * 1000000)) - 1;
+    	}
+    }
 #elif defined (STM32F411xE)
-    if(tim == TIM1 || tim == TIM9 || tim == TIM10 || tim == TIM11)
+    if(tim == TIM1 || tim == TIM9 || tim == TIM10 || tim == TIM11) {
 		TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock / ((uint32_t)mhz * 1000000)) - 1;
-    else
+    	debug[1]=(SystemCoreClock / ((uint32_t)mhz * 1000000)) - 1;
+    } else {
 		TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock / 2 / ((uint32_t)mhz * 1000000)) - 1;
+    	debug[2]=(SystemCoreClock / 2 / ((uint32_t)mhz * 1000000)) - 1;
+    }
 #else
     TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock / ((uint32_t)mhz * 1000000)) - 1;
 #endif
