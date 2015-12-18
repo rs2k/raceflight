@@ -18,6 +18,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "debug.h"
 #include "platform.h"
 
 #include "common/axis.h"
@@ -77,6 +78,7 @@ static void performAcclerationCalibration(uint8_t gyroMovementCalibrationThresho
     static stdev_t var[3];
 
     for (axis = 0; axis < 3; axis++) {
+    	//debug[3]=gyroADC[2]++;
 
         // Reset g[axis] at start of calibration
         if (isOnFirstGyroCalibrationCycle()) {
@@ -125,7 +127,7 @@ void gyroUpdate(void)
         return;
     }
 
-    filterApply9TapFIR(gyroADC, gyroFIRState, gyroFIRTable);
+    //filterApply9TapFIR(gyroADC, gyroFIRState, gyroFIRTable);
 
     alignSensors(gyroADC, gyroADC, gyroAlign);
 

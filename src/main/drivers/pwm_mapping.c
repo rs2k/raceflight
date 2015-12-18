@@ -356,7 +356,7 @@ static const uint16_t airPWM[] = {
 
 #ifdef REVO
 static const uint16_t multiPPM[] = {
-	PWM1  | (MAP_TO_PPM_INPUT << 8),     // PPM input
+	PWM6  | (MAP_TO_PPM_INPUT << 8),     // PPM input
     PWM7  | (MAP_TO_MOTOR_OUTPUT << 8),      // Swap to servo if needed
     PWM8  | (MAP_TO_MOTOR_OUTPUT << 8),      // Swap to servo if needed
     PWM9  | (MAP_TO_MOTOR_OUTPUT << 8),
@@ -367,7 +367,7 @@ static const uint16_t multiPPM[] = {
     PWM3  | (MAP_TO_MOTOR_OUTPUT << 8),      // Swap to servo if needed
     PWM4  | (MAP_TO_MOTOR_OUTPUT << 8),      // Swap to servo if needed
     PWM5  | (MAP_TO_MOTOR_OUTPUT << 8),      // Swap to servo if needed
-    PWM6  | (MAP_TO_MOTOR_OUTPUT << 8),      // Swap to servo if needed
+    PWM1  | (MAP_TO_MOTOR_OUTPUT << 8),      // Swap to servo if needed
     0xFFFF
 };
 static const uint16_t multiPWM[] = {
@@ -387,7 +387,7 @@ static const uint16_t multiPWM[] = {
 };
 
 static const uint16_t airPPM[] = {
-    PWM1  | (MAP_TO_PPM_INPUT << 8),     // PPM input
+    PWM6  | (MAP_TO_PPM_INPUT << 8),     // PPM input
     PWM7  | (MAP_TO_MOTOR_OUTPUT  << 8),
     PWM8  | (MAP_TO_MOTOR_OUTPUT  << 8),
     PWM9  | (MAP_TO_SERVO_OUTPUT  << 8),
@@ -398,7 +398,7 @@ static const uint16_t airPPM[] = {
     PWM3  | (MAP_TO_SERVO_OUTPUT  << 8),
     PWM4  | (MAP_TO_SERVO_OUTPUT  << 8),
     PWM5  | (MAP_TO_SERVO_OUTPUT  << 8),
-    PWM6  | (MAP_TO_SERVO_OUTPUT  << 8),
+    PWM1  | (MAP_TO_SERVO_OUTPUT  << 8),
     0xFFFF
 };
 
@@ -848,6 +848,7 @@ pwmOutputConfiguration_t *pwmInit(drv_pwm_config_t *init)
 #ifdef REVO
             if (init->useOneshot || isMotorBrushed(init->motorPwmRate)) {
                 ppmAvoidPWMTimerClash(timerHardwarePtr, TIM12);
+                ppmAvoidPWMTimerClash(timerHardwarePtr, TIM8);
             }
 #endif
 #ifdef REVONANO

@@ -170,7 +170,7 @@ static void resetAccelerometerTrims(flightDynamicsTrims_t *accelerometerTrims)
 
 static void resetPidProfile(pidProfile_t *pidProfile)
 {
-    pidProfile->pidController = 1;
+    pidProfile->pidController = 2; //default is LUX
 
     pidProfile->P8[ROLL] = 40;
     pidProfile->I8[ROLL] = 30;
@@ -202,21 +202,21 @@ static void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->D8[PIDVEL] = 1;
 
     pidProfile->gyro_soft_lpf = 0;   // LOW filtering by default
-    pidProfile->dterm_cut_hz = 40;
-    pidProfile->yaw_pterm_cut_hz = 50;
+    pidProfile->dterm_cut_hz = 12;
+    pidProfile->yaw_pterm_cut_hz = 30;
 
-    pidProfile->P_f[ROLL] = 1.5f;     // new PID with preliminary defaults test carefully
-    pidProfile->I_f[ROLL] = 0.4f;
-    pidProfile->D_f[ROLL] = 0.02f;
-    pidProfile->P_f[PITCH] = 1.5f;
-    pidProfile->I_f[PITCH] = 0.4f;
-    pidProfile->D_f[PITCH] = 0.02f;
-    pidProfile->P_f[YAW] = 4.0f;
-    pidProfile->I_f[YAW] = 0.4f;
-    pidProfile->D_f[YAW] = 0.01f;
-    pidProfile->A_level = 6.0f;
-    pidProfile->H_level = 6.0f;
-    pidProfile->H_sensitivity = 75;
+    pidProfile->P_f[ROLL] = 4.800f;     // new PID for raceflight. test carefully
+    pidProfile->I_f[ROLL] = 0.747f;
+    pidProfile->D_f[ROLL] = 0.071f;
+    pidProfile->P_f[PITCH] = 5.571f;
+    pidProfile->I_f[PITCH] = 1.025f;
+    pidProfile->D_f[PITCH] = 0.097f;
+    pidProfile->P_f[YAW] = 8.420f;
+    pidProfile->I_f[YAW] = 1.725f;
+    pidProfile->D_f[YAW] = 0.0001f;
+    pidProfile->A_level = 2.500f;
+    pidProfile->H_level = 2.500f;
+    pidProfile->H_sensitivity = 100;
 
 #ifdef GTUNE
     pidProfile->gtune_lolimP[ROLL] = 10;          // [0..200] Lower limit of ROLL P during G tune.
@@ -438,7 +438,7 @@ static void resetConf(void)
     masterConfig.acc_hardware = ACC_DEFAULT;     // default/autodetect
     masterConfig.max_angle_inclination = 700;    // 70 degrees
     masterConfig.yaw_control_direction = 1;
-    masterConfig.gyroConfig.gyroMovementCalibrationThreshold = 32;
+    masterConfig.gyroConfig.gyroMovementCalibrationThreshold = 64;
 
     // xxx_hardware: 0:default/autodetect, 1: disable
     masterConfig.mag_hardware = 0;
@@ -590,10 +590,14 @@ static void resetConf(void)
     featureSet(FEATURE_ONESHOT125);
 #endif
 #if defined (REVONANO)
+    masterConfig.serialConfig.portConfigs[1].functionMask = FUNCTION_MSP; //default config Fleix port for MSP at 9600 for use with 1wire.
+    masterConfig.serialConfig.portConfigs[1].msp_baudrateIndex = BAUD_9600;
     masterConfig.serialConfig.portConfigs[2].functionMask = FUNCTION_RX_SERIAL;
 #endif
 #if defined (REVO)
     masterConfig.serialConfig.portConfigs[1].functionMask = FUNCTION_RX_SERIAL;
+    masterConfig.serialConfig.portConfigs[2].functionMask = FUNCTION_MSP; //default config Fleix port for MSP at 9600 for use with 1wire.
+    masterConfig.serialConfig.portConfigs[2].msp_baudrateIndex = BAUD_9600;
 #endif
 
     // alternative defaults settings for ALIENWIIF1 and ALIENWIIF3 targets

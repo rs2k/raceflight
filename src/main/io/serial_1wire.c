@@ -197,7 +197,7 @@ void usb1WirePassthrough(uint8_t escIndex)
         RX_LED_OFF;
         TX_LED_ON;
         // Wait for programmer to go 0 -> 1
-        uint32_t ct=3333;
+        uint32_t ct=9999;
         while(!RX_HI) {
             if (ct > 0) ct--; // count down until 0;
             // check for low time ->ct=3333 ~600uS //byte LO time for 0 @ 19200 baud -> 9*52 uS => 468.75uS

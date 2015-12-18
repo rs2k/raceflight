@@ -43,7 +43,7 @@
 #include "accgyro_spi_mpu6500.h"
 #include "accgyro_mpu.h"
 
-//#define DEBUG_MPU_DATA_READY_INTERRUPT
+#define DEBUG_MPU_DATA_READY_INTERRUPT
 
 static bool mpuReadRegisterI2C(uint8_t reg, uint8_t length, uint8_t* data);
 static bool mpuWriteRegisterI2C(uint8_t reg, uint8_t data);
@@ -56,9 +56,9 @@ static bool filterFull = false;
 static int gyroADCnums = 0;
 #if defined(REVONANO) || defined(SPARKY2)
 //#define gyroFilterLevel 8 //todo move to gyro_sync and calculate.
-#define gyroFilterLevel 2 //todo move to gyro_sync and calculate.
+#define gyroFilterLevel 8 //todo move to gyro_sync and calculate.
 #else
-#define gyroFilterLevel 2 //todo move to gyro_sync and calculate.
+#define gyroFilterLevel 8 //todo move to gyro_sync and calculate.
 #endif
 static int16_t gyroADCtable0[gyroFilterLevel];
 static int16_t gyroADCtable1[gyroFilterLevel];
@@ -233,7 +233,7 @@ void MPU_DATA_READY_EXTI_Handler(void)
 		gyro_i_count++;
 		mpuGyroReadCollect();
 
-		if (gyro_i_count >= gyroFilterLevel) {
+		if (gyro_i_count >= gyroFilterLevel << 2) {
 
 
 #ifdef DEBUG_MPU_DATA_READY_INTERRUPT
@@ -526,9 +526,9 @@ bool mpuGyroRead(int16_t *gyroADC)
 
 	} else {
 
-		gyroADC[0] = (int16_t)( ( gyroTotal0 + (int)(gyroFilterLevel/2) ) / gyroFilterLevel);
-		gyroADC[1] = (int16_t)( ( gyroTotal1 + (int)(gyroFilterLevel/2) ) / gyroFilterLevel);
-		gyroADC[2] = (int16_t)( ( gyroTotal2 + (int)(gyroFilterLevel/2) ) / gyroFilterLevel);
+		gyroADC[0] = (int16_t)( ( gyroTotal0 + (int)(gyroFilterLevel << 1) ) << 3);
+		gyroADC[1] = (int16_t)( ( gyroTotal1 + (int)(gyroFilterLevel << 1) ) << 3);
+		gyroADC[2] = (int16_t)( ( gyroTotal2 + (int)(gyroFilterLevel << 1) ) << 3);
 
 	}
 

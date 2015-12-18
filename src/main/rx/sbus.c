@@ -66,7 +66,12 @@ static uint16_t sbusStateFlags = 0;
 
 #define SBUS_FRAME_BEGIN_BYTE 0x0F
 
+#if defined(REVONANO)
 #define SBUS_BAUDRATE 97000
+#else
+#define SBUS_BAUDRATE 100000
+#endif
+
 #define SBUS_PORT_OPTIONS (SERIAL_STOPBITS_2 | SERIAL_PARITY_EVEN | SERIAL_INVERTED)
 
 #define SBUS_DIGITAL_CHANNEL_MIN 173

@@ -71,8 +71,8 @@
 #define USE_VCP
 
 #define USE_USART1
-#define USART1_RX_PIN Pin_6
-#define USART1_TX_PIN Pin_7
+#define USART1_RX_PIN Pin_7
+#define USART1_TX_PIN Pin_6
 #define USART1_GPIO GPIOB
 #define USART1_APB2_PERIPHERALS RCC_APB2Periph_USART1
 #define USART1_AHB1_PERIPHERALS RCC_AHB1Periph_GPIOB
@@ -85,9 +85,6 @@
 #define USART2_AHB1_PERIPHERALS RCC_AHB1Periph_GPIOA
 
 #define SERIAL_PORT_COUNT 3 //VCP, USART1, USART2
-
-//#define USE_ESCSERIAL
-//#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
 
 #define USE_SPI
 //#define USE_SPI_DEVICE_1
@@ -121,9 +118,17 @@
 //#define LED_STRIP_TIMER TIM5
 
 //#define GPS
-//#define BLACKBOX
+#define BLACKBOX
 #define TELEMETRY
 #define SERIAL_RX
-//#define GTUNE
+#define GTUNE
 #define USE_SERVOS
 #define USE_CLI
+
+#define USE_SERIAL_1WIRE
+
+#define S1W_TX_GPIO         GPIOB
+#define S1W_TX_PIN          GPIO_Pin_6
+
+#define S1W_RX_GPIO         GPIOB
+#define S1W_RX_PIN          GPIO_Pin_7
