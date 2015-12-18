@@ -233,7 +233,7 @@ void MPU_DATA_READY_EXTI_Handler(void)
 		gyro_i_count++;
 		mpuGyroReadCollect();
 
-		if (gyro_i_count >= gyroFilterLevel << 2) {
+		if (gyro_i_count >= gyroFilterLevel / 4) {
 
 
 #ifdef DEBUG_MPU_DATA_READY_INTERRUPT
@@ -526,9 +526,9 @@ bool mpuGyroRead(int16_t *gyroADC)
 
 	} else {
 
-		gyroADC[0] = (int16_t)( ( gyroTotal0 + (int)(gyroFilterLevel << 1) ) << 3);
-		gyroADC[1] = (int16_t)( ( gyroTotal1 + (int)(gyroFilterLevel << 1) ) << 3);
-		gyroADC[2] = (int16_t)( ( gyroTotal2 + (int)(gyroFilterLevel << 1) ) << 3);
+		gyroADC[0] = (int16_t)( ( gyroTotal0 + (int)(gyroFilterLevel/2) ) / gyroFilterLevel);
+		gyroADC[1] = (int16_t)( ( gyroTotal1 + (int)(gyroFilterLevel/2) ) / gyroFilterLevel);
+		gyroADC[2] = (int16_t)( ( gyroTotal2 + (int)(gyroFilterLevel/2) ) / gyroFilterLevel);
 
 	}
 
