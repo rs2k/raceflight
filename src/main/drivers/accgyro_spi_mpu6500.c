@@ -111,15 +111,13 @@ bool mpu6500SpiDetect(void)
 
     mpu6500ReadRegister(MPU_RA_WHO_AM_I, 1, &tmp);
 
-#if defined(SPARKY2) || defined(REVONANO)
-    if (tmp != MPU9250_WHO_AM_I_CONST)
-        return false;
-#else
-    if (tmp != MPU6500_WHO_AM_I_CONST)
-        return false;
-#endif
+    if (tmp == MPU9250_WHO_AM_I_CONST)
+        return true;
 
-    return true;
+    if (tmp == MPU6500_WHO_AM_I_CONST)
+        return true;
+
+    return false;
 }
 
 bool mpu6500SpiAccDetect(acc_t *acc)

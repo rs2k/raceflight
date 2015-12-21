@@ -545,6 +545,75 @@ static const uint16_t airPWM[] = {
 };
 #endif
 
+#ifdef ALIENFLIGHTF4
+static const uint16_t multiPPM[] = {
+    PWM1  | (MAP_TO_PPM_INPUT << 8),         // PPM input
+    PWM6  | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #1 or servo #1 (swap to servo if needed)
+    PWM7  | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #2 or servo #2 (swap to servo if needed)
+    PWM8  | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #3 or #1
+    PWM9  | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #4 or #2
+    PWM10 | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #5 or #3
+    PWM11 | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #6 or #4
+    PWM12 | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #7 or #5
+    PWM13 | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #8 or #6
+    PWM2  | (MAP_TO_MOTOR_OUTPUT << 8),      // Swap to servo if needed
+    PWM3  | (MAP_TO_MOTOR_OUTPUT << 8),      // Swap to servo if needed
+    PWM4  | (MAP_TO_MOTOR_OUTPUT << 8),      // Swap to servo if needed
+    PWM5  | (MAP_TO_MOTOR_OUTPUT << 8),      // Swap to servo if needed
+    0xFFFF
+};
+static const uint16_t multiPWM[] = {
+    PWM1  | (MAP_TO_PWM_INPUT << 8),         // input #1
+    PWM2  | (MAP_TO_PWM_INPUT << 8),         // input #2
+    PWM3  | (MAP_TO_PWM_INPUT << 8),         // input #3
+    PWM4  | (MAP_TO_PWM_INPUT << 8),         // input #4
+    PWM5  | (MAP_TO_PWM_INPUT << 8),         // input #5
+    PWM6  | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #1 or servo #1 (swap to servo if needed)
+    PWM7  | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #2 or servo #2 (swap to servo if needed)
+    PWM8  | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #3 or #1
+    PWM9  | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #4 or #2
+    PWM10 | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #5 or #3
+    PWM11 | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #6 or #4
+    PWM12 | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #7 or #5
+    PWM13 | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #8 or #6
+    0xFFFF
+};
+
+static const uint16_t airPPM[] = {
+    PWM1  | (MAP_TO_PPM_INPUT << 8),        // PPM input
+    PWM6  | (MAP_TO_MOTOR_OUTPUT << 8),     // motor #1
+    PWM7  | (MAP_TO_MOTOR_OUTPUT << 8),     // motor #2
+    PWM8  | (MAP_TO_SERVO_OUTPUT << 8),     // servo #1
+    PWM9  | (MAP_TO_SERVO_OUTPUT << 8),     // servo #2
+    PWM10 | (MAP_TO_SERVO_OUTPUT << 8),     // servo #3
+    PWM11 | (MAP_TO_SERVO_OUTPUT << 8),     // servo #4
+    PWM12 | (MAP_TO_SERVO_OUTPUT << 8),     // servo #5
+    PWM13 | (MAP_TO_SERVO_OUTPUT << 8),     // servo #6
+    PWM2  | (MAP_TO_SERVO_OUTPUT << 8),     // servo #7
+    PWM3  | (MAP_TO_SERVO_OUTPUT << 8),     // servo #8
+    PWM4  | (MAP_TO_SERVO_OUTPUT << 8),     // servo #9
+    PWM5  | (MAP_TO_SERVO_OUTPUT << 8),     // servo #10
+    0xFFFF
+};
+
+static const uint16_t airPWM[] = {
+    PWM1  | (MAP_TO_PWM_INPUT << 8),         // input #1
+    PWM2  | (MAP_TO_PWM_INPUT << 8),         // input #2
+    PWM3  | (MAP_TO_PWM_INPUT << 8),         // input #3
+    PWM4  | (MAP_TO_PWM_INPUT << 8),         // input #4
+    PWM5  | (MAP_TO_PWM_INPUT << 8),         // input #5
+    PWM6  | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #1
+    PWM7  | (MAP_TO_MOTOR_OUTPUT << 8),      // motor #2
+    PWM8  | (MAP_TO_SERVO_OUTPUT << 8),      // servo #1
+    PWM9  | (MAP_TO_SERVO_OUTPUT << 8),      // servo #2
+    PWM10 | (MAP_TO_SERVO_OUTPUT << 8),      // servo #3
+    PWM11 | (MAP_TO_SERVO_OUTPUT << 8),      // servo #4
+    PWM12 | (MAP_TO_SERVO_OUTPUT << 8),      // servo #5
+    PWM13 | (MAP_TO_SERVO_OUTPUT << 8),      // servo #6
+    0xFFFF
+};
+#endif
+
 #ifdef SPRACINGF3
 static const uint16_t multiPPM[] = {
     PWM1  | (MAP_TO_PPM_INPUT    << 8), // PPM input
@@ -859,6 +928,11 @@ pwmOutputConfiguration_t *pwmInit(drv_pwm_config_t *init)
 #ifdef SPARKY2
             if (init->useOneshot || isMotorBrushed(init->motorPwmRate)) {
                 ppmAvoidPWMTimerClash(timerHardwarePtr, TIM8);
+            }
+#endif
+#ifdef ALIENFLIGHTF4
+            if (init->useOneshot || isMotorBrushed(init->motorPwmRate)) {
+                ppmAvoidPWMTimerClash(timerHardwarePtr, TIM1);
             }
 #endif
 #ifdef CC3D

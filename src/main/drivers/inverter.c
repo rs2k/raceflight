@@ -37,7 +37,7 @@ void initInverter(void)
         .cfg = { INVERTER_PIN, Mode_Out_PP, Speed_2MHz } 
     };
 
-#if defined(REVO) || defined(REVONANO) || defined(SPARKY2)
+#if defined(REVO) || defined(REVONANO) || defined(SPARKY2) || defined(ALIENFLIGHTF4)
     RCC_AHB1PeriphClockCmd(INVERTER_PERIPHERAL, ENABLE);
 #else
     RCC_APB2PeriphClockCmd(INVERTER_PERIPHERAL, ENABLE);
