@@ -195,6 +195,19 @@ const extiConfig_t *selectMPUIntExtiConfig(void)
     return &sparky2MPUIntExtiConfig;
 #endif
 
+#if defined(BLUEJAYF4)
+    static const extiConfig_t bluejayf4MPUIntExtiConfig = {
+            .gpioAHB1Peripherals = RCC_AHB1Periph_GPIOC,
+            .gpioPort = GPIOC,
+            .gpioPin = Pin_5,
+            .exti_port_source = EXTI_PortSourceGPIOC,
+            .exti_pin_source = EXTI_PinSource5,
+            .exti_line = EXTI_Line5,
+            .exti_irqn = EXTI9_5_IRQn
+    };
+    return &bluejayf4MPUIntExtiConfig;
+#endif
+
 #if defined(ALIENFLIGHTF4)
     static const extiConfig_t alienflightf4MPUIntExtiConfig = {
             .gpioAHB1Peripherals = RCC_AHB1Periph_GPIOC,

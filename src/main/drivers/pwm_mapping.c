@@ -545,6 +545,52 @@ static const uint16_t airPWM[] = {
 };
 #endif
 
+#ifdef BLUEJAYF4
+static const uint16_t multiPPM[] = {
+    PWM1  | (MAP_TO_PPM_INPUT << 8),     // PPM input
+    PWM2  | (MAP_TO_MOTOR_OUTPUT << 8),     
+    PWM3  | (MAP_TO_MOTOR_OUTPUT << 8),    
+    PWM4  | (MAP_TO_MOTOR_OUTPUT << 8),
+    PWM5  | (MAP_TO_MOTOR_OUTPUT << 8),
+    PWM6  | (MAP_TO_MOTOR_OUTPUT << 8),
+    PWM7  | (MAP_TO_MOTOR_OUTPUT << 8),
+    0xFFFF
+};
+
+static const uint16_t multiPWM[] = {
+    PWM1  | (MAP_TO_PWM_INPUT << 8), 
+    PWM2  | (MAP_TO_MOTOR_OUTPUT << 8),
+    PWM3  | (MAP_TO_MOTOR_OUTPUT << 8),
+    PWM4  | (MAP_TO_MOTOR_OUTPUT << 8),
+    PWM5  | (MAP_TO_MOTOR_OUTPUT << 8),
+    PWM6  | (MAP_TO_MOTOR_OUTPUT  << 8),     
+    PWM7  | (MAP_TO_MOTOR_OUTPUT  << 8),    
+    0xFFFF
+};
+
+static const uint16_t airPPM[] = {
+    PWM1  | (MAP_TO_PPM_INPUT << 8),     // PPM input
+    PWM2  | (MAP_TO_MOTOR_OUTPUT  << 8),
+    PWM3  | (MAP_TO_MOTOR_OUTPUT  << 8),
+    PWM4  | (MAP_TO_SERVO_OUTPUT  << 8),
+    PWM5  | (MAP_TO_SERVO_OUTPUT  << 8),
+    PWM6  | (MAP_TO_SERVO_OUTPUT  << 8),
+    PWM7  | (MAP_TO_SERVO_OUTPUT  << 8),
+    0xFFFF
+};
+
+static const uint16_t airPWM[] = {
+    PWM1  | (MAP_TO_PWM_INPUT << 8),
+    PWM2  | (MAP_TO_MOTOR_OUTPUT << 8),
+    PWM3  | (MAP_TO_MOTOR_OUTPUT << 8),
+    PWM4  | (MAP_TO_MOTOR_OUTPUT << 8),
+    PWM5  | (MAP_TO_MOTOR_OUTPUT << 8),
+    PWM6  | (MAP_TO_MOTOR_OUTPUT  << 8),
+    PWM7  | (MAP_TO_MOTOR_OUTPUT  << 8),
+    0xFFFF
+};
+#endif
+
 #ifdef ALIENFLIGHTF4
 static const uint16_t multiPPM[] = {
     PWM1  | (MAP_TO_PPM_INPUT << 8),         // PPM input
@@ -741,6 +787,7 @@ static pwmOutputConfiguration_t pwmOutputConfiguration;
 pwmOutputConfiguration_t *pwmGetOutputConfiguration(void){
     return &pwmOutputConfiguration;
 }
+
 pwmOutputConfiguration_t *pwmInit(drv_pwm_config_t *init)
 {
     int i = 0;
@@ -764,6 +811,7 @@ pwmOutputConfiguration_t *pwmInit(drv_pwm_config_t *init)
         uint8_t type = (setup[i] & 0xFF00) >> 8;
 
         const timerHardware_t *timerHardwarePtr = &timerHardware[timerIndex];
+
 
 #ifdef OLIMEXINO_UNCUT_LED2_E_JUMPER
         // PWM2 is connected to LED2 on the board and cannot be connected unless you cut LED2_E
@@ -885,6 +933,7 @@ pwmOutputConfiguration_t *pwmInit(drv_pwm_config_t *init)
 #endif
         }
 
+
         if (init->useChannelForwarding && !init->airplane) {
 #if defined(NAZE) && defined(LED_STRIP_TIMER)
             // if LED strip is active, PWM5-8 are unavailable, so map AUX1+AUX2 to PWM13+PWM14
@@ -935,6 +984,12 @@ pwmOutputConfiguration_t *pwmInit(drv_pwm_config_t *init)
                 ppmAvoidPWMTimerClash(timerHardwarePtr, TIM1);
             }
 #endif
+#ifdef BLUEJAYF4
+            if (init->useOneshot || isMotorBrushed(init->motorPwmRate)) {
+                ppmAvoidPWMTimerClash(timerHardwarePtr, TIM8);
+            }
+#endif
+
 #ifdef CC3D
             if (init->useOneshot || isMotorBrushed(init->motorPwmRate)) {
                 ppmAvoidPWMTimerClash(timerHardwarePtr, TIM4);
