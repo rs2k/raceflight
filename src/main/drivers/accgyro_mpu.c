@@ -54,7 +54,7 @@ static int gyro_i_count = 0;
 static volatile bool mpuDataReady;
 static bool filterFull = false;
 static int gyroADCnums = 0;
-#if defined(REVONANO) || defined(SPARKY2) || defined(ALIENFLIGHTF4)
+#if defined(REVONANO) || defined(SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4)
 //#define gyroFilterLevel 8 //todo move to gyro_sync and calculate.
 #define gyroFilterLevel 8 //todo move to gyro_sync and calculate.
 #else
@@ -213,7 +213,7 @@ void MPU_DATA_READY_EXTI_Handler(void)
 #elif defined (REVONANO)
     if (EXTI_GetITStatus(EXTI_Line15) != RESET) {
         EXTI_ClearITPendingBit(EXTI_Line15);
-#elif defined (SPARKY2)
+#elif defined (SPARKY2) || defined(BLUEJAYF4)
     if (EXTI_GetITStatus(EXTI_Line5) != RESET) {
         EXTI_ClearITPendingBit(EXTI_Line5);
 #elif defined (ALIENFLIGHTF4)
@@ -292,6 +292,40 @@ void configureMPUDataReadyInterruptHandling(void)
 	EXTI_ClearITPendingBit(EXTI_Line4);
 
 #elif defined(USE_MPU_DATA_READY_SIGNAL) && defined(SPARKY2)
+
+    GPIO_InitTypeDef GPIO_InitStruct;
+    EXTI_InitTypeDef EXTI_InitStruct;
+    NVIC_InitTypeDef NVIC_InitStruct;
+
+    RCC_APB2PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+
+    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN;
+    GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_5;
+    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
+    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource5);
+
+    EXTI_InitStruct.EXTI_Line = EXTI_Line5;
+    EXTI_InitStruct.EXTI_LineCmd = ENABLE;
+    EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
+    EXTI_Init(&EXTI_InitStruct);
+
+    NVIC_InitStruct.NVIC_IRQChannel = EXTI9_5_IRQn;
+    NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
+    NVIC_InitStruct.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
+    NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStruct);
+
+    registerExtiCallbackHandler(EXTI9_5_IRQn, MPU_DATA_READY_EXTI_Handler);
+
+    EXTI_ClearITPendingBit(EXTI_Line5);
+    
+#elif defined(USE_MPU_DATA_READY_SIGNAL) && defined(BLUEJAYF4)
 
     GPIO_InitTypeDef GPIO_InitStruct;
     EXTI_InitTypeDef EXTI_InitStruct;

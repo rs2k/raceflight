@@ -46,7 +46,7 @@ void gyroUpdateSampleRate(void) {
 
     int gyroFrequency;
     int gyroSampleRate;
-#if defined(REVONANO) || defined(SPARKY2) || defined(ALIENFLIGHTF4)
+#if defined(REVONANO) || defined(SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4)
     //gyroFrequency  = 31; // gyro sampling rate 32khz
     //gyroSampleRate = 31; // 32khz sampling
     gyroFrequency  = 125;  // gyro sampling rate 8khz

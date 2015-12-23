@@ -140,7 +140,7 @@ void initSpi1(void)
     gpio.speed = Speed_50MHz;
     gpioInit(GPIOA, &gpio);
 #endif
-#if defined(SPARKY2)
+#if defined(SPARKY2) || defined(BLUEJAYF4)
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
     // NSS as gpio slave select
     gpio.pin = Pin_4;
@@ -414,7 +414,7 @@ void initSpi3(void)
     gpio.speed = Speed_50MHz;
     gpioInit(GPIOC, &gpio);
 
-#if defined(REVO) || defined(SPARKY2)
+#if defined(REVO) || defined(SPARKY2) || defined(BLUEJAYF4)
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
     // NSS as gpio slave select

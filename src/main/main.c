@@ -222,6 +222,7 @@ void init(void)
 
     memset(&pwm_params, 0, sizeof(pwm_params));
 
+
 #ifdef SONAR
     const sonarHardware_t *sonarHardware = NULL;
 
@@ -286,6 +287,7 @@ void init(void)
 
     pwmOutputConfiguration_t *pwmOutputConfiguration = pwmInit(&pwm_params);
 
+
     mixerUsePWMOutputConfiguration(pwmOutputConfiguration);
 
     if (!feature(FEATURE_ONESHOT125))
@@ -320,6 +322,8 @@ void init(void)
 
     beeperInit(&beeperConfig);
 #endif
+
+
 
 #ifdef INVERTER
     initInverter();
@@ -370,7 +374,7 @@ void init(void)
     }
 #else
     i2cInit(I2C_DEVICE);
-#if defined(REVO) || defined(SPARKY2)
+#if defined(REVO) || defined(SPARKY2) || defined(BLUEJAYF4)
     if (!doesConfigurationUsePort(SERIAL_PORT_USART3)) {
 #ifdef I2C_DEVICE_EXT
         i2cInit(I2C_DEVICE_EXT);
@@ -561,6 +565,7 @@ void processLoopback(void) {
 #endif
 
 int main(void) {
+  
     init();
 
     while (1) {
@@ -569,13 +574,20 @@ int main(void) {
     }
 }
 
-
-void HardFault_Handler(void)
-{
+void HardFault_Handler(void) {
     // fall out of the sky
     uint8_t requiredState = SYSTEM_STATE_CONFIG_LOADED | SYSTEM_STATE_MOTORS_READY;
     if ((systemState & requiredState) == requiredState) {
         stopMotors();
     }
-    while (1);
+
+    LED1_OFF;
+    LED0_OFF;
+
+    while(1) {
+#ifdef BLUEJAYF4
+        delay(25);
+        LED2_TOGGLE;
+#endif
+    }
 }
