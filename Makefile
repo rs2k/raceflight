@@ -246,7 +246,6 @@ endif
 
 ifeq ($(TARGET),VRCORE)
 DEVICE_FLAGS += -DHSE_VALUE=8000000
-#LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405.ld
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f4xx.ld
 endif
 
