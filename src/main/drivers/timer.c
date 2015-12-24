@@ -362,6 +362,31 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
 
 #endif
 
+#ifdef VRCORE
+const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
+    { TIM1, GPIOE, Pin_9, TIM_Channel_1, TIM1_CC_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource9, GPIO_AF_TIM1},       // S1_IN
+    { TIM1, GPIOE, Pin_11,TIM_Channel_2, TIM1_CC_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource11, GPIO_AF_TIM1},      // S2_IN
+    { TIM1, GPIOE, Pin_13,TIM_Channel_3, TIM1_CC_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource13, GPIO_AF_TIM1},      // S3_IN
+    { TIM1, GPIOE, Pin_14,TIM_Channel_4, TIM1_CC_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource14, GPIO_AF_TIM1},      // S4_IN
+    { TIM9, GPIOE, Pin_6, TIM_Channel_1, TIM1_BRK_TIM9_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource6, GPIO_AF_TIM9}, // S5_IN
+    { TIM9, GPIOE, Pin_5, TIM_Channel_2, TIM1_BRK_TIM9_IRQn, 0, GPIO_Mode_AF, GPIO_PinSource5, GPIO_AF_TIM9}, // S6_IN
+
+    { TIM2, GPIOA, Pin_1, TIM_Channel_2, TIM2_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource1, GPIO_AF_TIM2},    // S1_OUT
+    { TIM2, GPIOA, Pin_2, TIM_Channel_3, TIM2_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource2, GPIO_AF_TIM2},    // S2_OUT
+    { TIM2, GPIOA, Pin_3, TIM_Channel_4, TIM2_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource3, GPIO_AF_TIM2},    // S3_OUT
+    { TIM3, GPIOB, Pin_5, TIM_Channel_2, TIM3_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource5, GPIO_AF_TIM3},    // S4_OUT
+    { TIM3, GPIOB, Pin_0, TIM_Channel_3, TIM3_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource0, GPIO_AF_TIM3},    // S5_OUT
+    { TIM3, GPIOB, Pin_1, TIM_Channel_4, TIM3_IRQn, 1, GPIO_Mode_AF, GPIO_PinSource1, GPIO_AF_TIM3},    // S6_OUT
+};
+
+#define USED_TIMERS  ( TIM_N(1) | TIM_N(2) | TIM_N(4) | TIM_N(9))
+
+#define TIMER_APB1_PERIPHERALS (RCC_APB1Periph_TIM2 | RCC_APB1Periph_TIM3 | RCC_AHB1Periph_GPIOA | RCC_AHB1Periph_GPIOB | RCC_AHB1Periph_GPIOE)
+#define TIMER_APB2_PERIPHERALS (RCC_APB2Periph_TIM1 | RCC_APB2Periph_TIM9)
+
+#endif
+
+
 #ifdef SPRACINGF3
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     { TIM2,  GPIOA, Pin_0,  TIM_Channel_1, TIM2_IRQn,               0, Mode_AF_PP, GPIO_PinSource0,  GPIO_AF_1}, // RC_CH1 - PA0  - *TIM2_CH1

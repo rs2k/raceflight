@@ -132,7 +132,7 @@ void initSpi1(void)
     gpio.mode = Mode_AF_PP;
     gpioInit(GPIOA, &gpio);
 
-#if defined(REVO) || defined(ALIENFLIGHTF4)
+#if defined(REVO) || defined(ALIENFLIGHTF4) || defined(VRCORE)
     // Used for MPU6000 gyro and accelerometer
     // NSS as gpio slave select
     gpio.pin = Pin_4;
@@ -261,6 +261,40 @@ void initSpi2(void)
 #endif
 
 #if defined(STM32F40_41xxx)
+
+#if defined(VRCORE)
+    gpio_config_t gpio;
+
+    // SCK as output
+    gpio.mode = Mode_AF_PP;
+    gpio.pin = Pin_13;
+    gpio.speed = Speed_50MHz;
+    gpioInit(GPIOB, &gpio);
+
+    // MOSI + SCK as output
+    gpio.mode = Mode_AF_PP;
+    gpio.pin = Pin_15;
+    gpio.speed = Speed_50MHz;
+    gpioInit(GPIOB, &gpio);
+
+    // MISO as input
+    gpio.pin = Pin_14;
+    gpio.mode = Mode_AF_PP;
+    gpio.speed = Speed_50MHz;
+    gpioInit(GPIOB, &gpio);
+
+    // NSS as gpio slave select
+    //RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
+    gpio.pin = Pin_10;
+    gpio.speed = Speed_50MHz;
+    gpio.mode = Mode_Out_PP;
+    gpioInit(GPIOE, &gpio);
+
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_SPI2);
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource14, GPIO_AF_SPI2);
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource15, GPIO_AF_SPI2);
+    GPIO_PinAFConfig(GPIOE, GPIO_PinSource10, GPIO_AF_SPI2);
+#else
     // Specific to the STM32F405
     // SPI2 Driver
     // PC3    17    SPI2_MOSI
@@ -297,6 +331,7 @@ void initSpi2(void)
     GPIO_PinAFConfig(GPIOB, GPIO_PinSource12, GPIO_AF_SPI2);
     GPIO_PinAFConfig(GPIOC, GPIO_PinSource2, GPIO_AF_SPI2);
     GPIO_PinAFConfig(GPIOC, GPIO_PinSource3, GPIO_AF_SPI2);
+#endif
 #endif
 
 #if defined(STM32F411xE)
