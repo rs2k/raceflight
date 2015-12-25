@@ -38,7 +38,7 @@ FLASH_SIZE ?=
 
 FORKNAME			 = raceflight
 
-VALID_TARGETS	 = NAZE NAZE32PRO OLIMEXINO STM32F3DISCOVERY CHEBUZZF3 CC3D CJMCU EUSTM32F103RC SPRACINGF3 PORT103R SPARKY ALIENWIIF1 ALIENWIIF3 COLIBRI_RACE MOTOLAB RMDO REVO SPARKY2 REVONANO ALIENFLIGHTF4 BLUEJAYF4
+VALID_TARGETS	 = NAZE NAZE32PRO OLIMEXINO STM32F3DISCOVERY CHEBUZZF3 CC3D CJMCU EUSTM32F103RC SPRACINGF3 PORT103R SPARKY ALIENWIIF1 ALIENWIIF3 COLIBRI_RACE MOTOLAB RMDO REVO SPARKY2 REVONANO ALIENFLIGHTF4 BLUEJAYF4 VRCORE
 
 # Valid targets for OP BootLoader support
 OPBL_VALID_TARGETS = CC3D REVO SPARKY2 REVONANO BLUEJAYF4
@@ -51,7 +51,7 @@ else ifeq ($(TARGET),$(filter $(TARGET),ALIENWIIF1 CC3D NAZE OLIMEXINO RMDO))
 FLASH_SIZE = 128
 else ifeq ($(TARGET),$(filter $(TARGET),EUSTM32F103RC PORT103R STM32F3DISCOVERY CHEBUZZF3 NAZE32PRO SPRACINGF3 SPARKY ALIENWIIF3 COLIBRI_RACE MOTOLAB))
 FLASH_SIZE = 256
-else ifeq ($(TARGET),$(filter $(TARGET),REVO SPARKY2 REVONANO ALIENFLIGHTF4 BLUEJAYF4))
+else ifeq ($(TARGET),$(filter $(TARGET),REVO SPARKY2 REVONANO ALIENFLIGHTF4 BLUEJAYF4 VRCORE))
 FLASH_SIZE = 256
 else
 $(error FLASH_SIZE not configured for target)
@@ -127,7 +127,7 @@ ifeq ($(TARGET),RMDO)
 TARGET_FLAGS := $(TARGET_FLAGS) -DSPRACINGF3
 endif
 
-else ifeq ($(TARGET),$(filter $(TARGET),REVO SPARKY2 REVONANO ALIENFLIGHTF4 BLUEJAYF4))
+else ifeq ($(TARGET),$(filter $(TARGET),REVO SPARKY2 REVONANO ALIENFLIGHTF4 BLUEJAYF4 VRCORE))
 
 #STDPERIPH
 STDPERIPH_DIR	= $(ROOT)/lib/main/STM32F4xx_StdPeriph_Driver
@@ -193,7 +193,7 @@ INCLUDE_DIRS := $(INCLUDE_DIRS) \
 #Flags
 ARCH_FLAGS	 = -mthumb -mcpu=cortex-m4 -march=armv7e-m -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Wdouble-promotion
 
-ifeq ($(TARGET),$(filter $(TARGET),REVO SPARKY2 ALIENFLIGHTF4 BLUEJAYF4))
+ifeq ($(TARGET),$(filter $(TARGET),REVO SPARKY2 ALIENFLIGHTF4 BLUEJAYF4 VRCORE))
 DEVICE_FLAGS = -DSTM32F40_41xxx
 else ifeq ($(TARGET),$(filter $(TARGET),REVONANO))
 DEVICE_FLAGS = -DSTM32F411xE
@@ -243,6 +243,12 @@ LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405_bl.ld
 endif
 .DEFAULT_GOAL := binary
 endif
+
+ifeq ($(TARGET),VRCORE)
+DEVICE_FLAGS += -DHSE_VALUE=8000000
+LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f4xx.ld
+endif
+
 
 TARGET_FLAGS = -D$(TARGET)
 
@@ -763,6 +769,39 @@ BLUEJAYF4_SRC = \
 		   $(HIGHEND_SRC) \
 		   $(COMMON_SRC) \
 		   $(VCPF4_SRC)
+
+VRCORE_SRC = startup_stm32f40xx.s \
+		   drivers/accgyro_mpu.c \
+		   drivers/accgyro_mpu6500.c \
+		   drivers/accgyro_spi_mpu6500.c \
+		   drivers/adc.c \
+		   drivers/adc_stm32f4xx.c \
+		   drivers/barometer_ms5611.c \
+		   drivers/compass_hmc5883l.c \
+		   drivers/adc.c \
+		   drivers/adc_stm32f4xx.c \
+		   drivers/bus_i2c_stm32f4xx.c \
+		   drivers/bus_spi.c \
+		   drivers/gpio_stm32f4xx.c \
+		   drivers/inverter.c \
+		   drivers/light_led_stm32f4xx.c \
+		   drivers/light_ws2811strip.c \
+		   drivers/light_ws2811strip_stm32f4xx.c \
+		   drivers/pwm_mapping.c \
+		   drivers/pwm_output.c \
+		   drivers/pwm_rx.c \
+		   drivers/serial_softserial.c \
+		   drivers/serial_uart.c \
+		   drivers/serial_uart_stm32f4xx.c \
+		   drivers/sound_beeper_stm32f4xx.c \
+		   drivers/system_stm32f4xx.c \
+		   drivers/timer.c \
+		   drivers/timer_stm32f4xx.c \
+		   drivers/flash_m25p16.c \
+		   io/flashfs.c \
+		   $(HIGHEND_SRC) \
+		   $(COMMON_SRC) \
+		   $(VCPF4_SRC)
 		   
 STM32F30x_COMMON_SRC = \
 		   startup_stm32f30x_md_gcc.S \
@@ -912,7 +951,7 @@ ifeq ($(DEBUG),GDB)
 OPTIMIZE	 = -O0
 LTO_FLAGS	 = $(OPTIMIZE)
 else
-ifeq ($(TARGET),$(filter $(TARGET),REVO REVONANO SPARKY2 ALIENFLIGHTF4 BLUEJAYF4))
+ifeq ($(TARGET),$(filter $(TARGET),REVO REVONANO SPARKY2 ALIENFLIGHTF4 BLUEJAYF4 VRCORE))
 OPTIMIZE	 = -Os
 else
 OPTIMIZE	 = -Os

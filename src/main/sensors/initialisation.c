@@ -221,6 +221,20 @@ const extiConfig_t *selectMPUIntExtiConfig(void)
     return &alienflightf4MPUIntExtiConfig;
 #endif
 
+#if defined (VRCORE)
+    static const extiConfig_t vrcoref4MPUIntExtiConfig = {
+            .gpioAHB1Peripherals = RCC_AHB1Periph_GPIOD,
+            .gpioPort = GPIOD,
+            .gpioPin = Pin_10,
+            .exti_port_source = EXTI_PortSourceGPIOD,
+            .exti_pin_source = EXTI_PinSource10,
+            .exti_line = EXTI_Line10,
+            .exti_irqn = EXTI15_10_IRQn
+    };
+    return &vrcoref4MPUIntExtiConfig;
+#endif
+
+
 #if defined(MOTOLAB) || defined(SPARKY)
     static const extiConfig_t MotolabF3MPU6050Config = {
             .gpioAHBPeripherals = RCC_AHBPeriph_GPIOA,
