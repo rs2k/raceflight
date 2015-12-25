@@ -100,6 +100,7 @@ mpuDetectionResult_t *detectMpu(const extiConfig_t *configToUse)
 
 #ifndef USE_I2C
     ack = false;
+    sig = 0;
 #else
     ack = mpuReadRegisterI2C(MPU_RA_WHO_AM_I, 1, &sig);
 #endif

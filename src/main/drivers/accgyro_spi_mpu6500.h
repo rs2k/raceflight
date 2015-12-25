@@ -15,8 +15,6 @@
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define MPU9250_WHO_AM_I_CONST              (0x71)
-
 #pragma once
 
 bool mpu6500SpiDetect(void);
@@ -25,4 +23,5 @@ bool mpu6500SpiAccDetect(acc_t *acc);
 bool mpu6500SpiGyroDetect(gyro_t *gyro);
 
 bool mpu6500WriteRegister(uint8_t reg, uint8_t data);
+bool verifympu6500WriteRegister(uint8_t reg, uint8_t data);
 bool mpu6500ReadRegister(uint8_t reg, uint8_t length, uint8_t *data);
