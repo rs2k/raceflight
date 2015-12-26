@@ -166,12 +166,13 @@ bool verifympu6000WriteRegister(uint8_t reg, uint8_t data) {
     do {
     	mpu6000ReadRegister(reg, 1, &in);
     	if (in == data) {
-    		break;
+    		return true;
     	} else {
     		mpu6000WriteRegister(reg, data);
-    		delay(100);
+    		delayMicroseconds(100);
     	}
     } while (attemptsRemaining--);
+    return false;
 }
 
 static void mpu6000AccAndGyroInit(void) {
