@@ -81,7 +81,7 @@ static uint16_t captures[PWM_PORTS_OR_PPM_CAPTURE_COUNT];
 
 static uint8_t ppmFrameCount = 0;
 static uint8_t lastPPMFrameCount = 0;
-static uint8_t ppmCountShift = 0;
+static uint8_t ppmCountShift = 1;
 
 typedef struct ppmDevice_s {
     uint8_t  pulseIndex;
@@ -158,8 +158,10 @@ static void ppmEdgeCallback(timerCCHandlerRec_t* cbRec, captureCompare_t capture
     /* Convert to 32-bit timer result */
     ppmDev.currentTime += ppmDev.largeCounter;
 
-    // Divide by 8 if Oneshot125 is active and this is a CC3D board
-    ppmDev.currentTime = ppmDev.currentTime >> ppmCountShift;
+    // Divide by 12 if Oneshot125 is active and this is a CC3D board
+    if (ppmCountShift > 1) {
+    	ppmDev.currentTime = ppmDev.currentTime / ppmCountShift;
+    }
 
     /* Capture computation */
     ppmDev.deltaTime    = ppmDev.currentTime - ppmDev.previousTime;
@@ -327,7 +329,7 @@ void pwmInConfig(const timerHardware_t *timerHardwarePtr, uint8_t channel)
 void ppmAvoidPWMTimerClash(const timerHardware_t *timerHardwarePtr, TIM_TypeDef *sharedPwmTimer)
 {
     if (timerHardwarePtr->tim == sharedPwmTimer) {
-        ppmCountShift = 3;  // Divide by 8 if the timer is running at 8 MHz
+        ppmCountShift = 12;  // Divide by 12 if the timer is running at 12 MHz
     }
 }
 

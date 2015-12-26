@@ -274,6 +274,7 @@ void init(void)
 #endif
 
     pwm_params.useOneshot = feature(FEATURE_ONESHOT125);
+    pwm_params.useMultiShot = feature(FEATURE_MULTISHOT);
     pwm_params.useFastPWM = masterConfig.use_fast_pwm ? true : false;
     pwm_params.motorPwmRate = masterConfig.motor_pwm_rate;
     pwm_params.idlePulse = masterConfig.escAndServoConfig.mincommand;
@@ -288,7 +289,7 @@ void init(void)
 
     mixerUsePWMOutputConfiguration(pwmOutputConfiguration);
 
-    if (!feature(FEATURE_ONESHOT125))
+    if (!feature(FEATURE_ONESHOT125) && !feature(FEATURE_MULTISHOT))
         motorControlEnable = true;
 
     systemState |= SYSTEM_STATE_MOTORS_READY;
