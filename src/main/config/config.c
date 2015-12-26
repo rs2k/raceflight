@@ -213,7 +213,7 @@ static void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->D_f[PITCH] = 0.097f;
     pidProfile->P_f[YAW] = 8.420f;
     pidProfile->I_f[YAW] = 1.725f;
-    pidProfile->D_f[YAW] = 0.0001f;
+    pidProfile->D_f[YAW] = 0.111f;
     pidProfile->A_level = 2.500f;
     pidProfile->H_level = 2.500f;
     pidProfile->H_sensitivity = 100;
@@ -333,8 +333,8 @@ void resetSerialConfig(serialConfig_t *serialConfig)
 }
 
 static void resetControlRateConfig(controlRateConfig_t *controlRateConfig) {
-    controlRateConfig->rcRate8 = 100;
-    controlRateConfig->rcExpo8 = 70;
+    controlRateConfig->rcRate8 = 20;
+    controlRateConfig->rcExpo8 = 40;
     controlRateConfig->thrMid8 = 50;
     controlRateConfig->thrExpo8 = 0;
     controlRateConfig->dynThrPID = 0;
@@ -342,7 +342,11 @@ static void resetControlRateConfig(controlRateConfig_t *controlRateConfig) {
     controlRateConfig->tpa_breakpoint = 1500;
 
     for (uint8_t axis = 0; axis < FLIGHT_DYNAMICS_INDEX_COUNT; axis++) {
-        controlRateConfig->rates[axis] = 0;
+        if (axis == 2) {
+            controlRateConfig->rates[axis] = 25;
+        } else {
+            controlRateConfig->rates[axis] = 5;
+        }
     }
 
 }
@@ -470,7 +474,7 @@ static void resetConf(void)
     masterConfig.rxConfig.rssi_channel = 0;
     masterConfig.rxConfig.rssi_scale = RSSI_SCALE_DEFAULT;
     masterConfig.rxConfig.rssi_ppm_invert = 0;
-    masterConfig.rxConfig.rcSmoothing = 1;
+    masterConfig.rxConfig.rcSmoothing = 0;
 
     resetAllRxChannelRangeConfigurations(masterConfig.rxConfig.channelRanges);
 
@@ -626,7 +630,7 @@ static void resetConf(void)
     currentProfile->pidProfile.P8[PITCH] = 36;
     masterConfig.failsafeConfig.failsafe_delay = 2;
     masterConfig.failsafeConfig.failsafe_off_delay = 0;
-    currentControlRateProfile->rcRate8 = 130;
+    currentControlRateProfile->rcRate8 = 40;
     currentControlRateProfile->rates[FD_PITCH] = 20;
     currentControlRateProfile->rates[FD_ROLL] = 20;
     currentControlRateProfile->rates[FD_YAW] = 100;
