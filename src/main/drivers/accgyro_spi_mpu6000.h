@@ -29,3 +29,4 @@ bool mpu6000SpiGyroDetect(gyro_t *gyro);
 bool mpu6000WriteRegister(uint8_t reg, uint8_t data);
 bool verifympu6000WriteRegister(uint8_t reg, uint8_t data);
 bool mpu6000ReadRegister(uint8_t reg, uint8_t length, uint8_t *data);
+bool mpu6000SlowReadRegister(uint8_t reg, uint8_t length, uint8_t *data);

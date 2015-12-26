@@ -110,9 +110,11 @@ void resetGyro (void) {
 bool mpu6000WriteRegister(uint8_t reg, uint8_t data)
 {
     ENABLE_MPU6000;
+    delayMicroseconds(1);
     spiTransferByte(MPU6000_SPI_INSTANCE, reg);
     spiTransferByte(MPU6000_SPI_INSTANCE, data);
     DISABLE_MPU6000;
+    delayMicroseconds(1);
 
     return true;
 }
@@ -127,8 +129,21 @@ bool mpu6000ReadRegister(uint8_t reg, uint8_t length, uint8_t *data)
     return true;
 }
 
+bool mpu6000SlowReadRegister(uint8_t reg, uint8_t length, uint8_t *data)
+{
+    ENABLE_MPU6000;
+    delayMicroseconds(1);
+    spiTransferByte(MPU6000_SPI_INSTANCE, reg | 0x80); // read transaction
+    spiTransfer(MPU6000_SPI_INSTANCE, data, NULL, length);
+    DISABLE_MPU6000;
+    delayMicroseconds(1);
+
+    return true;
+}
+
 void mpu6000SpiGyroInit(uint8_t lpf)
 {
+	debug[3]++;
     mpuIntExtiInit();
 
     mpu6000AccAndGyroInit();
@@ -163,7 +178,7 @@ bool verifympu6000WriteRegister(uint8_t reg, uint8_t data) {
 	delayMicroseconds(100);
 
     do {
-    	mpu6000ReadRegister(reg, 1, &in);
+    	mpu6000SlowReadRegister(reg, 1, &in);
     	if (in == data) {
     		return true;
     	} else {
