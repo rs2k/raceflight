@@ -127,12 +127,22 @@ static pwmOutputPort_t *pwmOutConfig(const timerHardware_t *timerHardware, uint8
 
 static void pwmWriteBrushed(uint8_t index, uint16_t value)
 {
-    *motors[index]->ccr = (value - 1000) * motors[index]->period / 1000;
+    *motors[index]->ccr = (uint16_t)((float)((value - 1000) * motors[index]->period / 1000)*1.5f); //Expecting 8MHz timer, multiply by 1.5 to scale to 12MHz timer
 }
 
 static void pwmWriteStandard(uint8_t index, uint16_t value)
 {
     *motors[index]->ccr = value;
+}
+
+static void pwmWriteOneshot(uint8_t index, uint16_t value)
+{
+    *motors[index]->ccr = (uint16_t)((float)value*1.5f);  //Expecting 8MHz timer, multiply by 1.5 to scale to 12MHz timer
+}
+
+static void pwmWriteMultiShot(uint8_t index, uint16_t value)
+{
+    *motors[index]->ccr = (uint16_t)((float)(value-1000) / 4.1666f)+ 60;
 }
 
 void pwmWriteMotor(uint8_t index, uint16_t value)
@@ -200,7 +210,13 @@ void fastPWMMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex
 void pwmOneshotMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex)
 {
     motors[motorIndex] = pwmOutConfig(timerHardware, ONESHOT125_TIMER_MHZ, 0xFFFF, 0);
-    motors[motorIndex]->pwmWritePtr = pwmWriteStandard;
+    motors[motorIndex]->pwmWritePtr = pwmWriteOneshot;
+}
+
+void pwmMultiShotMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex)
+{
+    motors[motorIndex] = pwmOutConfig(timerHardware, MULTISHOT_TIMER_MHZ, 0xFFFF, 0);
+    motors[motorIndex]->pwmWritePtr = pwmWriteMultiShot;
 }
 
 #ifdef USE_SERVOS

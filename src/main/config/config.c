@@ -1058,7 +1058,9 @@ void handleOneshotFeatureChangeOnRestart(void)
     delay(50);
     // Apply additional delay when OneShot125 feature changed from on to off state
     if (feature(FEATURE_ONESHOT125) && !featureConfigured(FEATURE_ONESHOT125)) {
-        delay(ONESHOT_FEATURE_CHANGED_DELAY_ON_BOOT_MS);
+            delay(ONESHOT_FEATURE_CHANGED_DELAY_ON_BOOT_MS);
+    } else if (feature(FEATURE_MULTISHOT) && !featureConfigured(FEATURE_MULTISHOT)) {
+            delay(ONESHOT_FEATURE_CHANGED_DELAY_ON_BOOT_MS);
     }
 }
 

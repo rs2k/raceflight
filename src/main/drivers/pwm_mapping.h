@@ -36,8 +36,11 @@
 #define MAX_INPUTS  8
 
 #define PWM_TIMER_MHZ 1
-#define ONESHOT125_TIMER_MHZ 8
-#define PWM_BRUSHED_TIMER_MHZ 8
+
+//these three have to be the same because of the ppmAvoidPWMTimerClash functions
+#define ONESHOT125_TIMER_MHZ 12
+#define MULTISHOT_TIMER_MHZ 12
+#define PWM_BRUSHED_TIMER_MHZ 12
 
 
 typedef struct sonarGPIOConfig_s {
@@ -64,6 +67,7 @@ typedef struct drv_pwm_config_s {
 #endif
     bool useVbat;
     bool useOneshot;
+    bool useMultiShot;
     bool useFastPWM;
     bool useSoftSerial;
     bool useLEDStrip;
@@ -90,7 +94,8 @@ typedef enum {
   PWM_PF_SERVO = (1 << 1),
   PWM_PF_MOTOR_MODE_BRUSHED = (1 << 2),
   PWM_PF_OUTPUT_PROTOCOL_PWM = (1 << 3),
-  PWM_PF_OUTPUT_PROTOCOL_ONESHOT = (1 << 4)
+  PWM_PF_OUTPUT_PROTOCOL_ONESHOT = (1 << 4),
+  PWM_PF_OUTPUT_PROTOCOL_MULTISHOT = (1 << 5)
 } pwmPortFlags_e;
 
 
