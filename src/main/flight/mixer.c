@@ -755,20 +755,12 @@ void mixTable(void)
         // motors for non-servo mixes
         for (i = 0; i < motorCount; i++) {
         	if (IS_RC_MODE_ACTIVE(BOXACROPLUS)) {
-        		//debug[0]=axisPID[ROLL];
-        		//debug[1]=factor0*10000;
-        		//debug[2]=wow_factor0*10000;
-        		//debug[3]=((factor0*1000) + (1.0f - wow_factor0) * axisPID[ROLL]);
 				motor[i] =
 					rcCommand[THROTTLE] * currentMixer[i].throttle +
 					((factor0*1000) + (1.0f - wow_factor0) * axisPID[ROLL]) * currentMixer[i].roll +
 					((factor1*1000) + (1.0f - wow_factor1) * axisPID[PITCH]) * currentMixer[i].pitch +
 					-mixerConfig->yaw_motor_direction * axisPID[YAW] * currentMixer[i].yaw;
         	} else {
-        		//debug[0]=axisPID[ROLL];
-        		//debug[1]=factor0*10000;
-        		//debug[2]=wow_factor0*10000;
-        		//debug[3]=((factor0*1000) + (1.0f - wow_factor0) * axisPID[ROLL]);
     			motor[i] =
     				rcCommand[THROTTLE] * currentMixer[i].throttle +
     				axisPID[PITCH] * currentMixer[i].pitch +
@@ -784,19 +776,11 @@ void mixTable(void)
         // Find roll/pitch/yaw desired output
         for (i = 0; i < motorCount; i++) {
         	if (IS_RC_MODE_ACTIVE(BOXACROPLUS)) {
-        		//debug[0]=axisPID[ROLL];
-        		//debug[1]=factor0*10000;
-        		//debug[2]=wow_factor0*10000;
-        		//debug[3]=((factor0*1000) + (1.0f - wow_factor0) * axisPID[ROLL]);
 				rollPitchYawMix[i] =
 					((factor0*1000) + (1.0f - wow_factor0) * axisPID[ROLL]) * currentMixer[i].roll +
 					((factor1*1000) + (1.0f - wow_factor1) * axisPID[PITCH]) * currentMixer[i].pitch +
 					-mixerConfig->yaw_motor_direction * axisPID[YAW] * currentMixer[i].yaw;
         	} else {
-        		//debug[0]=axisPID[ROLL];
-        		//debug[1]=factor0*10000;
-        		//debug[2]=wow_factor0*10000;
-        		//debug[3]=((factor0*1000) + (1.0f - wow_factor0) * axisPID[ROLL]);
 				rollPitchYawMix[i] =
 					axisPID[PITCH] * currentMixer[i].pitch +
 					axisPID[ROLL] * currentMixer[i].roll +
