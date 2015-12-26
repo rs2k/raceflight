@@ -156,7 +156,6 @@ uint32_t CDC_Send_DATA(uint8_t *ptrBuffer, uint8_t sendLength)
 	if(USB_Tx_State!=1)
 	{
 		VCP_DataTx(ptrBuffer,sendLength);
-		delayMicroseconds(20);
 		return sendLength;
 	}
 	return 0;

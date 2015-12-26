@@ -22,6 +22,7 @@
 #include <platform.h>
 
 #include "build_config.h"
+#include "debug.h"
 
 #include "common/axis.h"
 #include "common/maths.h"
@@ -48,12 +49,21 @@
 #include "config/runtime_config.h"
 
 extern float dT;
-extern float totalErrorRatioLimit;
+extern bool motorLimitReached;
 extern bool allowITermShrinkOnly;
 
-#define CALC_OFFSET(x) ( (x > 0) ?  x : -x )
+static bool currently_at_zero0 = false;
+static int8_t p_term_direction0 = 0;
+static bool currently_at_zero1 = false;
+static int8_t p_term_direction1 = 0;
 
 int16_t axisPID[3];
+float factor0;
+float factor1;
+float wow_factor0;
+float wow_factor1;
+float acro_plus_ki_scaler = 1.0f;
+float yaw_kp_multiplier = 1.0f;
 
 #ifdef BLACKBOX
 int32_t axisPID_P[3], axisPID_I[3], axisPID_D[3];
@@ -96,7 +106,8 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
     float ITerm,PTerm,DTerm;
     int32_t stickPosAil, stickPosEle, mostDeflectedPos;
     static float lastError[3];
-    float delta;
+    static float delta1[3], delta2[3];
+    float delta, deltaSum;
     int axis;
     float horizonLevelStrength = 1;
     static float previousErrorGyroIf[3] = { 0.0f, 0.0f, 0.0f };
@@ -162,33 +173,110 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
         // multiplication of rcCommand corresponds to changing the sticks scaling here
         RateError = AngleRate - gyroRate;
 
-        if (IS_RC_MODE_ACTIVE(BOXAIRMODE)) {
-            RateError = RateError * totalErrorRatioLimit;
-        }
-
         // -----calculate P component
-        PTerm = RateError * (pidProfile->P_f[axis]/4) * PIDweight[axis] / 100;
+        if (axis == 2) {
+        	PTerm = RateError * (pidProfile->P_f[axis]/4) * yaw_kp_multiplier * PIDweight[axis] / 100;
+        } else {
+        	PTerm = RateError * (pidProfile->P_f[axis]/4) * PIDweight[axis] / 100;
+        }
 
         if (axis == YAW && pidProfile->yaw_pterm_cut_hz) {
             PTerm = filterApplyPt1(PTerm, &yawPTermState, pidProfile->yaw_pterm_cut_hz, dT);
         }
 
-        // -----calculate I component.
-        errorGyroIf[axis] = constrainf(errorGyroIf[axis] + RateError * dT * (pidProfile->I_f[axis]/4) * 10, -250.0f, 250.0f);
 
-        if (allowITermShrinkOnly || totalErrorRatioLimit < 0.98f) {
-            if (CALC_OFFSET(errorGyroIf[axis]) < CALC_OFFSET(previousErrorGyroIf[axis])) {
+        if ( (axis != YAW) && (IS_RC_MODE_ACTIVE(BOXACROPLUS)) ) {
+
+        	//Ki scaler
+        	acro_plus_ki_scaler = constrainf(1.0f - (1.5f * fabsf((float)rcCommand[axis]) / 500.0f ), 0.0f, 1.0f);
+
+        	//dynamic Ki handler
+			if (axis==0) {
+				if (currently_at_zero0 && (p_term_direction0 == 1) && (PTerm <= 0)) {
+					currently_at_zero0 = false;
+				} else if (currently_at_zero0 && (p_term_direction0 == -1) && (PTerm >= 0)) {
+					currently_at_zero0 = false;
+				} else if (currently_at_zero0) {
+					acro_plus_ki_scaler = 0;
+					errorGyroIf[axis] = 0;
+				}
+
+				if (acro_plus_ki_scaler == 0) {
+					if (!currently_at_zero0 && PTerm >= 0) {
+						p_term_direction0 = 1;
+					} else if (!currently_at_zero0 && PTerm < 0) {
+						p_term_direction0 = -1;
+					}
+					currently_at_zero0 = true;
+				}
+
+				if (IS_RC_MODE_ACTIVE(BOXTEST1)) {
+					yaw_kp_multiplier = 2.0f-(1.0f*acro_plus_ki_scaler);
+				} else if (IS_RC_MODE_ACTIVE(BOXTEST2)) {
+					yaw_kp_multiplier = 1.5f-(0.5f*acro_plus_ki_scaler);
+				} else {
+					yaw_kp_multiplier = 1.0f;
+				}
+
+			} else if (axis==1) {
+				if (currently_at_zero1 && (p_term_direction1 == 1) && (PTerm <= 0)) {
+					//currently_at_zero1 = false; //test pitch differently
+				} else if (currently_at_zero1 && (p_term_direction1 == -1) && (PTerm >= 0)) {
+					//currently_at_zero1 = false; //test pitch differently
+				} else if (acro_plus_ki_scaler == 0) {
+					acro_plus_ki_scaler = 0;
+					errorGyroIf[axis] = 0;
+				}
+
+				if (acro_plus_ki_scaler == 0) {
+					if (!currently_at_zero1 && PTerm >= 0) {
+						p_term_direction1 = 1;
+					} else if (!currently_at_zero1 && PTerm < 0) {
+						p_term_direction1 = -1;
+					}
+					currently_at_zero1 = true; //test pitch differently
+				} else { //test pitch differently
+					currently_at_zero1 = false; //test pitch differently
+				} //test pitch differently
+			}
+
+        	if (axis == 0) {
+        		wow_factor0 = fabsf(rcCommand[axis] / 500.0f) * ((float)controlRateConfig->rcRate8 / 100.0f); //0-1f
+				factor0 = wow_factor0 * (rcCommand[axis] / 500.0f);
+        	} else if (axis == 1) {
+        		wow_factor1 = fabsf(rcCommand[axis] / 500.0f) * ((float)controlRateConfig->rcRate8 / 100.0f); //0-1f
+				factor1 = wow_factor1 * (rcCommand[axis] / 500.0f);
+        	}
+
+        } else {
+
+        	acro_plus_ki_scaler = 1;
+
+        }
+
+        // -----calculate I component.
+        errorGyroIf[axis] *= acro_plus_ki_scaler;
+        errorGyroIf[axis] = constrainf(errorGyroIf[axis] + 0.5f * (lastError[axis] + RateError) * dT * (pidProfile->I_f[axis]/4)  * 10, -250.0f, 250.0f);
+
+        if ( (IS_RC_MODE_ACTIVE(BOXAIRMODE)) && (allowITermShrinkOnly || motorLimitReached) ) {
+            if (ABS(errorGyroIf[axis]) < ABS(previousErrorGyroIf[axis])) {
                 previousErrorGyroIf[axis] = errorGyroIf[axis];
             } else {
-                errorGyroIf[axis] = constrain(errorGyroIf[axis], -CALC_OFFSET(previousErrorGyroIf[axis]), CALC_OFFSET(previousErrorGyroIf[axis]));
+                errorGyroIf[axis] = constrain(errorGyroIf[axis], -ABS(previousErrorGyroIf[axis]), ABS(previousErrorGyroIf[axis]));
             }
         } else {
             previousErrorGyroIf[axis] = errorGyroIf[axis];
         }
 
+
         // limit maximum integrator value to prevent WindUp - accumulating extreme values when system is saturated.
         // I coefficient (I8) moved before integration to make limiting independent from PID settings
+
         ITerm = errorGyroIf[axis];
+
+        if (axis==0)
+    	debug[3] = ITerm;
+
 
         //-----calculate D-term
         delta = RateError - lastError[axis];
@@ -198,12 +286,22 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
         // would be scaled by different dt each time. Division by dT fixes that.
         delta *= (1.0f / dT);
 
+        //comment out. Filtering already done in accgyro_mpu.c as part of downsampling.
+        if ((1==0) && (!pidProfile->gyro_soft_lpf)) {
+			// add moving average here to reduce noise
+			deltaSum = (delta1[axis] + delta2[axis] + delta) / 3;
+			delta2[axis] = delta1[axis];
+			delta1[axis] = delta;
+		} else {
+			deltaSum = delta;
+		}
+
         // Dterm low pass
         if (pidProfile->dterm_cut_hz) {
-            delta = filterApplyPt1(delta, &DTermState[axis], pidProfile->dterm_cut_hz, dT);
+        	deltaSum  = filterApplyPt1(deltaSum, &DTermState[axis], pidProfile->dterm_cut_hz, dT);
         }
 
-        DTerm = constrainf(delta * (pidProfile->D_f[axis]/4) * PIDweight[axis] / 100, -300.0f, 300.0f);
+        DTerm = constrainf(deltaSum * (pidProfile->D_f[axis]/4) * PIDweight[axis] / 100, -300.0f, 300.0f);
 
         // -----calculate total PID output
         axisPID[axis] = constrain(lrintf(PTerm + ITerm + DTerm), -1000, 1000);
@@ -229,7 +327,8 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
 
     int32_t errorAngle;
     int axis;
-    int32_t delta;
+    int32_t delta, deltaSum;
+    static int32_t delta1[3], delta2[3];
     int32_t PTerm, ITerm, DTerm;
     static int32_t lastError[3] = { 0, 0, 0 };
     static int32_t previousErrorGyroI[3] = { 0, 0, 0 };
@@ -293,10 +392,6 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
         // multiplication of rcCommand corresponds to changing the sticks scaling here
         RateError = AngleRateTmp - (gyroADC[axis] / 4);
 
-        if (IS_RC_MODE_ACTIVE(BOXAIRMODE)) {
-            RateError = RateError * totalErrorRatioLimit;
-        }
-
         // -----calculate P component
         PTerm = (RateError * pidProfile->P8[axis] * PIDweight[axis] / 100) >> 7;
 
@@ -309,23 +404,23 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
         // Precision is critical, as I prevents from long-time drift. Thus, 32 bits integrator is used.
         // Time correction (to avoid different I scaling for different builds based on average cycle time)
         // is normalized to cycle time = 2048.
-        errorGyroI[axis] = errorGyroI[axis] + ((RateError * (uint16_t)targetLooptime) >> 11) * pidProfile->I8[axis];
+        errorGyroI[axis] = errorGyroI[axis] + ((((lastError[axis] + RateError) / 2) * (uint16_t)targetLooptime) >> 11) * pidProfile->I8[axis];
 
         // limit maximum integrator value to prevent WindUp - accumulating extreme values when system is saturated.
         // I coefficient (I8) moved before integration to make limiting independent from PID settings
         errorGyroI[axis] = constrain(errorGyroI[axis], (int32_t) - GYRO_I_MAX << 13, (int32_t) + GYRO_I_MAX << 13);
 
-        ITerm = errorGyroI[axis] >> 13;
-
-        if (allowITermShrinkOnly || totalErrorRatioLimit < 0.98f) {
-            if (CALC_OFFSET(errorGyroI[axis]) < CALC_OFFSET(previousErrorGyroI[axis])) {
+        if ( (IS_RC_MODE_ACTIVE(BOXAIRMODE)) && (allowITermShrinkOnly || motorLimitReached) ) {
+            if (ABS(errorGyroI[axis]) < ABS(previousErrorGyroI[axis])) {
                 previousErrorGyroI[axis] = errorGyroI[axis];
             } else {
-                errorGyroI[axis] = constrain(errorGyroI[axis], -CALC_OFFSET(previousErrorGyroI[axis]), CALC_OFFSET(previousErrorGyroI[axis]));
+                errorGyroI[axis] = constrain(errorGyroI[axis], -ABS(previousErrorGyroI[axis]), ABS(previousErrorGyroI[axis]));
             }
         } else {
             previousErrorGyroI[axis] = errorGyroI[axis];
         }
+
+        ITerm = (int32_t)((errorGyroI[axis] >> 13) * acro_plus_ki_scaler);
 
         //-----calculate D-term
         delta = RateError - lastError[axis]; // 16 bits is ok here, the dif between 2 consecutive gyro reads is limited to 800
@@ -335,9 +430,19 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
         // would be scaled by different dt each time. Division by dT fixes that.
         delta = (delta * ((uint16_t) 0xFFFF / ((uint16_t)targetLooptime >> 4))) >> 6;
 
+        //comment out. Filtering already done in accgyro_mpu.c as part of downsampling.
+        if ((1==0) && (!pidProfile->gyro_soft_lpf)) {
+			// add moving average here to reduce noise
+			deltaSum = delta1[axis] + delta2[axis] + delta;
+			delta2[axis] = delta1[axis];
+			delta1[axis] = delta;
+		} else {
+			deltaSum = delta * 2;
+		}
+
         // Dterm delta low pass
         if (pidProfile->dterm_cut_hz) {
-            delta = filterApplyPt1(delta, &DTermState[axis], pidProfile->dterm_cut_hz, dT);
+        	deltaSum  = filterApplyPt1(deltaSum , &DTermState[axis], pidProfile->dterm_cut_hz, dT);
         }
 
         DTerm = (delta * 3 * pidProfile->D8[axis] * PIDweight[axis] / 100) >> 8; // Multiplied by 2 to approximately match old scaling

@@ -69,7 +69,7 @@ static rxConfig_t *rxConfig;
 static mixerMode_e currentMixerMode;
 static motorMixer_t currentMixer[MAX_SUPPORTED_MOTORS];
 
-float totalErrorRatioLimit = 1.0f;
+bool motorLimitReached = false;
 
 #ifdef USE_SERVOS
 static uint8_t servoRuleCount = 0;
@@ -750,14 +750,31 @@ void mixTable(void)
         axisPID[YAW] = constrain(axisPID[YAW], -mixerConfig->yaw_jump_prevention_limit - ABS(rcCommand[YAW]), mixerConfig->yaw_jump_prevention_limit + ABS(rcCommand[YAW]));
     }
 
-    if (!(IS_RC_MODE_ACTIVE(BOXAIRMODE)) && !(feature(FEATURE_3D))) {
+    if (!(IS_RC_MODE_ACTIVE(BOXAIRMODE)) && !(feature(FEATURE_3D)) && !(feature(BOXALWAYSSTABILIZED)) ) {
+    	motorLimitReached = false; // It  always needs to be reset so it can't get stuck when flipping back and fourth
         // motors for non-servo mixes
         for (i = 0; i < motorCount; i++) {
-            motor[i] =
-                rcCommand[THROTTLE] * currentMixer[i].throttle +
-                axisPID[PITCH] * currentMixer[i].pitch +
-                axisPID[ROLL] * currentMixer[i].roll +
-                -mixerConfig->yaw_motor_direction * axisPID[YAW] * currentMixer[i].yaw;
+        	if (IS_RC_MODE_ACTIVE(BOXACROPLUS)) {
+        		//debug[0]=axisPID[ROLL];
+        		//debug[1]=factor0*10000;
+        		//debug[2]=wow_factor0*10000;
+        		//debug[3]=((factor0*1000) + (1.0f - wow_factor0) * axisPID[ROLL]);
+				motor[i] =
+					rcCommand[THROTTLE] * currentMixer[i].throttle +
+					((factor0*1000) + (1.0f - wow_factor0) * axisPID[ROLL]) * currentMixer[i].roll +
+					((factor1*1000) + (1.0f - wow_factor1) * axisPID[PITCH]) * currentMixer[i].pitch +
+					-mixerConfig->yaw_motor_direction * axisPID[YAW] * currentMixer[i].yaw;
+        	} else {
+        		//debug[0]=axisPID[ROLL];
+        		//debug[1]=factor0*10000;
+        		//debug[2]=wow_factor0*10000;
+        		//debug[3]=((factor0*1000) + (1.0f - wow_factor0) * axisPID[ROLL]);
+    			motor[i] =
+    				rcCommand[THROTTLE] * currentMixer[i].throttle +
+    				axisPID[PITCH] * currentMixer[i].pitch +
+    				axisPID[ROLL] * currentMixer[i].roll +
+    				-mixerConfig->yaw_motor_direction * axisPID[YAW] * currentMixer[i].yaw;
+        	}
         }
     } else {
         int16_t rollPitchYawMix[MAX_SUPPORTED_MOTORS];
@@ -766,11 +783,25 @@ void mixTable(void)
 
         // Find roll/pitch/yaw desired output
         for (i = 0; i < motorCount; i++) {
-            rollPitchYawMix[i] =
-                axisPID[PITCH] * currentMixer[i].pitch +
-                axisPID[ROLL] * currentMixer[i].roll +
-                -mixerConfig->yaw_motor_direction * axisPID[YAW] * currentMixer[i].yaw;
-
+        	if (IS_RC_MODE_ACTIVE(BOXACROPLUS)) {
+        		//debug[0]=axisPID[ROLL];
+        		//debug[1]=factor0*10000;
+        		//debug[2]=wow_factor0*10000;
+        		//debug[3]=((factor0*1000) + (1.0f - wow_factor0) * axisPID[ROLL]);
+				rollPitchYawMix[i] =
+					((factor0*1000) + (1.0f - wow_factor0) * axisPID[ROLL]) * currentMixer[i].roll +
+					((factor1*1000) + (1.0f - wow_factor1) * axisPID[PITCH]) * currentMixer[i].pitch +
+					-mixerConfig->yaw_motor_direction * axisPID[YAW] * currentMixer[i].yaw;
+        	} else {
+        		//debug[0]=axisPID[ROLL];
+        		//debug[1]=factor0*10000;
+        		//debug[2]=wow_factor0*10000;
+        		//debug[3]=((factor0*1000) + (1.0f - wow_factor0) * axisPID[ROLL]);
+				rollPitchYawMix[i] =
+					axisPID[PITCH] * currentMixer[i].pitch +
+					axisPID[ROLL] * currentMixer[i].roll +
+					-mixerConfig->yaw_motor_direction * axisPID[YAW] * currentMixer[i].yaw;
+        	}
             if (rollPitchYawMix[i] > rollPitchYawMixMax) rollPitchYawMixMax = rollPitchYawMix[i];
             if (rollPitchYawMix[i] < rollPitchYawMixMin) rollPitchYawMixMin = rollPitchYawMix[i];
         }
@@ -781,11 +812,14 @@ void mixTable(void)
         int16_t throttleMin, throttleMax;
 
         if (rollPitchYawMixRange > throttleRange) {
+        	motorLimitReached = true;
             for (i = 0; i < motorCount; i++) {
                 rollPitchYawMix[i] = (rollPitchYawMix[i] * throttleRange) / rollPitchYawMixRange;
             }
-            throttleMin = throttleMax = escAndServoConfig->minthrottle + (throttleRange / 2);
+            throttleMin = escAndServoConfig->minthrottle;
+            throttleMax = escAndServoConfig->maxthrottle;
         } else {
+        	motorLimitReached = false;
             throttleMin = escAndServoConfig->minthrottle + (rollPitchYawMixRange / 2);
             throttleMax = escAndServoConfig->maxthrottle - (rollPitchYawMixRange / 2);
         }
@@ -793,14 +827,10 @@ void mixTable(void)
         // Now add in the desired throttle, but keep in a range that doesn't clip adjusted
         // roll/pitch/yaw. This could move throttle down, but also up for those low throttle flips.
         //
-        // TODO: handle the case when motors don't all get the same throttle factor...
-        //       too lazy to sort out the math right now.
         for (i = 0; i < motorCount; i++) {
             motor[i] = rollPitchYawMix[i] + constrainf(rcCommand[THROTTLE] * currentMixer[i].throttle, throttleMin, throttleMax);
         }
 
-        // adjust feedback to scale PID error inputs to our limitations.
-        totalErrorRatioLimit = constrainf(((float)throttleRange / rollPitchYawMixRange), 0.1f, 1.0f);
     }
 
     if (ARMING_FLAG(ARMED)) {
@@ -808,7 +838,7 @@ void mixTable(void)
         bool isFailsafeActive = failsafeIsActive();
         int16_t maxThrottleDifference = 0;
 
-        if (!(IS_RC_MODE_ACTIVE(BOXAIRMODE)) && !(feature(FEATURE_3D))) {
+        if (!(IS_RC_MODE_ACTIVE(BOXAIRMODE)) && !(feature(FEATURE_3D)) && !(feature(BOXALWAYSSTABILIZED)) ) {
             // Find the maximum motor output.
             int16_t maxMotor = motor[0];
             for (i = 1; i < motorCount; i++) {
@@ -825,7 +855,7 @@ void mixTable(void)
             }
         }
         for (i = 0; i < motorCount; i++) {
-            if (!(IS_RC_MODE_ACTIVE(BOXAIRMODE)) && !(feature(FEATURE_3D))) {
+            if (!(IS_RC_MODE_ACTIVE(BOXAIRMODE)) && !(feature(FEATURE_3D)) && !(feature(BOXALWAYSSTABILIZED)) ) {
                 // this is a way to still have good gyro corrections if at least one motor reaches its max.
                 motor[i] -= maxThrottleDifference;
             }
@@ -950,4 +980,3 @@ void filterServos(void)
 
 #endif
 }
-

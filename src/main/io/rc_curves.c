@@ -34,7 +34,7 @@ void generatePitchRollCurve(controlRateConfig_t *controlRateConfig)
     uint8_t i;
 
     for (i = 0; i < PITCH_LOOKUP_LENGTH; i++)
-        lookupPitchRollRC[i] = (2500 + controlRateConfig->rcExpo8 * (i * i - 25)) * i * (int32_t) controlRateConfig->rcRate8 / 2500;
+        lookupPitchRollRC[i] = (2500 + controlRateConfig->rcExpo8 * (i * i - 25)) * i * (int32_t) 100 / 2500;
 }
 
 void generateYawCurve(controlRateConfig_t *controlRateConfig)

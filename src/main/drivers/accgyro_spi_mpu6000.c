@@ -133,7 +133,6 @@ bool mpu6000ReadRegister(uint8_t reg, uint8_t length, uint8_t *data)
 
 void mpu6000SpiGyroInit(uint8_t lpf)
 {
-	debug[3]++;
     mpuIntExtiInit();
 
     mpu6000AccAndGyroInit();
