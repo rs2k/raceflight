@@ -2023,7 +2023,7 @@ static void cliRateProfile(char *cmdline)
 }
 
 static void cliReboot(void) {
-    cliPrint("\r\nRebooting");
+    cliPrint("\r\nRebooting^");
     waitForSerialPortToFinishTransmitting(cliPort);
     stopMotors();
     handleOneshotFeatureChangeOnRestart();

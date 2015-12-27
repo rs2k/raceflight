@@ -16,7 +16,7 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER "REVONANO"
+#define TARGET_BOARD_IDENTIFIER "REVN"
 
 #define LED0_GPIO   GPIOC
 #define LED0_PIN    Pin_14 // Blue LEDs - PC14

@@ -17,7 +17,7 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "SDF3" // STM Discovery F3
+#define TARGET_BOARD_IDENTIFIER "VRCR" // STM Discovery F3
 
 #define LED0_GPIO   GPIOE
 #define LED0_PIN    Pin_8|Pin_12 // Blue LEDs - PE8/PE12
