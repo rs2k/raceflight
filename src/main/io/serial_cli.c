@@ -2312,7 +2312,7 @@ static void cliStatus(char *cmdline)
 static void cliVersion(char *cmdline)
 {
     UNUSED(cmdline);
-    printf("# RaceFlight 15.12.26c/%s %s %s / %s (%s)",
+    printf("# RaceFlight 15.12.27b - clamping pitch Ki /%s %s %s / %s (%s)",
         targetName,
         FC_VERSION_STRING,
         buildDate,

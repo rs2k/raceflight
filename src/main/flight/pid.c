@@ -106,9 +106,9 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
     float ITerm,PTerm,DTerm;
     int32_t stickPosAil, stickPosEle, mostDeflectedPos;
     static float lastError[3];
-    static float delta1[3], delta2[3];
+    static float deltaOld[3][9];
     float delta, deltaSum;
-    int axis;
+    int axis, deltaCount;
     float horizonLevelStrength = 1;
     static float previousErrorGyroIf[3] = { 0.0f, 0.0f, 0.0f };
 
@@ -220,9 +220,9 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
 
 			} else if (axis==1) {
 				if (currently_at_zero1 && (p_term_direction1 == 1) && (PTerm <= 0)) {
-					//currently_at_zero1 = false; //test pitch differently
+					currently_at_zero1 = false; //test pitch differently
 				} else if (currently_at_zero1 && (p_term_direction1 == -1) && (PTerm >= 0)) {
-					//currently_at_zero1 = false; //test pitch differently
+					currently_at_zero1 = false; //test pitch differently
 				} else if (acro_plus_ki_scaler == 0) {
 					acro_plus_ki_scaler = 0;
 					errorGyroIf[axis] = 0;
@@ -235,9 +235,9 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
 						p_term_direction1 = -1;
 					}
 					currently_at_zero1 = true; //test pitch differently
-				} else { //test pitch differently
-					currently_at_zero1 = false; //test pitch differently
-				} //test pitch differently
+				} //else { //test pitch differently
+					//currently_at_zero1 = false; //test pitch differently
+				//} //test pitch differently
 			}
 
         	if (axis == 0) {
@@ -274,10 +274,6 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
 
         ITerm = errorGyroIf[axis];
 
-        if (axis==0)
-    	debug[3] = ITerm;
-
-
         //-----calculate D-term
         delta = RateError - lastError[axis];
         lastError[axis] = RateError;
@@ -286,19 +282,20 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
         // would be scaled by different dt each time. Division by dT fixes that.
         delta *= (1.0f / dT);
 
-        //comment out. Filtering already done in accgyro_mpu.c as part of downsampling.
-        if ((1==0) && (!pidProfile->gyro_soft_lpf)) {
-			// add moving average here to reduce noise
-			deltaSum = (delta1[axis] + delta2[axis] + delta) / 3;
-			delta2[axis] = delta1[axis];
-			delta1[axis] = delta;
-		} else {
-			deltaSum = delta;
-		}
+        // Apply median filter for averaging
+        for (deltaCount = 8; deltaCount > 0; deltaCount--) {
+            deltaOld[axis][deltaCount] = deltaOld[axis][deltaCount-1];
+        }
+        deltaOld[axis][0] = delta;
+        if (targetLooptime < 1000){
+            deltaSum = quickMedianFilter9f(deltaOld[axis]);
+        } else {
+            deltaSum = quickMedianFilter7f(deltaOld[axis]);
+        }
 
         // Dterm low pass
         if (pidProfile->dterm_cut_hz) {
-        	deltaSum  = filterApplyPt1(deltaSum, &DTermState[axis], pidProfile->dterm_cut_hz, dT);
+            deltaSum = filterApplyPt1(delta, &DTermState[axis], pidProfile->dterm_cut_hz, dT);
         }
 
         DTerm = constrainf(deltaSum * (pidProfile->D_f[axis]/4) * PIDweight[axis] / 100, -300.0f, 300.0f);
@@ -326,9 +323,9 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
     UNUSED(rxConfig);
 
     int32_t errorAngle;
-    int axis;
+    int axis, deltaCount;
     int32_t delta, deltaSum;
-    static int32_t delta1[3], delta2[3];
+    static int32_t deltaOld[3][9];
     int32_t PTerm, ITerm, DTerm;
     static int32_t lastError[3] = { 0, 0, 0 };
     static int32_t previousErrorGyroI[3] = { 0, 0, 0 };
@@ -430,22 +427,18 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
         // would be scaled by different dt each time. Division by dT fixes that.
         delta = (delta * ((uint16_t) 0xFFFF / ((uint16_t)targetLooptime >> 4))) >> 6;
 
-        //comment out. Filtering already done in accgyro_mpu.c as part of downsampling.
-        if ((1==0) && (!pidProfile->gyro_soft_lpf)) {
-			// add moving average here to reduce noise
-			deltaSum = delta1[axis] + delta2[axis] + delta;
-			delta2[axis] = delta1[axis];
-			delta1[axis] = delta;
-		} else {
-			deltaSum = delta * 2;
-		}
-
-        // Dterm delta low pass
-        if (pidProfile->dterm_cut_hz) {
-        	deltaSum  = filterApplyPt1(deltaSum , &DTermState[axis], pidProfile->dterm_cut_hz, dT);
+        // Apply median filter for averaging
+        for (deltaCount = 8; deltaCount > 0; deltaCount--) {
+            deltaOld[axis][deltaCount] = deltaOld[axis][deltaCount-1];
+        }
+        deltaOld[axis][0] = delta;
+        if (targetLooptime < 1000){
+            deltaSum = quickMedianFilter9(deltaOld[axis]);
+        } else {
+            deltaSum = quickMedianFilter7(deltaOld[axis]);
         }
 
-        DTerm = (delta * 3 * pidProfile->D8[axis] * PIDweight[axis] / 100) >> 8; // Multiplied by 2 to approximately match old scaling
+        DTerm = (deltaSum * pidProfile->D8[axis] * PIDweight[axis] / 100) >> 8;
 
         // -----calculate total PID output
         axisPID[axis] = PTerm + ITerm + DTerm;
