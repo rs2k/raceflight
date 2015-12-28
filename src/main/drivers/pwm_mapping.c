@@ -1052,12 +1052,12 @@ pwmOutputConfiguration_t *pwmInit(drv_pwm_config_t *init)
             }
 #endif
 #ifdef BLUEJAYF4
-            if (init->useOneshot || isMotorBrushed(init->motorPwmRate)) {
+            if (init->useMultiShot || init->useOneshot || isMotorBrushed(init->motorPwmRate)) {
                 ppmAvoidPWMTimerClash(timerHardwarePtr, TIM8);
             }
 #endif
 #ifdef VRCORE
-            if (init->useOneshot || isMotorBrushed(init->motorPwmRate)) {
+            if (init->useMultiShot || init->useOneshot || isMotorBrushed(init->motorPwmRate)) {
                 ppmAvoidPWMTimerClash(timerHardwarePtr, TIM1);
             }
 #endif
