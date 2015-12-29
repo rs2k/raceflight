@@ -62,7 +62,7 @@ typedef struct {
 #endif
 } cfTask_t;
 
-bool taskMainPidLoopCheck(void);
+void taskMainPidLoopCheck(void);
 void taskUpdateAccelerometer(void);
 void taskHandleSerial(void);
 void taskUpdateBeeper(void);
