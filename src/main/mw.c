@@ -641,17 +641,6 @@ void processRx(void)
 static bool haveProcessedAnnexCodeOnce = false;
 #endif
 
-// Function for loop trigger
-bool taskMainPidLoopCheck(uint32_t currentDeltaTime) {
-	bool loopTrigger = false;
-
-    if (gyroSyncCheckUpdate() || (currentDeltaTime >= (targetLooptime + GYRO_WATCHDOG_DELAY))) {
-            loopTrigger = true;
-    }
-
-    return loopTrigger;
-}
-
 void taskMainPidLoop(void)
 {
     cycleTime = getTaskDeltaTime(TASK_SELF);
@@ -739,6 +728,16 @@ void taskMainPidLoop(void)
         handleBlackbox();
     }
 #endif
+}
+
+// Function for loop trigger
+void taskMainPidLoopCheck(void) {
+    while (1) {
+        if (gyroSyncCheckUpdate() || (getTaskDeltaTime(TASK_SELF) >= (targetLooptime + GYRO_WATCHDOG_DELAY))) {
+            taskMainPidLoop();
+            break;
+        }
+    }
 }
 
 void taskUpdateAccelerometer(void)

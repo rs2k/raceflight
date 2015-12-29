@@ -62,8 +62,7 @@ typedef struct {
 #endif
 } cfTask_t;
 
-bool taskMainPidLoopCheck(uint32_t currentDeltaTime);
-void taskMainPidLoop(void);
+bool taskMainPidLoopCheck(void);
 void taskUpdateAccelerometer(void);
 void taskHandleSerial(void);
 void taskUpdateBeeper(void);
@@ -91,8 +90,7 @@ static cfTask_t cfTasks[TASK_COUNT] = {
 
     [TASK_GYROPID] = {
         .taskName = "GYRO/PID",
-        .checkFunc = taskMainPidLoopCheck,
-        .taskFunc = taskMainPidLoop,
+        .taskFunc = taskMainPidLoopCheck,
         .desiredPeriod = 1000,
         .staticPriority = TASK_PRIORITY_REALTIME,
     },
@@ -208,7 +206,7 @@ static cfTask_t cfTasks[TASK_COUNT] = {
 
 #define REALTIME_GUARD_INTERVAL_MIN     10
 #define REALTIME_GUARD_INTERVAL_MAX     300
-#define REALTIME_GUARD_INTERVAL_MARGIN  25
+#define REALTIME_GUARD_INTERVAL_MARGIN  5
 
 void taskSystem(void)
 {
