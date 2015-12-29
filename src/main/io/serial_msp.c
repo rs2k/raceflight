@@ -653,6 +653,8 @@ void mspInit(serialConfig_t *serialConfig)
         activeBoxIds[activeBoxIdCount++] = BOXHORIZON;
     }
 
+    activeBoxIds[activeBoxIdCount++] = BOXAIRMODE;
+
     if (sensors(SENSOR_BARO)) {
         activeBoxIds[activeBoxIdCount++] = BOXBARO;
     }
@@ -1825,10 +1827,10 @@ static bool processInCommand(void)
                 waitForSerialPortToFinishTransmitting(currentPort->port);
                 // Start to activate here
                 // motor 1 => index 0
-                
+
                 // search currentPort portIndex
                 /* next lines seems to be unnecessary, because the currentPort always point to the same mspPorts[portIndex]
-                uint8_t portIndex;	
+                uint8_t portIndex;
 				for (portIndex = 0; portIndex < MAX_MSP_PORT_COUNT; portIndex++) {
 					if (currentPort == &mspPorts[portIndex]) {
 						break;
@@ -1844,7 +1846,7 @@ static bool processInCommand(void)
                 mspAllocateSerialPorts(&masterConfig.serialConfig);
                 /* restore currentPort and mspSerialPort
                 setCurrentPort(&mspPorts[portIndex]); // not needed same index will be restored
-                */ 
+                */
                 // former used MSP uart is active again
                 // restore MSP_SET_1WIRE as current command for correct headSerialReply(0)
                 currentPort->cmdMSP = MSP_SET_1WIRE;
