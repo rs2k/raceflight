@@ -72,12 +72,14 @@
 #define LED0
 #define LED1
 
+/*
 #define M25P16_CS_GPIO        GPIOB
 #define M25P16_CS_PIN         GPIO_Pin_3
 #define M25P16_SPI_INSTANCE   SPI3
 
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
+*/
 
 #define USABLE_TIMER_CHANNEL_COUNT 12
 
@@ -115,10 +117,12 @@
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 #define USE_SPI_DEVICE_2
-#define USE_SPI_DEVICE_3
+//#define USE_SPI_DEVICE_3
 
+/*
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_1)
+*/
 
 #define USE_ADC
 
