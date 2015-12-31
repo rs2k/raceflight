@@ -589,7 +589,7 @@ static void resetConf(void)
     masterConfig.blackbox_rate_denom = 1;
 #endif
 
-#if defined(REVO) || defined(SPARKY2) || defined (REVONANO) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
+#if defined(REVO) || defined(SPARKY2) || defined (REVONANO) || defined(BLUEJAYF4) || defined(VRCORE)
     featureSet(FEATURE_RX_SERIAL);
     featureSet(FEATURE_ONESHOT125);
 #endif
@@ -615,6 +615,8 @@ static void resetConf(void)
     featureSet(FEATURE_MOTOR_STOP);
     featureClear(FEATURE_ONESHOT125);
 #if defined(ALIENWIIF3) || defined(ALIENFLIGHTF4)
+    masterConfig.serialConfig.portConfigs[1].functionMask = FUNCTION_MSP; // UART1 for MSP at 9600 for use with 1wire.
+    masterConfig.serialConfig.portConfigs[1].msp_baudrateIndex = BAUD_9600;
     masterConfig.serialConfig.portConfigs[2].functionMask = FUNCTION_RX_SERIAL;
     masterConfig.batteryConfig.vbatscale = 20;
 #else

@@ -31,6 +31,7 @@
 #include "gpio.h"
 #include "exti.h"
 #include "bus_i2c.h"
+#include "bus_spi.h"
 
 #include "sensors/boardalignment.h"
 #include "sensors/sensors.h"
@@ -38,38 +39,47 @@
 #include "sensor.h"
 #include "compass.h"
 
+#include "accgyro.h"
 #include "accgyro_mpu.h"
+#include "accgyro_spi_mpu6500.h"
 #include "compass_ak8963.h"
 
 // This sensor is available in MPU-9250.
 
 // AK8963, mag sensor address
-#define AK8963_MAG_I2C_ADDRESS      0x0C
-#define AK8963_Device_ID            0x48
+#define AK8963_MAG_I2C_ADDRESS          0x0C
+#define AK8963_Device_ID                0x48
 
 // Registers
-#define AK8963_MAG_REG_WHO_AM_I     0x00
-#define AK8963_MAG_REG_INFO         0x01
-#define AK8963_MAG_REG_STATUS1      0x02
-#define AK8963_MAG_REG_HXL          0x03
-#define AK8963_MAG_REG_HXH          0x04
-#define AK8963_MAG_REG_HYL          0x05
-#define AK8963_MAG_REG_HYH          0x06
-#define AK8963_MAG_REG_HZL          0x07
-#define AK8963_MAG_REG_HZH          0x08
-#define AK8963_MAG_REG_STATUS2      0x09
-#define AK8963_MAG_REG_CNTL         0x0a
-#define AK8963_MAG_REG_ASCT         0x0c // self test
+#define AK8963_MAG_REG_WHO_AM_I         0x00
+#define AK8963_MAG_REG_INFO             0x01
+#define AK8963_MAG_REG_STATUS1          0x02
+#define AK8963_MAG_REG_HXL              0x03
+#define AK8963_MAG_REG_HXH              0x04
+#define AK8963_MAG_REG_HYL              0x05
+#define AK8963_MAG_REG_HYH              0x06
+#define AK8963_MAG_REG_HZL              0x07
+#define AK8963_MAG_REG_HZH              0x08
+#define AK8963_MAG_REG_STATUS2          0x09
+#define AK8963_MAG_REG_CNTL             0x0a
+#define AK8963_MAG_REG_ASCT             0x0c // self test
+#define AK8963_MAG_REG_ASAX             0x10 // Fuse ROM x-axis sensitivity adjustment value
+#define AK8963_MAG_REG_ASAY             0x11 // Fuse ROM y-axis sensitivity adjustment value
+#define AK8963_MAG_REG_ASAZ             0x12 // Fuse ROM z-axis sensitivity adjustment value
 
-#define AK8963A_ASAX                0x10 // Fuse ROM x-axis sensitivity adjustment value
-#define AK8963A_ASAY                0x11 // Fuse ROM y-axis sensitivity adjustment value
-#define AK8963A_ASAZ                0x12 // Fuse ROM z-axis sensitivity adjustment value
+#define READ_FLAG                       0x80
 
-#define READ_FLAG                   0x80
+#define STATUS1_DATA_READY              0x01
 
-#define BIT_STATUS1_REG_DATA_READY              (1 << 0)
-#define BIT_STATUS2_REG_DATA_ERROR              (1 << 2)
-#define BIT_STATUS2_REG_MAG_SENSOR_OVERFLOW     (1 << 3)
+#define STATUS2_DATA_ERROR              0x02
+#define STATUS2_MAG_SENSOR_OVERFLOW     0x03
+
+#define CNTL_MODE_POWER_DOWN            0x00
+#define CNTL_MODE_ONCE                  0x01
+#define CNTL_MODE_CONT1                 0x02
+#define CNTL_MODE_CONT2                 0x06
+#define CNTL_MODE_SELF_TEST             0x08
+#define CNTL_MODE_FUSE_ROM              0x0F
 
 typedef bool (*ak8963ReadRegisterFunc)(uint8_t addr_, uint8_t reg_, uint8_t len_, uint8_t *buf);
 typedef bool (*ak8963WriteRegisterFunc)(uint8_t addr_, uint8_t reg_, uint8_t data);
@@ -80,23 +90,28 @@ typedef struct ak8963Configuration_s {
 } ak8963Configuration_t;
 
 ak8963Configuration_t ak8963config;
+static float magGain[3] = { 1.0f, 1.0f, 1.0f };
 
 #ifdef USE_SPI
 bool ak8963SPIRead(uint8_t addr_, uint8_t reg_, uint8_t len_, uint8_t *buf)
 {
-    mpuConfiguration.write(MPU_RA_I2C_SLV0_ADDR, addr_ | READ_FLAG);         // set I2C slave address for read
-    mpuConfiguration.write(MPU_RA_I2C_SLV0_REG, reg_);                       // set I2C slave register
-    mpuConfiguration.write(MPU_RA_I2C_SLV0_CTRL, len_ | 0x80);               // read number of bytes
-    delayMicroseconds(1);
-    return mpuConfiguration.read(MPU_RA_EXT_SENS_DATA_00, len_, buf);        // read I2C
+    verifympu6500WriteRegister(MPU_RA_I2C_SLV0_ADDR, addr_ | READ_FLAG);   // set I2C slave address for read
+    verifympu6500WriteRegister(MPU_RA_I2C_SLV0_REG, reg_);                 // set I2C slave register
+    verifympu6500WriteRegister(MPU_RA_I2C_SLV0_CTRL, len_ | 0x80);         // read number of bytes
+    delay(8);
+    __disable_irq();
+    mpu6500ReadRegister(MPU_RA_EXT_SENS_DATA_00, len_, buf);               // read I2C
+    __enable_irq();
+    return true;
 }
 
 bool ak8963SPIWrite(uint8_t addr_, uint8_t reg_, uint8_t data)
 {
-    mpuConfiguration.write(MPU_RA_I2C_SLV0_ADDR, addr_ | READ_FLAG);         // set I2C slave address for read
-    mpuConfiguration.write(MPU_RA_I2C_SLV0_REG, reg_);                       // set I2C slave register
-    mpuConfiguration.write(MPU_RA_I2C_SLV0_DO, data);                        // set I2C salve value
-    return mpuConfiguration.write(MPU_RA_I2C_SLV0_CTRL, 0x81);               // write 1 byte
+    verifympu6500WriteRegister(MPU_RA_I2C_SLV0_ADDR, addr_);               // set I2C slave address for write
+    verifympu6500WriteRegister(MPU_RA_I2C_SLV0_REG, reg_);                 // set I2C slave register
+    verifympu6500WriteRegister(MPU_RA_I2C_SLV0_DO, data);                  // set I2C salve value
+    verifympu6500WriteRegister(MPU_RA_I2C_SLV0_CTRL, 0x81);                // write 1 byte
+    return true;
 }
 #endif
 
@@ -121,6 +136,16 @@ bool ak8963Detect(mag_t *mag)
 
 #ifdef USE_SPI
     // check for AK8963 on I2C master via SPI bus (as part of MPU9250)
+
+    ack = verifympu6500WriteRegister(MPU_RA_INT_PIN_CFG, 0x10);               // INT_ANYRD_2CLEAR
+    delay(10);
+
+    ack = verifympu6500WriteRegister(MPU_RA_I2C_MST_CTRL, 0x0D);              // I2C multi-master / 400kHz
+    delay(10);
+
+    ack = verifympu6500WriteRegister(MPU_RA_USER_CTRL, 0x30);                 // I2C master mode, SPI mode only
+    delay(10);
+
     ack = ak8963SPIRead(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_WHO_AM_I, 1, &sig);
     if (ack && sig == AK8963_Device_ID) // 0x48 / 01001000 / 'H'
     {
@@ -138,21 +163,24 @@ bool ak8963Detect(mag_t *mag)
 void ak8963Init()
 {
     bool ack;
-    uint8_t buffer[3];
+    UNUSED(ack);
+    uint8_t calibration[3];
     uint8_t status;
 
-    UNUSED(ack);
-
-    ack = ak8963config.write(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_CNTL, 0x00); // power down before entering fuse mode
+    ack = ak8963config.write(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_CNTL, CNTL_MODE_POWER_DOWN); // power down before entering fuse mode
     delay(20);
 
-    ack = ak8963config.write(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_CNTL, 0x0F); // Enter Fuse ROM access mode
+    ack = ak8963config.write(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_CNTL, CNTL_MODE_FUSE_ROM); // Enter Fuse ROM access mode
     delay(10);
 
-    ack = ak8963config.read(AK8963_MAG_I2C_ADDRESS, AK8963A_ASAX, 3, &buffer[0]); // Read the x-, y-, and z-axis calibration values
+    ack = ak8963config.read(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_ASAX, sizeof(calibration), calibration); // Read the x-, y-, and z-axis calibration values
     delay(10);
 
-    ack = ak8963config.write(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_CNTL, 0x00); // power down after reading.
+    magGain[X] = (((((float)(int8_t)calibration[X] - 128) / 256) + 1) * 30);
+    magGain[Y] = (((((float)(int8_t)calibration[Y] - 128) / 256) + 1) * 30);
+    magGain[Z] = (((((float)(int8_t)calibration[Z] - 128) / 256) + 1) * 30);
+
+    ack = ak8963config.write(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_CNTL, CNTL_MODE_POWER_DOWN); // power down after reading.
     delay(10);
 
     // Clear status registers
@@ -160,43 +188,32 @@ void ak8963Init()
     ack = ak8963config.read(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_STATUS2, 1, &status);
 
     // Trigger first measurement
-    ack = ak8963config.write(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_CNTL, 0x01);
+    ack = ak8963config.write(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_CNTL, CNTL_MODE_ONCE);
 }
 
 bool ak8963Read(int16_t *magData)
 {
     bool ack;
-    UNUSED(ack);
     uint8_t status;
     uint8_t buf[6];
 
     ack = ak8963config.read(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_STATUS1, 1, &status);
-    if (!ack || (status & BIT_STATUS1_REG_DATA_READY) == 0) {
+
+    if (!ack || (status & STATUS1_DATA_READY) == 0) {
         return false;
     }
 
-    ack = ak8963config.read(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_HXL, 6, buf); // read from AK8963_MAG_REG_HXL to AK8963_MAG_REG_HZH
-    if (!ack) {
-        return false;
-    }
+    ack = ak8963config.read(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_HXL, sizeof(buf), buf);
 
     ack = ak8963config.read(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_STATUS2, 1, &status);
-    if (!ack) {
+
+    if (!ack || (status & STATUS2_DATA_ERROR) || (status & STATUS2_MAG_SENSOR_OVERFLOW)) {
         return false;
     }
 
-    if (status & BIT_STATUS2_REG_DATA_ERROR) {
-        return false;
-    }
+    magData[X] = -(int16_t)(buf[1] << 8 | buf[0]) * magGain[X];
+    magData[Y] = -(int16_t)(buf[3] << 8 | buf[2]) * magGain[Y];
+    magData[Z] = -(int16_t)(buf[5] << 8 | buf[4]) * magGain[Z];
 
-    if (status & BIT_STATUS2_REG_MAG_SENSOR_OVERFLOW) {
-        return false;
-    }
-
-    magData[X] = -(int16_t)(buf[1] << 8 | buf[0]) * 4;
-    magData[Y] = -(int16_t)(buf[3] << 8 | buf[2]) * 4;
-    magData[Z] = -(int16_t)(buf[5] << 8 | buf[4]) * 4;
-
-    ack = ak8963config.write(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_CNTL, 0x01); // start reading again
-    return true;
+    return ak8963config.write(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_CNTL, CNTL_MODE_ONCE); // start reading again
 }
