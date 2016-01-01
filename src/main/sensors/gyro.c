@@ -127,7 +127,7 @@ void gyroUpdate(void)
         return;
     }
 
-    //filterApply9TapFIR(gyroADC, gyroFIRState, gyroFIRTable);
+    filterApply9TapFIR(gyroADC, gyroFIRState, gyroFIRTable);
 
     alignSensors(gyroADC, gyroADC, gyroAlign);
 
