@@ -102,30 +102,30 @@ void mpu6500GyroInit(uint8_t lpf)
     mpuConfiguration.write(MPU_RA_PWR_MGMT_1, MPU6500_BIT_RESET);
 	delay(50);
 
-    mpuConfiguration.verifywrite(MPU_RA_PWR_MGMT_1, INV_CLK_PLL);
+    mpuConfiguration.write(MPU_RA_PWR_MGMT_1, INV_CLK_PLL);
     delayMicroseconds(1);
 
 #if defined (REVONANO) || defined (SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
     //mpuConfiguration.write(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_8800_32); //Fchoice_b defaults to 00 which makes fchoice 11
     //delayMicroseconds(1);
-    mpuConfiguration.verifywrite(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_3600_32); //Fchoice_b defaults to 00 which makes fchoice 11
+    mpuConfiguration.write(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_DISABLED); //Fchoice_b defaults to 00 which makes fchoice 11
     delayMicroseconds(1);
-    mpuConfiguration.verifywrite(MPU_RA_CONFIG, 7); //7 = 8KHz, 3600
+    mpuConfiguration.write(MPU_RA_CONFIG, 7); //7 = 8KHz, 3600
     delayMicroseconds(1);
-    mpuConfiguration.verifywrite(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops()); // Get Divider Drops
+    mpuConfiguration.write(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops()); // Get Divider Drops
     delayMicroseconds(1);
 #else
-    mpuConfiguration.verifywrite(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_DISABLED); //Fchoice_b defaults to 00 which makes fchoice 11
+    mpuConfiguration.write(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_DISABLED); //Fchoice_b defaults to 00 which makes fchoice 11
     delayMicroseconds(1);
-    mpuConfiguration.verifywrite(MPU_RA_CONFIG, 7); //7 = 8KHz.
+    mpuConfiguration.write(MPU_RA_CONFIG, 7); //7 = 8KHz.
     delayMicroseconds(1);
-    mpuConfiguration.verifywrite(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops()); // Get Divider Drops
+    mpuConfiguration.write(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops()); // Get Divider Drops
     delayMicroseconds(1);
 #endif
-    mpuConfiguration.verifywrite(MPU_RA_ACCEL_CONFIG, INV_FSR_8G << 3);
+    mpuConfiguration.write(MPU_RA_ACCEL_CONFIG, INV_FSR_8G << 3);
     delayMicroseconds(1);
 
-    mpuConfiguration.verifywrite(MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 1 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 0 << 0);  // INT_ANYRD_2CLEAR, BYPASS_EN
+    mpuConfiguration.write(MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 1 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 0 << 0);  // INT_ANYRD_2CLEAR, BYPASS_EN
     delayMicroseconds(1);
 #if defined(USE_MPU_DATA_READY_SIGNAL)
     mpuConfiguration.write(MPU_RA_INT_ENABLE, 0x01); //this resets register MPU_RA_PWR_MGMT_1 and won't read back correctly.
