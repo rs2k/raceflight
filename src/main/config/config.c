@@ -202,20 +202,20 @@ static void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->D8[PIDVEL] = 1;
 
     pidProfile->gyro_soft_lpf = 0;   // LOW filtering by default
-    pidProfile->dterm_cut_hz = 12;
+    pidProfile->dterm_cut_hz = 8;
     pidProfile->yaw_pterm_cut_hz = 30;
 
-    pidProfile->P_f[ROLL] = 4.800f;     // new PID for raceflight. test carefully
-    pidProfile->I_f[ROLL] = 0.747f;
-    pidProfile->D_f[ROLL] = 0.071f;
-    pidProfile->P_f[PITCH] = 5.571f;
-    pidProfile->I_f[PITCH] = 1.025f;
-    pidProfile->D_f[PITCH] = 0.097f;
+    pidProfile->P_f[ROLL] = 5.012f;     // new PID for raceflight. test carefully
+    pidProfile->I_f[ROLL] = 1.021f;
+    pidProfile->D_f[ROLL] = 0.020f;
+    pidProfile->P_f[PITCH] = 6.121f;
+    pidProfile->I_f[PITCH] = 1.400f;
+    pidProfile->D_f[PITCH] = 0.025f;
     pidProfile->P_f[YAW] = 8.420f;
     pidProfile->I_f[YAW] = 1.725f;
-    pidProfile->D_f[YAW] = 0.111f;
-    pidProfile->A_level = 2.500f;
-    pidProfile->H_level = 2.500f;
+    pidProfile->D_f[YAW] = 0.020f;
+    pidProfile->A_level = 3.000f;
+    pidProfile->H_level = 3.000f;
     pidProfile->H_sensitivity = 100;
 
 #ifdef GTUNE
@@ -430,7 +430,7 @@ static void resetConf(void)
     masterConfig.current_profile_index = 0;     // default profile
     masterConfig.dcm_kp = 2500;                // 1.0 * 10000
     masterConfig.dcm_ki = 0;                    // 0.003 * 10000
-    masterConfig.gyro_lpf = 1;                 // 1KHZ or 8KHZ
+    masterConfig.gyro_lpf = 4;                 // 1KHz, 2KHz, 4KHz, 8KHz, 16KHz, default is 4 for OS125
 
     resetAccelerometerTrims(&masterConfig.accZero);
 
@@ -445,9 +445,9 @@ static void resetConf(void)
     masterConfig.gyroConfig.gyroMovementCalibrationThreshold = 64;
 
     // xxx_hardware: 0:default/autodetect, 1: disable
-    masterConfig.mag_hardware = 0;
+    masterConfig.mag_hardware = 1;
 
-    masterConfig.baro_hardware = 0;
+    masterConfig.baro_hardware = 1;
 
     resetBatteryConfig(&masterConfig.batteryConfig);
 
@@ -589,7 +589,7 @@ static void resetConf(void)
     masterConfig.blackbox_rate_denom = 1;
 #endif
 
-#if defined(REVO) || defined(SPARKY2) || defined (REVONANO) || defined(BLUEJAYF4) || defined(VRCORE)
+#if defined(REVO) || defined(SPARKY2) || defined (REVONANO) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
     featureSet(FEATURE_RX_SERIAL);
     featureSet(FEATURE_ONESHOT125);
 #endif
@@ -603,6 +603,11 @@ static void resetConf(void)
     masterConfig.serialConfig.portConfigs[2].functionMask = FUNCTION_MSP; //default config Fleix port for MSP at 9600 for use with 1wire.
     masterConfig.serialConfig.portConfigs[2].msp_baudrateIndex = BAUD_9600;
 #endif
+#if defined(SPARKY2)
+    masterConfig.serialConfig.portConfigs[4].functionMask = FUNCTION_RX_SERIAL;
+    masterConfig.serialConfig.portConfigs[3].functionMask = FUNCTION_MSP; //default config Fleix port for MSP at 9600 for use with 1wire.
+    masterConfig.serialConfig.portConfigs[3].msp_baudrateIndex = BAUD_9600;
+#endif
 #if defined(VRCORE)
     masterConfig.serialConfig.portConfigs[1].functionMask = FUNCTION_RX_SERIAL;
     masterConfig.serialConfig.portConfigs[2].functionMask = FUNCTION_MSP; //default config Fleix port for MSP at 9600 for use with 1wire.
@@ -615,8 +620,6 @@ static void resetConf(void)
     featureSet(FEATURE_MOTOR_STOP);
     featureClear(FEATURE_ONESHOT125);
 #if defined(ALIENWIIF3) || defined(ALIENFLIGHTF4)
-    masterConfig.serialConfig.portConfigs[1].functionMask = FUNCTION_MSP; // UART1 for MSP at 9600 for use with 1wire.
-    masterConfig.serialConfig.portConfigs[1].msp_baudrateIndex = BAUD_9600;
     masterConfig.serialConfig.portConfigs[2].functionMask = FUNCTION_RX_SERIAL;
     masterConfig.batteryConfig.vbatscale = 20;
 #else

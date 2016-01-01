@@ -91,7 +91,7 @@ static cfTask_t cfTasks[TASK_COUNT] = {
     [TASK_GYROPID] = {
         .taskName = "GYRO/PID",
         .taskFunc = taskMainPidLoopCheck,
-        .desiredPeriod = 1000,
+        .desiredPeriod = 100,
         .staticPriority = TASK_PRIORITY_REALTIME,
     },
 
@@ -105,7 +105,7 @@ static cfTask_t cfTasks[TASK_COUNT] = {
     [TASK_SERIAL] = {
         .taskName = "SERIAL",
         .taskFunc = taskHandleSerial,
-        .desiredPeriod = 1000000 / 100,     // 100 Hz should be enough to flush up to 115 bytes @ 115200 baud
+        .desiredPeriod = 1000000 / 200,     // 100 Hz should be enough to flush up to 115 bytes @ 115200 baud
         .staticPriority = TASK_PRIORITY_LOW,
     },
 
@@ -252,7 +252,7 @@ void rescheduleTask(cfTaskId_e taskId, uint32_t newPeriodMicros)
         taskId = currentTaskId;
 
     if (taskId < TASK_COUNT) {
-        cfTasks[taskId].desiredPeriod = MAX(100, newPeriodMicros);  // Limit delay to 100us (10 kHz) to prevent scheduler clogging
+        cfTasks[taskId].desiredPeriod = MAX(10, newPeriodMicros);  // Limit delay to 100us (10 kHz) to prevent scheduler clogging
     }
 }
 

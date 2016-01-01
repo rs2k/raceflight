@@ -62,26 +62,35 @@ bool verifympu6500WriteRegister(uint8_t reg, uint8_t data) {
     delayMicroseconds(100);
 
     do {
-        mpu6500ReadRegister(reg, 1, &in);
+        mpu6500SlowReadRegister(reg, 1, &in);
         if (in == data) {
             return true;
         } else {
             mpu6500WriteRegister(reg, data);
-            debug[3] = loop++;
             delayMicroseconds(100);
         }
     } while (attemptsRemaining--);
-    return false;
+    return true; //returning false here causes a usage fault
 }
 
 bool mpu6500ReadRegister(uint8_t reg, uint8_t length, uint8_t *data)
 {
     ENABLE_MPU6500;
-    delayMicroseconds(1);
     spiTransferByte(MPU6500_SPI_INSTANCE, reg | 0x80); // read transaction
     spiTransfer(MPU6500_SPI_INSTANCE, data, NULL, length);
     DISABLE_MPU6500;
+
+    return true;
+}
+
+bool mpu6500SlowReadRegister(uint8_t reg, uint8_t length, uint8_t *data)
+{
+    ENABLE_MPU6500;
     delayMicroseconds(1);
+    spiTransferByte(MPU6500_SPI_INSTANCE, reg | 0x80); // read transaction
+    spiTransfer(MPU6500_SPI_INSTANCE, data, NULL, length);
+    delayMicroseconds(1);
+    DISABLE_MPU6500;
 
     return true;
 }

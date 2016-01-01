@@ -122,6 +122,8 @@ typedef struct mpuConfiguration_s {
     uint8_t gyroReadXRegister; // Y and Z must registers follow this, 2 words each
     mpuReadRegisterFunc read;
     mpuWriteRegisterFunc write;
+    mpuReadRegisterFunc slowread;
+    mpuWriteRegisterFunc verifywrite;
 } mpuConfiguration_t;
 
 extern mpuConfiguration_t mpuConfiguration;

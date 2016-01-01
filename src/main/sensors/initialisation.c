@@ -29,6 +29,7 @@
 #include "drivers/exti.h"
 
 #include "drivers/sensor.h"
+#include "debug.h"
 
 #include "drivers/accgyro.h"
 #include "drivers/accgyro_adxl345.h"
@@ -519,6 +520,7 @@ retry:
             ; // fallthrough
         case ACC_NONE: // disable ACC
             accHardware = ACC_NONE;
+
             break;
 
     }
@@ -755,7 +757,9 @@ bool sensorsAutodetect(sensorAlignmentConfig_t *sensorAlignmentConfig, uint8_t a
     UNUSED(mpuDetectionResult);
 #endif
 
+    //debug[2]=66;
     if (!detectGyro()) {
+        //debug[2]=77;
         return false;
     }
     detectAcc(accHardwareToUse);
@@ -763,8 +767,12 @@ bool sensorsAutodetect(sensorAlignmentConfig_t *sensorAlignmentConfig, uint8_t a
 
 
     // Now time to init things, acc first
-    if (sensors(SENSOR_ACC))
+    if (sensors(SENSOR_ACC)) {
         acc.init();
+        //debug[3]=44;
+    } else {
+    	//debug[3]=33;
+    }
     // this is safe because either mpu6050 or mpu3050 or lg3d20 sets it, and in case of fail, we never get here.
     gyroUpdateSampleRate();    // Set gyro refresh rate before initialisation
     gyro.init(gyroLpf);

@@ -58,7 +58,7 @@ static int gyroADCnums = 0;
 //#define gyroFilterLevel 8 //todo move to gyro_sync and calculate.
 #define gyroFilterLevel 8 //todo move to gyro_sync and calculate.
 #else
-#define gyroFilterLevel 8 //todo move to gyro_sync and calculate.
+#define gyroFilterLevel 2 //todo move to gyro_sync and calculate.
 #endif
 static int16_t gyroADCtable0[gyroFilterLevel];
 static int16_t gyroADCtable1[gyroFilterLevel];
@@ -105,8 +105,10 @@ mpuDetectionResult_t *detectMpu(const extiConfig_t *configToUse)
     ack = mpuReadRegisterI2C(MPU_RA_WHO_AM_I, 1, &sig);
 #endif
     if (ack) {
-        mpuConfiguration.read = mpuReadRegisterI2C;
-        mpuConfiguration.write = mpuWriteRegisterI2C;
+    	mpuConfiguration.read = mpuReadRegisterI2C;
+		mpuConfiguration.write = mpuWriteRegisterI2C;
+		mpuConfiguration.slowread = mpuReadRegisterI2C;
+		mpuConfiguration.verifywrite = mpuWriteRegisterI2C;
     } else {
 #ifdef USE_SPI
         bool detectedSpiSensor = detectSPISensorsAndUpdateDetectionResult();
@@ -149,6 +151,8 @@ static bool detectSPISensorsAndUpdateDetectionResult(void)
         mpuDetectionResult.sensor = MPU_65xx_SPI;
         mpuConfiguration.gyroReadXRegister = MPU_RA_GYRO_XOUT_H;
         mpuConfiguration.read = mpu6500ReadRegister;
+        mpuConfiguration.slowread = mpu6500SlowReadRegister;
+        mpuConfiguration.verifywrite = verifympu6500WriteRegister;
         mpuConfiguration.write = mpu6500WriteRegister;
         return true;
     }
@@ -240,7 +244,7 @@ void MPU_DATA_READY_EXTI_Handler(void)
 		gyro_i_count++;
 		mpuGyroReadCollect();
 
-		if (gyro_i_count >= gyroFilterLevel / 4) {
+		if (gyro_i_count >= gyroFilterLevel) {
 
 
 #ifdef DEBUG_MPU_DATA_READY_INTERRUPT
@@ -648,9 +652,9 @@ bool mpuGyroRead(int16_t *gyroADC)
 
 	} else {
 
-		gyroADC[0] = (int16_t)( ( gyroTotal0 + (int)(gyroFilterLevel/2) ) / gyroFilterLevel);
-		gyroADC[1] = (int16_t)( ( gyroTotal1 + (int)(gyroFilterLevel/2) ) / gyroFilterLevel);
-		gyroADC[2] = (int16_t)( ( gyroTotal2 + (int)(gyroFilterLevel/2) ) / gyroFilterLevel);
+		gyroADC[0] = (int16_t)( ( gyroTotal0 ) / gyroFilterLevel);
+		gyroADC[1] = (int16_t)( ( gyroTotal1 ) / gyroFilterLevel);
+		gyroADC[2] = (int16_t)( ( gyroTotal2 ) / gyroFilterLevel);
 
 	}
 
