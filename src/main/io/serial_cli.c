@@ -2337,7 +2337,7 @@ static void cliTasks(char *cmdline)
 static void cliVersion(char *cmdline)
 {
     UNUSED(cmdline);
-    printf("# RaceFlight 16.01.01c - New defaults. New Filter. 4KHz /%s %s %s / %s (%s)",
+    printf("# RaceFlight 16.01.01c - 1wire support for sparky2. 4KHz /%s %s %s / %s (%s)",
         targetName,
         FC_VERSION_STRING,
         buildDate,
