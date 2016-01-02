@@ -759,8 +759,7 @@ BLUEJAYF4_SRC = \
 
 VRCORE_SRC = startup_stm32f40xx.s \
 		   drivers/accgyro_mpu.c \
-		   drivers/accgyro_mpu6500.c \
-		   drivers/accgyro_spi_mpu6500.c \
+		   drivers/accgyro_spi_mpu9250.c \
 		   drivers/adc.c \
 		   drivers/adc_stm32f4xx.c \
 		   drivers/barometer_ms5611.c \
