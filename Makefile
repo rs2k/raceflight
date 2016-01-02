@@ -637,8 +637,7 @@ REVO_SRC = startup_stm32f40xx.s \
 
 REVONANO_SRC = startup_stm32f411xe.s \
 		   drivers/accgyro_mpu.c \
-		   drivers/accgyro_mpu6500.c \
-		   drivers/accgyro_spi_mpu6500.c \
+		   drivers/accgyro_spi_mpu9250.c \
 		   drivers/adc.c \
 		   drivers/adc_stm32f4xx.c \
 		   drivers/barometer_ms5611.c \
@@ -667,8 +666,7 @@ REVONANO_SRC = startup_stm32f411xe.s \
 SPARKY2_SRC = \
 		   startup_stm32f40xx.s \
 		   drivers/accgyro_mpu.c \
-		   drivers/accgyro_mpu6500.c \
-		   drivers/accgyro_spi_mpu6500.c \
+		   drivers/accgyro_spi_mpu9250.c \
 		   drivers/barometer_ms5611.c \
 		   drivers/compass_hmc5883l.c \
 		   drivers/adc.c \
