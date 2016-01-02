@@ -29,8 +29,9 @@
 #include "build_config.h"
 
 // MS5611, Standard address 0x77
+#ifndef MS5611_ADDR
 #define MS5611_ADDR                 0x77
-
+#endif
 #define CMD_RESET               0x1E // ADC reset command
 #define CMD_ADC_READ            0x00 // ADC read command
 #define CMD_ADC_CONV            0x40 // ADC conversion command

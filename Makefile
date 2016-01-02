@@ -21,10 +21,10 @@ TARGET		?= NAZE
 OPTIONS		?=
 
 # compile for OpenPilot BootLoader support
-OPBL ?=NO
+OPBL ?= NO
 
 # Debugger optons, must be empty or GDB
-DEBUG ?=
+DEBUG ?= 
 
 # Serial port/Device for flashing
 SERIAL_DEVICE	?= $(firstword $(wildcard /dev/ttyUSB*) no-port-found)
@@ -151,7 +151,6 @@ endif
 
 STDPERIPH_SRC := $(filter-out ${EXCLUDES}, $(STDPERIPH_SRC))
 
-
 #USB
 USBCORE_DIR	= $(ROOT)/lib/main/STM32_USB_Device_Library/Core
 USBCORE_SRC = $(notdir $(wildcard $(USBCORE_DIR)/src/*.c))
@@ -169,8 +168,6 @@ USBCDC_SRC = $(notdir $(wildcard $(USBCDC_DIR)/src/*.c))
 EXCLUDES	= usbd_cdc_if_template.c
 USBCDC_SRC := $(filter-out ${EXCLUDES}, $(USBCDC_SRC))
 VPATH := $(VPATH):$(USBOTG_DIR)/src:$(USBCORE_DIR)/src:$(USBCDC_DIR)/src
-
-
 
 DEVICE_STDPERIPH_SRC := $(STDPERIPH_SRC) \
 		   $(USBOTG_SRC) \
@@ -229,19 +226,9 @@ endif
 .DEFAULT_GOAL := binary
 endif
 
-ifeq ($(TARGET),ALIENFLIGHTF4)
+ifeq ($(TARGET),$(filter $(TARGET),ALIENFLIGHTF4 BLUEJAYF4))
 DEVICE_FLAGS += -DHSE_VALUE=8000000
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405.ld
-endif
-
-ifeq ($(TARGET),BLUEJAYF4)
-DEVICE_FLAGS += -DHSE_VALUE=8000000
-ifeq ($(OPBL),NO)
-LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405.ld
-else
-LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405_bl.ld
-endif
-.DEFAULT_GOAL := binary
 endif
 
 ifeq ($(TARGET),VRCORE)
@@ -753,6 +740,7 @@ BLUEJAYF4_SRC = \
 		   drivers/adc_stm32f4xx.c \
 		   drivers/bus_i2c_stm32f4xx.c \
 		   drivers/bus_spi.c \
+		   drivers/compass_ak8963.c \
 		   drivers/gpio_stm32f4xx.c \
 		   drivers/inverter.c \
 		   drivers/light_led_stm32f4xx.c \
