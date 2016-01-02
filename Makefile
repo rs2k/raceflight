@@ -15,7 +15,7 @@
 #
 
 # The target to build, see VALID_TARGETS below
-TARGET		?= BLUEJAYF4
+TARGET		?= NAZE
 
 # Compile-time options
 OPTIONS		?=
@@ -24,7 +24,7 @@ OPTIONS		?=
 OPBL ?= NO
 
 # Debugger optons, must be empty or GDB
-DEBUG ?= GDB
+DEBUG ?= 
 
 # Serial port/Device for flashing
 SERIAL_DEVICE	?= $(firstword $(wildcard /dev/ttyUSB*) no-port-found)
