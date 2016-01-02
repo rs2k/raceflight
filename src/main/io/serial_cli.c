@@ -1537,6 +1537,7 @@ static void dumpValues(uint16_t valueSection)
             continue;
         }
 
+        delayMicroseconds(1000);
         printf("set %s = ", valueTable[i].name);
         cliPrintVar(value, 0);
         cliPrint("\r\n");
@@ -2336,7 +2337,7 @@ static void cliTasks(char *cmdline)
 static void cliVersion(char *cmdline)
 {
     UNUSED(cmdline);
-    printf("# RaceFlight 15.12.31c - task scheduler. New defaults. 4KHz /%s %s %s / %s (%s)",
+    printf("# RaceFlight 16.01.01d - mag and baro support for revo. 4KHz /%s %s %s / %s (%s)",
         targetName,
         FC_VERSION_STRING,
         buildDate,

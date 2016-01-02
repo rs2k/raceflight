@@ -55,7 +55,7 @@
 #define GYRO_MPU6500_ALIGN CW180_DEG
 
 //#define MAG
-//#define USE_MAG_HMC5883
+//#define USE_MAG_AK8963
 
 #define BARO
 #define USE_BARO_MS5611
@@ -113,8 +113,14 @@
 #define USE_SPI_DEVICE_1
 #define USE_SPI_DEVICE_3
 
-#define USE_I2C
+//#define USE_I2C
 #define I2C_DEVICE (I2CDEV_1)
+
+#define USE_ADC
+
+#define VBAT_ADC_GPIO               GPIOC
+#define VBAT_ADC_GPIO_PIN           GPIO_Pin_3
+#define VBAT_ADC_CHANNEL            ADC_Channel_13
 
 #define GPS
 #define BLACKBOX
