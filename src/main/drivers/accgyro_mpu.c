@@ -41,6 +41,7 @@
 #include "accgyro_mpu6500.h"
 #include "accgyro_spi_mpu6000.h"
 #include "accgyro_spi_mpu6500.h"
+#include "accgyro_spi_mpu9250.h"
 #include "accgyro_mpu.h"
 
 #define DEBUG_MPU_DATA_READY_INTERRUPT
@@ -167,9 +168,23 @@ static bool detectSPISensorsAndUpdateDetectionResult(void)
         mpuDetectionResult.sensor = MPU_60x0_SPI;
         mpuConfiguration.gyroReadXRegister = MPU_RA_GYRO_XOUT_H;
         mpuConfiguration.read = mpu6000ReadRegister;
+        mpuConfiguration.slowread = mpu6000SlowReadRegister;
+        mpuConfiguration.verifywrite = verifympu6000WriteRegister;
         mpuConfiguration.write = mpu6000WriteRegister;
         return true;
     }
+#endif
+
+#ifdef USE_GYRO_SPI_MPU9250
+	if (mpu9250SpiDetect()) {
+		mpuDetectionResult.sensor = MPU_9250_SPI;
+		mpuConfiguration.gyroReadXRegister = MPU_RA_GYRO_XOUT_H;
+		mpuConfiguration.read = mpu9250ReadRegister;
+        mpuConfiguration.slowread = mpu9250SlowReadRegister;
+        mpuConfiguration.verifywrite = verifympu9250WriteRegister;
+		mpuConfiguration.write = mpu9250WriteRegister;
+		return true;
+	}
 #endif
 
     return false;
@@ -612,7 +627,9 @@ bool mpuAccRead(int16_t *accData)
 {
     uint8_t data[6];
 
+    __disable_irq();
     bool ack = mpuConfiguration.read(MPU_RA_ACCEL_XOUT_H, 6, data);
+    __enable_irq();
     if (!ack) {
         return false;
     }
