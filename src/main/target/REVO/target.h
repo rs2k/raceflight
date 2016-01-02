@@ -50,15 +50,15 @@
 #define USE_MPU_DATA_READY_SIGNAL
 #define EXTI_CALLBACK_HANDLER_COUNT 2 // MPU data ready (mag disabled)
 
-//#define MAG
-//#define USE_MAG_HMC5883
-//#define MAG_HMC5883_ALIGN CW90_DEG
+#define MAG
+#define USE_MAG_HMC5883
+#define MAG_HMC5883_ALIGN CW90_DEG
 
 //#define USE_MAG_NAZA
 //#define MAG_NAZA_ALIGN CW180_DEG_FLIP
 
-//#define BARO
-//#define USE_BARO_MS5611
+#define BARO
+#define USE_BARO_MS5611
 
 //#define PITOT
 //#define USE_PITOT_MS4525
