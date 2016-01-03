@@ -27,10 +27,11 @@
 #define LED2_GPIO   GPIOB
 #define LED2_PIN    Pin_6 // Blue LED
 #define LED2_PERIPHERAL RCC_AHB1Periph_GPIOB
-//#define BEEP_GPIO   GPIOB
-//#define BEEP_PIN    Pin_6 // Blue LED
-//#define BEEP_PERIPHERAL RCC_AHB1Periph_GPIOB
-//#define BEEPER_INVERTED
+
+#define BEEP_GPIO   GPIOC
+#define BEEP_PIN    Pin_9 // JST-SH Pin 3
+#define BEEP_PERIPHERAL RCC_AHB1Periph_GPIOC
+#define BEEPER_INVERTED
 
 #define INVERTER_PIN Pin_6 // PC6 used as inverter select GPIO
 #define INVERTER_GPIO GPIOC
@@ -59,7 +60,7 @@
 #define USE_BARO_MS5611
 
 #define INVERTER
-//#define BEEPER
+#define BEEPER
 #define LED0
 #define LED1
 #define LED2
@@ -118,8 +119,8 @@
 #define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
 
 #define USE_SPI
-#define USE_SPI_DEVICE_1
-#define USE_SPI_DEVICE_3
+#define USE_SPI_DEVICE_1 //MPU9250
+#define USE_SPI_DEVICE_3 //dataflash
 
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_1)
