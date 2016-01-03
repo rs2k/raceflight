@@ -147,6 +147,7 @@ static void cliMixer(char *cmdline);
 static void cliFlashInfo(char *cmdline);
 static void cliFlashErase(char *cmdline);
 #ifdef USE_FLASH_TOOLS
+static void cliFlashFill(char *cmdline);
 static void cliFlashWrite(char *cmdline);
 static void cliFlashRead(char *cmdline);
 #endif
@@ -244,6 +245,7 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("flash_erase", "erase flash chip", NULL, cliFlashErase),
     CLI_COMMAND_DEF("flash_info", "show flash chip info", NULL, cliFlashInfo),
 #ifdef USE_FLASH_TOOLS
+    CLI_COMMAND_DEF("flash_fill", NULL, "<length> <address>", cliFlashFill),
     CLI_COMMAND_DEF("flash_read", NULL, "<length> <address>", cliFlashRead),
     CLI_COMMAND_DEF("flash_write", NULL, "<address> <message>", cliFlashWrite),
 #endif
@@ -1468,6 +1470,26 @@ static void cliFlashErase(char *cmdline)
 }
 
 #ifdef USE_FLASH_TOOLS
+
+static void cliFlashFill(char *cmdline)
+{
+	(void)(cmdline);
+	uint32_t i = 1;
+    uint32_t address = 1;
+    char *text = "Raceflight FTW!";
+    const flashGeometry_t *layout = flashfsGetGeometry();
+
+    while (i < (layout->totalSize / 1024)) {
+		i++;
+		flashfsSeekAbs(address * i * 1024);
+		flashfsWrite((uint8_t*)text, strlen(text), true);
+		flashfsFlushSync();
+
+    }
+
+    printf("Your Flash is now full of goodness.\r\n", strlen(text), address);
+
+}
 
 static void cliFlashWrite(char *cmdline)
 {
