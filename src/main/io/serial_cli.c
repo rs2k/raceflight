@@ -925,7 +925,7 @@ static void cliSerial(char *cmdline)
 
         switch(i) {
             case 0:
-                if (baudRateIndex < BAUD_9600 || baudRateIndex > BAUD_115200) {
+                if (baudRateIndex < BAUD_9600 || baudRateIndex > BAUD_6000000) {
                     continue;
                 }
                 portConfig.msp_baudrateIndex = baudRateIndex;
