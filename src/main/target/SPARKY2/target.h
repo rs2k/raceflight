@@ -27,30 +27,31 @@
 #define LED2_GPIO   GPIOB
 #define LED2_PIN    Pin_6 // Blue LED
 #define LED2_PERIPHERAL RCC_AHB1Periph_GPIOB
-//#define BEEP_GPIO   GPIOB
-//#define BEEP_PIN    Pin_6 // Blue LED
-//#define BEEP_PERIPHERAL RCC_AHB1Periph_GPIOB
-//#define BEEPER_INVERTED
+
+#define BEEP_GPIO   GPIOC
+#define BEEP_PIN    Pin_9 // JST-SH Pin 3
+#define BEEP_PERIPHERAL RCC_AHB1Periph_GPIOC
+#define BEEPER_INVERTED
 
 #define INVERTER_PIN Pin_6 // PC6 used as inverter select GPIO
 #define INVERTER_GPIO GPIOC
 #define INVERTER_PERIPHERAL RCC_AHB1Periph_GPIOC
 #define INVERTER_USART USART6
 
-#define MPU6500_CS_GPIO_CLK_PERIPHERAL   RCC_AHB1Periph_GPIOC
-#define MPU6500_CS_GPIO       GPIOC
-#define MPU6500_CS_PIN        GPIO_Pin_4
-#define MPU6500_SPI_INSTANCE  SPI1
+#define MPU9250_CS_GPIO_CLK_PERIPHERAL   RCC_AHB1Periph_GPIOC
+#define MPU9250_CS_GPIO       GPIOC
+#define MPU9250_CS_PIN        GPIO_Pin_4
+#define MPU9250_SPI_INSTANCE  SPI1
 
 #define ACC
-#define USE_ACC_MPU6500
-#define USE_ACC_SPI_MPU6500
-#define ACC_MPU6500_ALIGN CW270_DEG
+#define USE_ACC_MPU9250
+#define USE_ACC_SPI_MPU9250
+#define ACC_MPU9250_ALIGN CW270_DEG
 
 #define GYRO
-#define USE_GYRO_MPU6500
-#define USE_GYRO_SPI_MPU6500
-#define GYRO_MPU6500_ALIGN CW270_DEG
+#define USE_GYRO_MPU9250
+#define USE_GYRO_SPI_MPU9250
+#define GYRO_MPU9250_ALIGN CW270_DEG
 
 #define MAG
 //#define USE_MAG_HMC5883
@@ -59,7 +60,7 @@
 #define USE_BARO_MS5611
 
 #define INVERTER
-//#define BEEPER
+#define BEEPER
 #define LED0
 #define LED1
 #define LED2
@@ -83,7 +84,7 @@
 #define S1W_RX_GPIO         GPIOB
 #define S1W_RX_PIN          GPIO_Pin_11
 
-// MPU6500 interrupt
+// MPU9250 interrupt
 //#define DEBUG_MPU_DATA_READY_INTERRUPT
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
@@ -118,8 +119,8 @@
 #define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
 
 #define USE_SPI
-#define USE_SPI_DEVICE_1
-#define USE_SPI_DEVICE_3
+#define USE_SPI_DEVICE_1 //MPU9250
+#define USE_SPI_DEVICE_3 //dataflash
 
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_1)

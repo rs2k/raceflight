@@ -31,6 +31,7 @@
 #include "accgyro_mpu.h"
 #include "accgyro_spi_mpu6000.h"
 #include "accgyro_mpu6500.h"
+#include "accgyro_spi_mpu9250.h"
 
 
 #define AIRCR_VECTKEY_MASK    ((uint32_t)0x05FA0000)
