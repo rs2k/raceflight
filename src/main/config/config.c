@@ -609,9 +609,9 @@ static void resetConf(void)
     masterConfig.serialConfig.portConfigs[3].msp_baudrateIndex = BAUD_9600;
 #endif
 #if defined(VRCORE)
-    masterConfig.serialConfig.portConfigs[1].functionMask = FUNCTION_RX_SERIAL;
-    masterConfig.serialConfig.portConfigs[2].functionMask = FUNCTION_MSP; //default config Fleix port for MSP at 9600 for use with 1wire.
-    masterConfig.serialConfig.portConfigs[2].msp_baudrateIndex = BAUD_9600;
+    masterConfig.serialConfig.portConfigs[4].functionMask = FUNCTION_RX_SERIAL;
+    masterConfig.serialConfig.portConfigs[1].functionMask = FUNCTION_MSP; //default config Fleix port for MSP at 9600 for use with 1wire.
+    masterConfig.serialConfig.portConfigs[1].msp_baudrateIndex = BAUD_9600;
 #endif
 
     // alternative defaults settings for ALIENWIIF1 and ALIENWIIF3 targets
