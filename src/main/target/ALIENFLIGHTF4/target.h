@@ -51,13 +51,14 @@
 #define GYRO_MPU9250_ALIGN CW270_DEG
 
 #define MAG
-//#define USE_MAG_HMC5883
+#define USE_MAG_HMC5883
+//#define MAG_HMC5883_ALIGN CW180_DEG
 #define USE_MAG_AK8963
 #define MAG_AK8963_ALIGN CW270_DEG
 
-//#define BARO
-//#define USE_BARO_MS5611
-//#define USE_BARO_BMP280
+#define BARO
+#define USE_BARO_MS5611
+#define USE_BARO_BMP280
 
 #define INVERTER
 #define BEEPER
@@ -127,7 +128,7 @@
 #define USE_SPI_DEVICE_2
 #define USE_SPI_DEVICE_3
 
-//#define USE_I2C
+#define USE_I2C
 #define I2C_DEVICE (I2CDEV_1)
 //#define I2C_DEVICE_EXT (I2CDEV_2)
 #define I2C1_SCL_GPIO        GPIOB
