@@ -130,6 +130,14 @@
 //#define USE_I2C
 #define I2C_DEVICE (I2CDEV_1)
 //#define I2C_DEVICE_EXT (I2CDEV_2)
+#define I2C1_SCL_GPIO        GPIOB
+#define I2C1_SCL_PIN         GPIO_Pin_6
+#define I2C1_SCL_PIN_SOURCE  GPIO_PinSource6
+#define I2C1_SCL_CLK_SOURCE  RCC_AHB1Periph_GPIOB
+#define I2C1_SDA_GPIO        GPIOB
+#define I2C1_SDA_PIN         GPIO_Pin_7
+#define I2C1_SDA_PIN_SOURCE  GPIO_PinSource7
+#define I2C1_SDA_CLK_SOURCE  RCC_AHB1Periph_GPIOB
 
 #define USE_ADC
 //#define BOARD_HAS_VOLTAGE_DIVIDER

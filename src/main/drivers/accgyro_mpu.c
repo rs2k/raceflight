@@ -287,7 +287,7 @@ void MPU_DATA_READY_EXTI_Handler(void)
 			static uint32_t lastCalledAt1 = 0;
 			uint32_t now1 = micros();
 	        uint32_t callDelta1 = now1 - lastCalledAt1;
-	        //debug[1] = callDelta1;
+	        debug[1] = callDelta1;
     		lastCalledAt1 = now;
 #endif
 			gyro_i_count = 0;
