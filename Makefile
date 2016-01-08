@@ -697,8 +697,7 @@ SPARKY2_SRC = \
 ALIENFLIGHTF4_SRC = \
 		   startup_stm32f40xx.s \
 		   drivers/accgyro_mpu.c \
-		   drivers/accgyro_mpu6500.c \
-		   drivers/accgyro_spi_mpu6500.c \
+		   drivers/accgyro_spi_mpu9250.c \
 		   drivers/barometer_bmp280.c \
 		   drivers/barometer_ms5611.c \
 		   drivers/compass_ak8963.c \
@@ -732,7 +731,6 @@ BLUEJAYF4_SRC = \
 		   startup_stm32f40xx.s \
 		   drivers/accgyro_mpu.c \
 		   drivers/accgyro_spi_mpu9250.c \
-		   drivers/compass_ak8963.c \
 		   drivers/barometer_ms5611.c \
 		   drivers/adc.c \
 		   drivers/adc_stm32f4xx.c \
