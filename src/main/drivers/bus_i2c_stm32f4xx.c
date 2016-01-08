@@ -66,6 +66,7 @@
 static void i2c_er_handler(void);
 static void i2c_ev_handler(void);
 static void i2cInitPort(void);
+static void i2cUnstick(GPIO_TypeDef* gpio_scl, uint16_t scl, GPIO_TypeDef* gpio_sda, uint16_t sda);
 
 // Copy of peripheral address for IRQ routines
 static I2C_TypeDef *I2Cx;
@@ -301,20 +302,25 @@ void i2c_ev_handler(void) {
     }
 }
 
-void i2cInit(I2CDevice index) {
-    if (index == I2CDEV_1) {
+void i2cInit(I2CDevice index) 
+{
+    if (index == I2CDEV_1) 
+    {
         I2Cx = I2C1;
     }
-    else if (index == I2CDEV_2) {
+    else if (index == I2CDEV_2) 
+    {
         I2Cx = I2C2;
     }
-    else { 
+    else 
+    { 
         I2Cx = I2C3;
     }
     i2cInitPort();
 }
 
-void i2cInitPort(void) {
+void i2cInitPort(void) 
+{
     uint8_t ev_irq;
     uint8_t er_irq;
     
@@ -331,7 +337,9 @@ void i2cInitPort(void) {
     if (I2Cx == I2C1)
     {
         I2Cx_index = I2CDEV_1;
-
+        
+        i2cUnstick(I2C1_SCL_GPIO, I2C1_SCL_PIN, I2C1_SDA_GPIO, I2C1_SDA_PIN);
+        
         RCC_AHB1PeriphClockCmd(I2C1_SDA_CLK_SOURCE | I2C1_SDA_CLK_SOURCE, ENABLE);
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
 
@@ -351,6 +359,8 @@ void i2cInitPort(void) {
     if (I2Cx == I2C2)
     {
         I2Cx_index = I2CDEV_2;
+
+        i2cUnstick(I2C2_SCL_GPIO, I2C2_SCL_PIN, I2C2_SDA_GPIO, I2C2_SDA_PIN);
 
         RCC_AHB1PeriphClockCmd(I2C2_SDA_CLK_SOURCE | I2C2_SDA_CLK_SOURCE, ENABLE);
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C2, ENABLE);
@@ -372,6 +382,8 @@ void i2cInitPort(void) {
     {
         I2Cx_index = I2CDEV_3;
 
+        i2cUnstick(I2C3_SCL_GPIO, I2C3_SCL_PIN, I2C3_SDA_GPIO, I2C3_SDA_PIN);
+        
         RCC_AHB1PeriphClockCmd(I2C3_SDA_CLK_SOURCE | I2C3_SDA_CLK_SOURCE, ENABLE);
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C3, ENABLE);
 
@@ -419,6 +431,56 @@ void i2cInitPort(void) {
 uint16_t i2cGetErrorCounter(void)
 {
     return i2cErrorCount;
+}
+
+static void i2cUnstick(GPIO_TypeDef* gpio_scl, uint16_t scl, GPIO_TypeDef* gpio_sda, uint16_t sda)
+{
+    int i;
+
+    GPIO_InitTypeDef gpio;
+    
+    GPIO_StructInit(&gpio);
+    gpio.GPIO_Mode = GPIO_Mode_OUT;
+    gpio.GPIO_Speed = GPIO_Speed_2MHz;
+    gpio.GPIO_OType = GPIO_OType_OD;
+    gpio.GPIO_PuPd = GPIO_PuPd_UP;
+
+    GPIO_SetBits(gpio_scl, scl);
+    GPIO_SetBits(gpio_sda, sda);
+
+    gpio.GPIO_Pin = scl;
+    GPIO_Init(gpio_scl, &gpio);
+
+    gpio.GPIO_Pin = sda;
+    GPIO_Init(gpio_sda, &gpio);
+
+    for (i = 0; i < 8; i++) {
+        // Wait for any clock stretching to finish
+        while (!GPIO_ReadInputDataBit(gpio_scl, scl))
+            delayMicroseconds(10);
+
+        // Pull low
+        GPIO_ResetBits(gpio_scl, scl); // Set bus low
+        delayMicroseconds(10);
+        // Release high again
+        GPIO_SetBits(gpio_scl, scl); // Set bus high
+        delayMicroseconds(10);
+    }
+
+    // Generate a start then stop condition
+    GPIO_ResetBits(gpio_sda, sda); // Set bus data low
+    delayMicroseconds(10);
+    GPIO_ResetBits(gpio_scl, scl); // Set bus scl low
+    delayMicroseconds(10);
+    GPIO_SetBits(gpio_scl, scl); // Set bus scl high
+    delayMicroseconds(10);
+    GPIO_SetBits(gpio_sda, sda); // Set bus sda high
+
+    gpio.GPIO_Pin = scl;
+    GPIO_Init(gpio_scl, &gpio);
+
+    gpio.GPIO_Pin = sda; 
+    GPIO_Init(gpio_sda, &gpio);
 }
 
 #endif

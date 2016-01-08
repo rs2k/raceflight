@@ -54,8 +54,8 @@
 #define USE_GYRO_SPI_MPU9250
 #define GYRO_MPU9250_ALIGN CW180_DEG
 
-#define MAG
-#define USE_MAG_AK8963
+//#define MAG
+//#define USE_MAG_AK8963
 
 #define BARO
 #define USE_BARO_MS5611
