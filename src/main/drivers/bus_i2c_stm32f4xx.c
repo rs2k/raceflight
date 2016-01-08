@@ -475,12 +475,6 @@ static void i2cUnstick(GPIO_TypeDef* gpio_scl, uint16_t scl, GPIO_TypeDef* gpio_
     GPIO_SetBits(gpio_scl, scl); // Set bus scl high
     delayMicroseconds(10);
     GPIO_SetBits(gpio_sda, sda); // Set bus sda high
-
-    gpio.GPIO_Pin = scl;
-    GPIO_Init(gpio_scl, &gpio);
-
-    gpio.GPIO_Pin = sda; 
-    GPIO_Init(gpio_sda, &gpio);
 }
 
 #endif
