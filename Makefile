@@ -730,14 +730,12 @@ ALIENFLIGHTF4_SRC = \
 BLUEJAYF4_SRC = \
 		   startup_stm32f40xx.s \
 		   drivers/accgyro_mpu.c \
-		   drivers/accgyro_mpu6500.c \
-		   drivers/accgyro_spi_mpu6500.c \
+		   drivers/accgyro_spi_mpu9250.c \
 		   drivers/barometer_ms5611.c \
 		   drivers/adc.c \
 		   drivers/adc_stm32f4xx.c \
 		   drivers/bus_i2c_stm32f4xx.c \
 		   drivers/bus_spi.c \
-		   drivers/compass_ak8963.c \
 		   drivers/gpio_stm32f4xx.c \
 		   drivers/inverter.c \
 		   drivers/light_led_stm32f4xx.c \
