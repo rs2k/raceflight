@@ -172,7 +172,6 @@ void pwmCompleteOneshotMotorUpdate(uint8_t motorCount)
         if(motors[index]->tim != lastTimerPtr)
         {
             lastTimerPtr = motors[index]->tim;
-
             timerForceOverflow(motors[index]->tim);
         }
 
@@ -210,8 +209,11 @@ void fastPWMMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex
 
 void pwmOneshotMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, uint16_t motorPwmRate, uint16_t idlePulse)
 {
+#ifdef USE_MOTOR_PWM_RATE
     uint32_t hz = ONESHOT125_TIMER_MHZ * 1000000;
     motors[motorIndex] = pwmOutConfig(timerHardware, ONESHOT125_TIMER_MHZ, hz / motorPwmRate, idlePulse);
+#else    motors[motorIndex] = pwmOutConfig(timerHardware, ONESHOT125_TIMER_MHZ, 0xFFFF, 0);
+#endif
     motors[motorIndex]->pwmWritePtr = pwmWriteOneshot;
 }
 
