@@ -274,19 +274,17 @@ void init(void)
     pwm_params.servoPwmRate = masterConfig.servo_pwm_rate;
 #endif
 
-    pwm_params.useOneshot = feature(FEATURE_ONESHOT125);
-    pwm_params.useMultiShot = feature(FEATURE_MULTISHOT);
+	pwm_params.useOneshot = feature(FEATURE_ONESHOT125);
+	pwm_params.useOneshotPwmRate = feature(FEATURE_ONESHOT_PWM_RATE);
+	pwm_params.useMultiShot = feature(FEATURE_MULTISHOT);
     pwm_params.useFastPWM = masterConfig.use_fast_pwm ? true : false;
     pwm_params.motorPwmRate = masterConfig.motor_pwm_rate;
     pwm_params.idlePulse = masterConfig.escAndServoConfig.mincommand;
     if (feature(FEATURE_3D))
         pwm_params.idlePulse = masterConfig.flight3DConfig.neutral3d;
-    pwm_params.useFastPWM = masterConfig.use_fast_pwm ? true : false;
-        pwm_params.idlePulse = 0; // brushed motors
     pwmRxInit(masterConfig.inputFilteringMode);
 
     pwmOutputConfiguration_t *pwmOutputConfiguration = pwmInit(&pwm_params);
-
 
     mixerUsePWMOutputConfiguration(pwmOutputConfiguration);
 
