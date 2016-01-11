@@ -642,10 +642,11 @@ void writeMotors(void)
     for (i = 0; i < motorCount; i++)
         pwmWriteMotor(i, motor[i]);
 
-
+#ifndef USE_MOTOR_PWM_RATE
     if (feature(FEATURE_ONESHOT125) || feature(FEATURE_MULTISHOT)) {
         pwmCompleteOneshotMotorUpdate(motorCount);
     }
+#endif
 }
 
 void writeAllMotors(int16_t mc)
