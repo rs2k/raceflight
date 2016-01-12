@@ -362,7 +362,10 @@ static const char * const lookupTableGyroFilter[] = {
 };
 
 static const char * const lookupTableGyroSampling[] = {
+    "16KHZ",
     "8KHZ",
+    "4KHZ",
+    "2KHZ",
     "1KHZ"
 };
 
@@ -2194,6 +2197,8 @@ static void cliSet(char *cmdline)
             printf("%s = ", valueTable[i].name);
             cliPrintVar(val, len); // when len is 1 (when * is passed as argument), it will print min/max values as well, for gui
             cliPrint("\r\n");
+            delayMicroseconds(1000);
+
         }
     } else if ((eqptr = strstr(cmdline, "=")) != NULL) {
         // has equals

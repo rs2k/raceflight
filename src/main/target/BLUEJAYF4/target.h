@@ -122,8 +122,6 @@
 #define VBAT_ADC_GPIO_PIN           GPIO_Pin_3
 #define VBAT_ADC_CHANNEL            ADC_Channel_13
 
-#define USE_MOTOR_PWM_RATE
-
 #define GPS
 #define BLACKBOX
 #define TELEMETRY
