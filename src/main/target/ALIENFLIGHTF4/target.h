@@ -123,8 +123,25 @@
 //#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
 
 #define USE_SPI
+
 #define USE_SPI_DEVICE_1
+
 #define USE_SPI_DEVICE_2
+#define SPI2_NSS_GPIO           GPIOB
+#define SPI2_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOB
+#define SPI2_NSS_PIN            GPIO_Pin_12
+#define SPI2_NSS_PIN_SOURCE     GPIO_PinSource12
+#define SPI2_SCK_GPIO           GPIOB
+#define SPI2_SCK_PERIPHERAL     RCC_AHBPeriph_GPIOB
+#define SPI2_SCK_PIN            GPIO_Pin_13
+#define SPI2_SCK_PIN_SOURCE     GPIO_PinSource13
+#define SPI2_GPIO               GPIOC
+#define SPI2_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOC
+#define SPI2_MISO_PIN           GPIO_Pin_2
+#define SPI2_MISO_PIN_SOURCE    GPIO_PinSource2
+#define SPI2_MOSI_PIN           GPIO_Pin_3
+#define SPI2_MOSI_PIN_SOURCE    GPIO_PinSource3
+
 #define USE_SPI_DEVICE_3
 
 //#define USE_I2C
