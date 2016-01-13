@@ -166,12 +166,12 @@ void pwmCompleteOneshotMotorUpdate(uint8_t motorCount)
     uint8_t index;
     TIM_TypeDef *lastTimerPtr = NULL;
 
-    for(index = 0; index < motorCount; index++){
-
+    for(index = 0; index < motorCount; index++)
+    {
         // Force the timer to overflow if it's the first motor to output, or if we change timers
-        if(motors[index]->tim != lastTimerPtr){
+        if(motors[index]->tim != lastTimerPtr)
+        {
             lastTimerPtr = motors[index]->tim;
-
             timerForceOverflow(motors[index]->tim);
         }
 
@@ -203,8 +203,15 @@ void pwmBrushlessMotorConfig(const timerHardware_t *timerHardware, uint8_t motor
 void fastPWMMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, uint16_t motorPwmRate, uint16_t idlePulse)
 {
     uint32_t hz = PWM_BRUSHED_TIMER_MHZ * 1000000;
-    motors[motorIndex] = pwmOutConfig(timerHardware, ONESHOT125_TIMER_MHZ, hz / motorPwmRate, idlePulse);
+    motors[motorIndex] = pwmOutConfig(timerHardware, PWM_BRUSHED_TIMER_MHZ, hz / motorPwmRate, idlePulse);
     motors[motorIndex]->pwmWritePtr = pwmWriteStandard;
+}
+
+void pwmOneshotPwmRateMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, uint16_t motorPwmRate, uint16_t idlePulse)
+{
+    uint32_t hz = ONESHOT125_TIMER_MHZ * 1000000;
+    motors[motorIndex] = pwmOutConfig(timerHardware, ONESHOT125_TIMER_MHZ, hz / motorPwmRate, idlePulse);
+    motors[motorIndex]->pwmWritePtr = pwmWriteOneshot;
 }
 
 void pwmOneshotMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex)
@@ -212,7 +219,7 @@ void pwmOneshotMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIn
     motors[motorIndex] = pwmOutConfig(timerHardware, ONESHOT125_TIMER_MHZ, 0xFFFF, 0);
     motors[motorIndex]->pwmWritePtr = pwmWriteOneshot;
 }
-
+    
 void pwmMultiShotMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex)
 {
     motors[motorIndex] = pwmOutConfig(timerHardware, MULTISHOT_TIMER_MHZ, 0xFFFF, 0);

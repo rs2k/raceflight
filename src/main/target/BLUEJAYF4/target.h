@@ -127,5 +127,5 @@
 #define TELEMETRY
 #define SERIAL_RX
 #define AUTOTUNE
-#define USE_SERVOS
+#define USE_QUAD_MIXER_ONLY
 #define USE_CLI
