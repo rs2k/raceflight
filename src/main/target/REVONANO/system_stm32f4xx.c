@@ -375,9 +375,9 @@ uint32_t hse_value = HSE_VALUE;
  #define PLL_M      8
 #elif defined (STM32F410xx) || defined (STM32F411xE)
  #if defined(USE_HSE_BYPASS)
-  #define PLL_M      7
+  #define PLL_M      8
  #else /* !USE_HSE_BYPASS */
-  #define PLL_M      7
+  #define PLL_M      8
  #endif /* USE_HSE_BYPASS */
 #else
 #endif /* STM32F40_41xxx || STM32F427_437xx || STM32F429_439xx || STM32F401xx || STM32F469_479xx */
@@ -409,7 +409,7 @@ uint32_t hse_value = HSE_VALUE;
 #endif /* STM32F401xx */
 
 #if defined(STM32F410xx) || defined(STM32F411xE)
-#define PLL_N      336
+#define PLL_N      384
 /* SYSCLK = PLL_VCO / PLL_P */
 #define PLL_P      4
 #endif /* STM32F410xx || STM32F411xE */
