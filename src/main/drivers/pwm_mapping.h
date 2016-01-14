@@ -69,6 +69,7 @@ typedef struct drv_pwm_config_s {
 	bool useOneshot;
 	bool useOneshotPwmRate;
 	bool useMultiShot;
+	bool useMultiShotPwmRate;
     bool useFastPWM;
     bool useSoftSerial;
     bool useLEDStrip;
