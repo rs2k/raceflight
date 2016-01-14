@@ -176,7 +176,7 @@ static const char * const featureNames[] = {
     "SONAR", "TELEMETRY", "CURRENT_METER", "3D", "RX_PARALLEL_PWM",
     "RX_MSP", "RSSI_ADC", "LED_STRIP", "DISPLAY", "ONESHOT125",
     "BLACKBOX", "CHANNEL_FORWARDING", "MULTISHOT", "ONESHOT_PWM_RATE",
-    NULL
+    "MULTISHOT_PWM_RATE", NULL
 };
 
 // sync this with rxFailsafeChannelMode_e
@@ -2364,7 +2364,7 @@ static void cliTasks(char *cmdline)
 static void cliVersion(char *cmdline)
 {
     UNUSED(cmdline);
-    printf("# RaceFlight 16.01.14a - BF Test Merge /%s %s %s / %s (%s)",
+    printf("# RaceFlight 16.01.14b - BF Test Merge - MSPWM /%s %s %s / %s (%s)",
         targetName,
         FC_VERSION_STRING,
         buildDate,

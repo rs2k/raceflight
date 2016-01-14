@@ -278,6 +278,7 @@ void init(void)
 	pwm_params.useOneshot = feature(FEATURE_ONESHOT125);
 	pwm_params.useOneshotPwmRate = feature(FEATURE_ONESHOT_PWM_RATE);
 	pwm_params.useMultiShot = feature(FEATURE_MULTISHOT);
+	pwm_params.useMultiShotPwmRate = feature(FEATURE_MULTISHOT_PWM_RATE);
     pwm_params.useFastPWM = masterConfig.use_fast_pwm ? true : false;
     pwm_params.motorPwmRate = masterConfig.motor_pwm_rate;
     pwm_params.idlePulse = masterConfig.escAndServoConfig.mincommand;
