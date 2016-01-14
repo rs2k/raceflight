@@ -17,9 +17,11 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <math.h>
 
 #include "debug.h"
 #include "platform.h"
+#include "debug.h"
 
 #include "common/axis.h"
 #include "common/maths.h"
@@ -27,6 +29,7 @@
 
 #include "drivers/sensor.h"
 #include "drivers/accgyro.h"
+#include "drivers/gyro_sync.h"
 #include "sensors/sensors.h"
 #include "io/beeper.h"
 #include "io/statusindicator.h"
@@ -39,16 +42,25 @@ int16_t gyroADC[XYZ_AXIS_COUNT];
 int16_t gyroZero[FLIGHT_DYNAMICS_INDEX_COUNT] = { 0, 0, 0 };
 
 static gyroConfig_t *gyroConfig;
-static int8_t * gyroFIRTable = 0L;
-static int16_t gyroFIRState[3][9];
+static biquad_t *gyroBiQuadState[3];
+static bool gyroFilterStateIsSet;
+static uint8_t gyroLpfCutFreq;
+int axis;
 
 gyro_t gyro;                      // gyro access functions
 sensor_align_e gyroAlign = 0;
 
-void useGyroConfig(gyroConfig_t *gyroConfigToUse, int8_t * filterTableToUse)
+void useGyroConfig(gyroConfig_t *gyroConfigToUse, uint8_t *gyro_lpf_hz)
 {
     gyroConfig = gyroConfigToUse;
-    gyroFIRTable = filterTableToUse;
+    gyroLpfCutFreq = *gyro_lpf_hz;
+}
+
+void initGyroFilterCoefficients(void) {
+    if (gyroLpfCutFreq && targetLooptime) {  /* Initialisation needs to happen once samplingrate is known */
+        for (axis = 0; axis < 3; axis++) gyroBiQuadState[axis] = (biquad_t *)BiQuadNewLpf(gyroLpfCutFreq);
+        gyroFilterStateIsSet = true;
+    }
 }
 
 void gyroSetCalibrationCycles(uint16_t calibrationCyclesRequired)
@@ -127,9 +139,15 @@ void gyroUpdate(void)
         return;
     }
 
-    filterApply9TapFIR(gyroADC, gyroFIRState, gyroFIRTable);
-
     alignSensors(gyroADC, gyroADC, gyroAlign);
+
+    if (gyroLpfCutFreq) {
+        if (!gyroFilterStateIsSet) {
+            initGyroFilterCoefficients();
+        } else {
+            for (axis = 0; axis < XYZ_AXIS_COUNT; axis++) gyroADC[axis] = lrintf(applyBiQuadFilter((float) gyroADC[axis], gyroBiQuadState[axis]));
+        }
+    }
 
     if (!isGyroCalibrationComplete()) {
         performAcclerationCalibration(gyroConfig->gyroMovementCalibrationThreshold);

@@ -819,11 +819,9 @@ void mixTable(void)
 
         // Now add in the desired throttle, but keep in a range that doesn't clip adjusted
         // roll/pitch/yaw. This could move throttle down, but also up for those low throttle flips.
-        //
         for (i = 0; i < motorCount; i++) {
             motor[i] = rollPitchYawMix[i] + constrainf(rcCommand[THROTTLE] * currentMixer[i].throttle, throttleMin, throttleMax);
         }
-
     }
 
     if (ARMING_FLAG(ARMED)) {

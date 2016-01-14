@@ -1,8 +1,18 @@
 /*
- * filter.c
+ * This file is part of Cleanflight.
  *
- *  Created on: 24 jun. 2015
- *      Author: borisb
+ * Cleanflight is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Cleanflight is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <stdbool.h>
@@ -12,9 +22,17 @@
 
 #include "common/axis.h"
 #include "common/filter.h"
-#include "common/axis.h"
 #include "common/maths.h"
 
+#include "drivers/gyro_sync.h"
+
+
+#define M_LN2_FLOAT	0.69314718055994530942f
+#define M_PI_FLOAT	3.14159265358979323846f
+
+
+#define BIQUAD_GAIN 6.0f          /* gain in db */
+#define BIQUAD_BANDWIDTH 1.9f     /* bandwidth in octaves */
 
 // PT1 Low Pass filter (when no dT specified it will be calculated from the cycleTime)
 float filterApplyPt1(float input, filterStatePt1_t *filter, uint8_t f_cut, float dT) {
@@ -29,35 +47,63 @@ float filterApplyPt1(float input, filterStatePt1_t *filter, uint8_t f_cut, float
     return filter->state;
 }
 
-/**
- * Typical quadcopter motor noise frequency (at 50% throttle):
- *  450-sized, 920kv, 9.4x4.3 props, 3S : 4622rpm = 77Hz
- *  250-sized, 2300kv, 5x4.5 props, 4S : 14139rpm = 235Hz
- */
-static int8_t gyroFIRCoeff_1000[3][9] = { { 0, 0, 12, 23, 40, 51, 52, 40, 38 },    // 1khz; group delay 2.5ms; -0.5db = 32Hz ; -1db = 45Hz; -5db = 97Hz; -10db = 132Hz
-                                          { 18, 30, 42, 46, 40, 34, 22, 8, 8},     // 1khz; group delay 3ms;   -0.5db = 18Hz ; -1db = 33Hz; -5db = 81Hz; -10db = 113Hz
-                                          { 18, 12, 28, 40, 44, 40, 32, 22, 20} }; // 1khz; group delay 4ms;   -0.5db = 23Hz ; -1db = 35Hz; -5db = 75Hz; -10db = 103Hz
-
-int8_t * filterGetFIRCoefficientsTable(uint8_t filter_level)
+/* sets up a biquad Filter */
+biquad_t *BiQuadNewLpf(uint8_t filterCutFreq)
 {
-    return gyroFIRCoeff_1000[filter_level];
+	float samplingRate;
+    samplingRate = 1 / (targetLooptime * 0.000001f);
+
+    biquad_t *newState;
+    float omega, sn, cs, alpha;
+    float a0, a1, a2, b0, b1, b2;
+
+    newState = malloc(sizeof(biquad_t));
+    if (newState == NULL)
+        return NULL;
+
+    /* setup variables */
+    omega = 2 * M_PI_FLOAT * (float) filterCutFreq / samplingRate;
+    sn = sinf(omega);
+    cs = cosf(omega);
+    alpha = sn * sinf(M_LN2_FLOAT /2 * BIQUAD_BANDWIDTH * omega /sn);
+
+    b0 = (1 - cs) /2;
+    b1 = 1 - cs;
+    b2 = (1 - cs) /2;
+    a0 = 1 + alpha;
+    a1 = -2 * cs;
+    a2 = 1 - alpha;
+
+    /* precompute the coefficients */
+    newState->a0 = b0 /a0;
+    newState->a1 = b1 /a0;
+    newState->a2 = b2 /a0;
+    newState->a3 = a1 /a0;
+    newState->a4 = a2 /a0;
+
+    /* zero initial samples */
+    newState->x1 = newState->x2 = 0;
+    newState->y1 = newState->y2 = 0;
+
+    return newState;
 }
 
-// 9 Tap FIR filter as described here:
-// Thanks to Qcopter & BorisB & DigitalEntity
-void filterApply9TapFIR(int16_t data[3], int16_t state[3][9], int8_t coeff[9])
+/* Computes a biquad_t filter on a sample */
+float applyBiQuadFilter(float sample, biquad_t *state)
 {
-    int32_t FIRsum;
-    int axis, i;
+    float result;
 
-    for (axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-        FIRsum = 0;
-        for (i = 0; i <= 7; i++) {
-            state[axis][i] = state[axis][i + 1];
-            FIRsum += state[axis][i] * (int16_t)coeff[i];
-        }
-        state[axis][8] = data[axis];
-        FIRsum += state[axis][8] * coeff[8];
-        data[axis] = FIRsum / 256;
-    }
+    /* compute result */
+    result = state->a0 * sample + state->a1 * state->x1 + state->a2 * state->x2 -
+        state->a3 * state->y1 - state->a4 * state->y2;
+
+    /* shift x1 to x2, sample to x1 */
+    state->x2 = state->x1;
+    state->x1 = sample;
+
+    /* shift y1 to y2, result to y1 */
+    state->y2 = state->y1;
+    state->y1 = result;
+
+    return result;
 }

@@ -20,6 +20,7 @@
 #define GYRO_I_MAX 256                      // Gyro I limiter
 #define YAW_P_LIMIT_MIN 100                 // Maximum value for yaw P limiter
 #define YAW_P_LIMIT_MAX 500                 // Maximum value for yaw P limiter
+#define IS_POSITIVE(x) ((x > 0) ? true : false)
 
 typedef enum {
     PIDROLL,
@@ -57,10 +58,9 @@ typedef struct pidProfile_s {
     float H_level;
     uint8_t H_sensitivity;
 
-    uint16_t yaw_p_limit;                   // set P term limit (fixed value was 300)
-    uint8_t dterm_cut_hz;                   // (default 17Hz, Range 1-50Hz) Used for PT1 element in PID1, PID2 and PID5
-    uint8_t yaw_pterm_cut_hz;               // Used for filering Pterm noise on noisy frames
-    uint8_t gyro_soft_lpf;                  // Gyro FIR filter
+    uint16_t airModeInsaneAcrobilityFactor; // Air mode acrobility factor
+    uint8_t gyro_lpf_hz;                    // Gyro Soft filter in hz
+    uint8_t dterm_lpf_hz;                   // Delta Filter in hz
 
 #ifdef GTUNE
     uint8_t  gtune_lolimP[3];               // [0..200] Lower limit of P during G tune
@@ -70,6 +70,12 @@ typedef struct pidProfile_s {
     uint8_t  gtune_average_cycles;          // [8..128] Number of looptime cycles used for gyro average calculation
 #endif
 } pidProfile_t;
+
+typedef struct airModePlus {
+    float factor;
+    float wowFactor;
+    float iTermScaler;
+} airModePlus_t;
 
 extern int16_t axisPID[XYZ_AXIS_COUNT];
 extern int32_t axisPID_P[3], axisPID_I[3], axisPID_D[3];

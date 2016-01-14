@@ -36,6 +36,7 @@
 #include "drivers/timer.h"
 #include "drivers/pwm_rx.h"
 #include "drivers/serial.h"
+#include "drivers/gyro_sync.h"
 
 #include "sensors/sensors.h"
 #include "sensors/gyro.h"
@@ -159,7 +160,7 @@ static uint32_t activeFeaturesLatch = 0;
 static uint8_t currentControlRateProfileIndex = 0;
 controlRateConfig_t *currentControlRateProfile;
 
-static const uint8_t EEPROM_CONF_VERSION = 115;
+static const uint8_t EEPROM_CONF_VERSION = 118;
 
 static void resetAccelerometerTrims(flightDynamicsTrims_t *accelerometerTrims)
 {
@@ -174,13 +175,13 @@ static void resetPidProfile(pidProfile_t *pidProfile)
 
     pidProfile->P8[ROLL] = 40;
     pidProfile->I8[ROLL] = 30;
-    pidProfile->D8[ROLL] = 23;
-    pidProfile->P8[PITCH] = 40;
+    pidProfile->D8[ROLL] = 13;
+    pidProfile->P8[PITCH] = 50;
     pidProfile->I8[PITCH] = 30;
-    pidProfile->D8[PITCH] = 23;
+    pidProfile->D8[PITCH] = 20;
     pidProfile->P8[YAW] = 100;
     pidProfile->I8[YAW] = 50;
-    pidProfile->D8[YAW] = 12;
+    pidProfile->D8[YAW] = 5;
     pidProfile->P8[PIDALT] = 50;
     pidProfile->I8[PIDALT] = 0;
     pidProfile->D8[PIDALT] = 0;
@@ -201,9 +202,9 @@ static void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->I8[PIDVEL] = 45;
     pidProfile->D8[PIDVEL] = 1;
 
-    pidProfile->gyro_soft_lpf = 0;   // LOW filtering by default
-    pidProfile->dterm_cut_hz = 8;
-    pidProfile->yaw_pterm_cut_hz = 30;
+    pidProfile->gyro_lpf_hz = 60;    // filtering ON by default
+    pidProfile->dterm_lpf_hz = 8;   // filtering ON by default
+    pidProfile->airModeInsaneAcrobilityFactor = 0;
 
     pidProfile->P_f[ROLL] = 5.012f;     // new PID for raceflight. test carefully
     pidProfile->I_f[ROLL] = 1.021f;
@@ -430,7 +431,7 @@ static void resetConf(void)
     masterConfig.current_profile_index = 0;     // default profile
     masterConfig.dcm_kp = 2500;                // 1.0 * 10000
     masterConfig.dcm_ki = 0;                    // 0.003 * 10000
-    masterConfig.gyro_lpf = 4;                 // 1KHz, 2KHz, 4KHz, 8KHz, 16KHz, default is 4 for OS125
+    masterConfig.gyro_lpf = 1;                 // 1KHz, 2KHz, 4KHz, 8KHz, 16KHz //todo merge, check
 
     resetAccelerometerTrims(&masterConfig.accZero);
 
@@ -475,6 +476,7 @@ static void resetConf(void)
     masterConfig.rxConfig.rssi_scale = RSSI_SCALE_DEFAULT;
     masterConfig.rxConfig.rssi_ppm_invert = 0;
     masterConfig.rxConfig.rcSmoothing = 0;
+    masterConfig.rxConfig.fpvCamAngleDegrees = 0;
 
     resetAllRxChannelRangeConfigurations(masterConfig.rxConfig.channelRanges);
 
@@ -500,6 +502,9 @@ static void resetConf(void)
 #endif
     masterConfig.servo_pwm_rate = 50;
     masterConfig.use_fast_pwm = 0;
+#ifdef CC3D
+    masterConfig.use_buzzer_p6 = 0;
+#endif
 
 #ifdef GPS
     // gps/nav stuff
@@ -589,6 +594,7 @@ static void resetConf(void)
     masterConfig.blackbox_rate_denom = 1;
 #endif
 
+
 #if defined(REVO) || defined(SPARKY2) || defined (REVONANO) || defined(BLUEJAYF4) || defined(VRCORE)
     featureSet(FEATURE_RX_SERIAL);
     featureSet(FEATURE_ONESHOT125);
@@ -612,6 +618,55 @@ static void resetConf(void)
     masterConfig.serialConfig.portConfigs[4].functionMask = FUNCTION_RX_SERIAL;
     masterConfig.serialConfig.portConfigs[1].functionMask = FUNCTION_MSP; //default config Fleix port for MSP at 9600 for use with 1wire.
     masterConfig.serialConfig.portConfigs[1].msp_baudrateIndex = BAUD_9600;
+#endif
+
+    // alternative defaults settings for COLIBRI RACE targets
+#if defined(COLIBRI_RACE)
+    currentProfile->pidProfile.pidController = 1;
+
+    masterConfig.rxConfig.rcmap[0] = 1;
+    masterConfig.rxConfig.rcmap[1] = 2;
+    masterConfig.rxConfig.rcmap[2] = 3;
+    masterConfig.rxConfig.rcmap[3] = 0;
+    masterConfig.rxConfig.rcmap[4] = 4;
+    masterConfig.rxConfig.rcmap[5] = 5;
+    masterConfig.rxConfig.rcmap[6] = 6;
+    masterConfig.rxConfig.rcmap[7] = 7;
+
+    masterConfig.rxConfig.rcSmoothing = 0;
+    currentProfile->pidProfile.pidController = 2;
+
+    currentProfile->pidProfile.P_f[ROLL] = 0.7f;     // new PID with preliminary defaults test carefully
+    currentProfile->pidProfile.I_f[ROLL] = 0.4f;
+    currentProfile->pidProfile.D_f[ROLL] = 0.025f;
+    currentProfile->pidProfile.P_f[PITCH] = 1.5f;
+    currentProfile->pidProfile.I_f[PITCH] = 0.4f;
+    currentProfile->pidProfile.D_f[PITCH] = 0.035f;
+    currentProfile->pidProfile.P_f[YAW] = 3.5f;
+    currentProfile->pidProfile.I_f[YAW] = 0.9f;
+    currentProfile->pidProfile.D_f[YAW] = 0.01f;
+
+    masterConfig.controlRateProfiles[0].rcRate8 = 100;
+    masterConfig.controlRateProfiles[0].rcExpo8 = 70;
+    masterConfig.controlRateProfiles[0].rcYawExpo8 = 70;
+    masterConfig.controlRateProfiles[0].thrMid8 = 50;
+    masterConfig.controlRateProfiles[0].thrExpo8 = 0;
+    masterConfig.controlRateProfiles[0].rates[FD_ROLL] = 90;
+    masterConfig.controlRateProfiles[0].rates[FD_PITCH] = 90;
+    masterConfig.controlRateProfiles[0].rates[FD_YAW] = 90;
+    masterConfig.controlRateProfiles[0].dynThrPID = 30;
+    masterConfig.controlRateProfiles[0].tpa_breakpoint = 1500;
+    masterConfig.profile[0].rcControlsConfig.deadband = 10;
+
+    masterConfig.escAndServoConfig.minthrottle = 1025;
+    masterConfig.escAndServoConfig.maxthrottle = 1980;
+    masterConfig.batteryConfig.vbatmaxcellvoltage = 45;
+    masterConfig.batteryConfig.vbatmincellvoltage = 30;
+
+    featureSet(FEATURE_ONESHOT125);
+    featureSet(FEATURE_VBAT);
+    featureSet(FEATURE_LED_STRIP);
+    featureSet(FEATURE_FAILSAFE);
 #endif
 
     // alternative defaults settings for ALIENWIIF1 and ALIENWIIF3 targets
@@ -759,7 +814,7 @@ void activateConfig(void)
         &currentProfile->pidProfile
     );
 
-    useGyroConfig(&masterConfig.gyroConfig, filterGetFIRCoefficientsTable(currentProfile->pidProfile.gyro_soft_lpf));
+    useGyroConfig(&masterConfig.gyroConfig, &currentProfile->pidProfile.gyro_lpf_hz);
 
 #ifdef TELEMETRY
     telemetryUseConfig(&masterConfig.telemetryConfig);
@@ -900,9 +955,14 @@ void validateAndFixConfig(void)
 
 #if defined(COLIBRI_RACE)
     masterConfig.serialConfig.portConfigs[0].functionMask = FUNCTION_MSP;
+    if(featureConfigured(FEATURE_RX_PARALLEL_PWM) || featureConfigured(FEATURE_RX_MSP)) {
+	    featureClear(FEATURE_RX_PARALLEL_PWM);
+	    featureClear(FEATURE_RX_MSP);
+	    featureSet(FEATURE_RX_PPM);
+    }
     if(featureConfigured(FEATURE_RX_SERIAL)) {
 	    masterConfig.serialConfig.portConfigs[2].functionMask = FUNCTION_RX_SERIAL;
-	    masterConfig.rxConfig.serialrx_provider = SERIALRX_SBUS;
+	    //masterConfig.rxConfig.serialrx_provider = SERIALRX_SBUS;
     }
 #endif
 
