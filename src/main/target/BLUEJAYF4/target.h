@@ -129,3 +129,5 @@
 #define AUTOTUNE
 #define USE_QUAD_MIXER_ONLY
 #define USE_CLI
+
+#define USE_QUATERNION

@@ -117,7 +117,7 @@
 //#define LED_STRIP
 //#define LED_STRIP_TIMER TIM5
 
-//#define GPS
+#define GPS
 #define BLACKBOX
 #define TELEMETRY
 #define SERIAL_RX
@@ -132,3 +132,5 @@
 
 #define S1W_RX_GPIO         GPIOB
 #define S1W_RX_PIN          GPIO_Pin_7
+
+#define USE_QUATERNION
