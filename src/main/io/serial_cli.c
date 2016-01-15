@@ -361,12 +361,22 @@ static const char * const lookupTableGyroFilter[] = {
     "LOW", "MEDIUM", "HIGH"
 };
 
+static const char * const lookupTableGyroLpf[] = {
+    "5HZ",
+    "10HZ",
+    "20HZ",
+    "42HZ",
+    "98HZ",
+    "188HZ",
+    "256Hz",
+};
+
 static const char * const lookupTableGyroSampling[] = {
-    "16KHZ",
-    "8KHZ",
-    "4KHZ",
+	"1KHZ",
     "2KHZ",
-    "1KHZ"
+    "4KHZ",
+	"8KHZ",
+    "16KHZ",
 };
 
 typedef struct lookupTableEntry_s {
@@ -391,6 +401,7 @@ typedef enum {
     TABLE_SERIAL_RX,
     TABLE_GYRO_FILTER,
     TABLE_GYRO_SAMPLING,
+    TABLE_GYRO_LPF,
 } lookupTableIndex_e;
 
 static const lookupTableEntry_t lookupTables[] = {
@@ -407,7 +418,8 @@ static const lookupTableEntry_t lookupTables[] = {
     { lookupTablePidController, sizeof(lookupTablePidController) / sizeof(char *) },
     { lookupTableSerialRX, sizeof(lookupTableSerialRX) / sizeof(char *) },
     { lookupTableGyroFilter, sizeof(lookupTableGyroFilter) / sizeof(char *) },
-    { lookupTableGyroSampling, sizeof(lookupTableGyroSampling) / sizeof(char *) }
+    { lookupTableGyroSampling, sizeof(lookupTableGyroSampling) / sizeof(char *) },
+    { lookupTableGyroLpf, sizeof(lookupTableGyroLpf) / sizeof(char *) }
 };
 
 #define VALUE_TYPE_OFFSET 0
@@ -558,8 +570,9 @@ const clivalue_t valueTable[] = {
 
     { "max_angle_inclination",      VAR_UINT16 | MASTER_VALUE,  &masterConfig.max_angle_inclination, .config.minmax = { 100,  900 } },
 
-    { "gyro_sampling",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.gyro_lpf, .config.lookup = { TABLE_GYRO_SAMPLING } },
-    { "moron_threshold",            VAR_UINT8  | MASTER_VALUE,  &masterConfig.gyroConfig.gyroMovementCalibrationThreshold, .config.minmax = { 0,  128 } },
+    { "gyro_lpf",                   VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, &masterConfig.gyro_lpf, .config.lookup = { TABLE_GYRO_LPF } },
+    { "gyro_sampling",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, &masterConfig.gyro_sampling, .config.minmax = { 1, 16 } }, 
+    { "moron_threshold",            VAR_UINT8  | MASTER_VALUE, &masterConfig.gyroConfig.gyroMovementCalibrationThreshold, .config.minmax = { 0, 128 } },
     { "imu_dcm_kp",                 VAR_UINT16 | MASTER_VALUE,  &masterConfig.dcm_kp, .config.minmax = { 0,  50000 } },
     { "imu_dcm_ki",                 VAR_UINT16 | MASTER_VALUE,  &masterConfig.dcm_ki, .config.minmax = { 0,  50000 } },
 
