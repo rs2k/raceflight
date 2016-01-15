@@ -57,8 +57,8 @@
 //#define MAG
 //#define USE_MAG_AK8963
 
-#define BARO
-#define USE_BARO_MS5611
+//#define BARO
+//#define USE_BARO_MS5611
 
 #define INVERTER
 #define BEEPER
@@ -82,6 +82,8 @@
 #define EXTI_CALLBACK_HANDLER_COUNT 1 // MPU data ready
 
 #define USE_VCP
+#define VBUS_SENSING_PIN GPIO_Pin_8
+#define VBUS_SENSING_GPIO GPIOA
 
 #define USE_USART1
 #define USART1_RX_PIN Pin_10
@@ -117,7 +119,6 @@
 #define I2C_DEVICE (I2CDEV_1)
 
 #define USE_ADC
-
 #define VBAT_ADC_GPIO               GPIOC
 #define VBAT_ADC_GPIO_PIN           GPIO_Pin_3
 #define VBAT_ADC_CHANNEL            ADC_Channel_13

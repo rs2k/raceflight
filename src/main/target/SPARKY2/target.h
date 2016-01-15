@@ -91,6 +91,8 @@
 #define EXTI_CALLBACK_HANDLER_COUNT 1 // MPU data ready
 
 #define USE_VCP
+#define VBUS_SENSING_PIN GPIO_Pin_8
+#define VBUS_SENSING_GPIO GPIOA
 
 #define USE_USART1
 #define USART1_RX_PIN Pin_10
