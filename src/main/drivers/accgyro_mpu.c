@@ -57,9 +57,9 @@ static bool filterFull = false;
 static int gyroADCnums = 0;
 #if defined(REVONANO) || defined(SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
 //#define gyroFilterLevel 8 //todo move to gyro_sync and calculate.
-#define gyroFilterLevel 2 //todo move to gyro_sync and calculate.
+#define gyroFilterLevel 1 //todo move to gyro_sync and calculate.
 #else
-#define gyroFilterLevel 2 //todo move to gyro_sync and calculate.
+#define gyroFilterLevel 1 //todo move to gyro_sync and calculate.
 #endif
 static int16_t gyroADCtable0[gyroFilterLevel];
 static int16_t gyroADCtable1[gyroFilterLevel];

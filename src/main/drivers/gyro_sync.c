@@ -51,11 +51,11 @@ void gyroUpdateSampleRate(void) {
     //gyroSampleRate = 31; // 32khz sampling
     gyroFrequency  = 125;  // gyro sampling rate 8khz
     gyroSampleRate = 125;  // 8khz sampling
-    targetLooptime = 250;  // Wanted looptime
+    targetLooptime = 125;  // Wanted looptime
 #else
     gyroFrequency  = 125;  // gyro sampling rate 8khz
     gyroSampleRate = 125;  // 8khz sampling
-    targetLooptime = 250;  // Wanted looptime
+    targetLooptime = 125;  // Wanted looptime
 #endif
 
 //    gyroFrequency  = 1000;   // gyro sampling rate 1khz

@@ -224,7 +224,7 @@ static cfTask_t cfTasks[TASK_COUNT] = {
 #endif
 };
 
-#define REALTIME_GUARD_INTERVAL_MIN     10
+#define REALTIME_GUARD_INTERVAL_MIN     1
 #define REALTIME_GUARD_INTERVAL_MAX     300
 
 void taskSystem(void)
