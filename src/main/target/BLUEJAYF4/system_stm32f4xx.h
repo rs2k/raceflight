@@ -25,17 +25,6 @@
   ******************************************************************************  
   */ 
 
-/** @addtogroup CMSIS
-  * @{
-  */
-
-/** @addtogroup stm32f4xx_system
-  * @{
-  */  
-  
-/**
-  * @brief Define to prevent recursive inclusion
-  */
 #ifndef __SYSTEM_STM32F4XX_H
 #define __SYSTEM_STM32F4XX_H
 
@@ -43,51 +32,9 @@
  extern "C" {
 #endif 
 
-/** @addtogroup STM32F4xx_System_Includes
-  * @{
-  */
-
-/**
-  * @}
-  */
-
-
-/** @addtogroup STM32F4xx_System_Exported_types
-  * @{
-  */
-
 extern uint32_t SystemCoreClock;          /*!< System Clock Frequency (Core Clock) */
-
-
-/**
-  * @}
-  */
-
-/** @addtogroup STM32F4xx_System_Exported_Constants
-  * @{
-  */
-
-/**
-  * @}
-  */
-
-/** @addtogroup STM32F4xx_System_Exported_Macros
-  * @{
-  */
-
-/**
-  * @}
-  */
-
-/** @addtogroup STM32F4xx_System_Exported_Functions
-  * @{
-  */
-  
 extern void SystemInit(void);
 extern void SystemCoreClockUpdate(void);
-/**
-  * @}
-  */
 
 #ifdef __cplusplus
 }
@@ -95,11 +42,4 @@ extern void SystemCoreClockUpdate(void);
 
 #endif /*__SYSTEM_STM32F4XX_H */
 
-/**
-  * @}
-  */
-  
-/**
-  * @}
-  */  
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

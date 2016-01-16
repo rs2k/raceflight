@@ -157,34 +157,23 @@ static void mpu9250AccAndGyroInit(void) {
 
 #if defined (REVONANO) || defined (SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
     //mpu9250WriteRegister(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_8800_32); //Fchoice_b defaults to 00 which makes fchoice 11
-
 	verifympu9250WriteRegister(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_DISABLED); //Fchoice_b defaults to 00 which makes fchoice 11
-
 	verifympu9250WriteRegister(MPU_RA_CONFIG, 7); //7 = 8KHz, 3600
-
 	verifympu9250WriteRegister(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops()); // Get Divider Drops
-
 #else
 	verifympu9250WriteRegister(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_DISABLED); //Fchoice_b defaults to 00 which makes fchoice 11
-
 	verifympu9250WriteRegister(MPU_RA_CONFIG, 7); //7 = 8KHz.
-
 	verifympu9250WriteRegister(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops()); // Get Divider Drops
-
 #endif
 
 	verifympu9250WriteRegister(MPU_RA_ACCEL_CONFIG, INV_FSR_8G << 3);
-
 	verifympu9250WriteRegister(MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 1 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 0 << 0);  // INT_ANYRD_2CLEAR, BYPASS_EN
 
 #if defined(USE_MPU_DATA_READY_SIGNAL)
-
 	verifympu9250WriteRegister(MPU_RA_INT_ENABLE, 0x01); //this resets register MPU_RA_PWR_MGMT_1 and won't read back correctly.
-
 #endif
 
     mpuSpi9250InitDone = true; //init done
-
 }
 
 bool mpu9250SpiDetect(void)
@@ -193,7 +182,6 @@ bool mpu9250SpiDetect(void)
     uint8_t attemptsRemaining = 20;
 
     spiSetDivisor(MPU9250_SPI_INSTANCE, SPI_SLOW_CLOCK); //low speed
-
     mpu9250WriteRegister(MPU_RA_PWR_MGMT_1, MPU9250_BIT_RESET);
 
     do {

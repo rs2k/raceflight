@@ -18,6 +18,8 @@
 #pragma once
 #define TARGET_BOARD_IDENTIFIER "BJF4"
 
+#define CONFIG_START_FLASH_ADDRESS (0x08080000) //0x08080000 to 0x080A0000 (FLASH_Sector_8)
+
 #define BOARD_HAS_VOLTAGE_DIVIDER
 
 #define LED0_GPIO   GPIOB
@@ -82,6 +84,8 @@
 #define EXTI_CALLBACK_HANDLER_COUNT 1 // MPU data ready
 
 #define USE_VCP
+#define VBUS_SENSING_PIN GPIO_Pin_8
+#define VBUS_SENSING_GPIO GPIOA
 
 #define USE_USART1
 #define USART1_RX_PIN Pin_10
@@ -143,7 +147,6 @@
 #define I2C_DEVICE (I2CDEV_1)
 
 #define USE_ADC
-
 #define VBAT_ADC_GPIO               GPIOC
 #define VBAT_ADC_GPIO_PIN           GPIO_Pin_3
 #define VBAT_ADC_CHANNEL            ADC_Channel_13
@@ -155,3 +158,4 @@
 #define AUTOTUNE
 #define USE_QUAD_MIXER_ONLY
 #define USE_CLI
+

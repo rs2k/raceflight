@@ -133,24 +133,15 @@ void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, es
 #endif
 
 #if FLASH_SIZE <= 128
-#define FLASH_TO_RESERVE_FOR_CONFIG 0x800
+    #define FLASH_TO_RESERVE_FOR_CONFIG 0x800
 #else
-#define FLASH_TO_RESERVE_FOR_CONFIG 0x1000
+    #define FLASH_TO_RESERVE_FOR_CONFIG 0x1000
 #endif
 
-
-#if defined(REVO) || defined(SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
-//dedicated flash storage since we have so much storage space
-//#define CONFIG_START_FLASH_ADDRESS (0x080E0000) //0x080E0000 to 0x080FFFFF (FLASH_Sector_11
-#define CONFIG_START_FLASH_ADDRESS (0x08080000) //0x08080000 to 0x080A0000 (FLASH_Sector_8)
-#elif defined (REVONANO)
-//dedicated flash storage since we have so much storage space
-#define CONFIG_START_FLASH_ADDRESS (0x08060000) //0x08060000 to 0x08080000 (FLASH_Sector_7)
-#else
-// use the last flash pages for storage
-#define CONFIG_START_FLASH_ADDRESS (0x08000000 + (uint32_t)((FLASH_PAGE_SIZE * FLASH_PAGE_COUNT) - FLASH_TO_RESERVE_FOR_CONFIG))
+#if !defined(CONFIG_START_FLASH_ADDRESS)
+    // use the last flash pages for storage
+    #define CONFIG_START_FLASH_ADDRESS (0x08000000 + (uint32_t)((FLASH_PAGE_SIZE * FLASH_PAGE_COUNT) - FLASH_TO_RESERVE_FOR_CONFIG))
 #endif
-
 
 master_t masterConfig;                 // master config struct with data independent from profiles
 profile_t *currentProfile;
@@ -159,7 +150,7 @@ static uint32_t activeFeaturesLatch = 0;
 static uint8_t currentControlRateProfileIndex = 0;
 controlRateConfig_t *currentControlRateProfile;
 
-static const uint8_t EEPROM_CONF_VERSION = 115;
+static const uint8_t EEPROM_CONF_VERSION = 116; /* don't forget to update this when configuration properties change */
 
 static void resetAccelerometerTrims(flightDynamicsTrims_t *accelerometerTrims)
 {

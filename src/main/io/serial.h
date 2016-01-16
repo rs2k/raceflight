@@ -94,7 +94,6 @@ typedef struct serialConfig_s {
     serialPortConfig_t portConfigs[SERIAL_PORT_COUNT];
 } serialConfig_t;
 
-
 //
 // configuration
 //
@@ -110,8 +109,6 @@ serialPortConfig_t *findNextSerialPortConfig(serialPortFunction_e function);
 portSharing_e determinePortSharing(serialPortConfig_t *portConfig, serialPortFunction_e function);
 bool isSerialPortShared(serialPortConfig_t *portConfig, uint16_t functionMask, serialPortFunction_e sharedWithFunction);
 
-
-
 //
 // runtime
 //
@@ -123,12 +120,11 @@ serialPort_t *openSerialPort(
     portMode_t mode,
     portOptions_t options
 );
-void closeSerialPort(serialPort_t *serialPort);
 
+void closeSerialPort(serialPort_t *serialPort);
 void waitForSerialPortToFinishTransmitting(serialPort_t *serialPort);
 
 baudRate_e lookupBaudRateIndex(uint32_t baudRate);
-
 
 //
 // msp/cli/bootloader

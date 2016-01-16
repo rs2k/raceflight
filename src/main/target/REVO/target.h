@@ -17,6 +17,7 @@
 
 #pragma once
 #define TARGET_BOARD_IDENTIFIER "REVO"
+#define CONFIG_START_FLASH_ADDRESS (0x08080000) //0x08080000 to 0x080A0000 (FLASH_Sector_8)
 
 #define LED0_GPIO   GPIOB
 #define LED0_PIN    Pin_5 // Blue LEDs - PB5
@@ -79,6 +80,8 @@
 #define USABLE_TIMER_CHANNEL_COUNT 12
 
 #define USE_VCP
+#define VBUS_SENSING_PIN GPIO_Pin_5
+#define VBUS_SENSING_GPIO GPIOC
 
 #define USE_USART1
 #define USART1_RX_PIN Pin_10

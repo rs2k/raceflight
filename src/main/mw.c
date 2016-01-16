@@ -296,7 +296,7 @@ void annexCode(void)
             DISABLE_ARMING_FLAG(OK_TO_ARM);
         }
 
-        if (isCalibrating() || (averageWaitingTasks100 > 100)) {
+        if (isCalibrating() || (averageWaitingTasks100 > 500)) {
             warningLedFlash();
             DISABLE_ARMING_FLAG(OK_TO_ARM);
         } else {

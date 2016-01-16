@@ -18,6 +18,8 @@
 #pragma once
 #define TARGET_BOARD_IDENTIFIER "SPK2"
 
+#define CONFIG_START_FLASH_ADDRESS (0x08080000) //0x08080000 to 0x080A0000 (FLASH_Sector_8)
+
 #define LED0_GPIO   GPIOB
 #define LED0_PIN    Pin_5 // Blue LED
 #define LED0_PERIPHERAL RCC_AHB1Periph_GPIOB
@@ -91,6 +93,8 @@
 #define EXTI_CALLBACK_HANDLER_COUNT 1 // MPU data ready
 
 #define USE_VCP
+#define VBUS_SENSING_PIN GPIO_Pin_8
+#define VBUS_SENSING_GPIO GPIOA
 
 #define USE_USART1
 #define USART1_RX_PIN Pin_10
