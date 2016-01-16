@@ -24,9 +24,9 @@
 #define LED1_GPIO   GPIOB
 #define LED1_PIN    Pin_4  // Red LED
 #define LED1_PERIPHERAL RCC_AHB1Periph_GPIOB
-#define LED2_GPIO   GPIOB
-#define LED2_PIN    Pin_6 // Blue LED
-#define LED2_PERIPHERAL RCC_AHB1Periph_GPIOB
+//#define LED2_GPIO   GPIOB
+//#define LED2_PIN    Pin_6 // Blue LED
+//#define LED2_PERIPHERAL RCC_AHB1Periph_GPIOB
 
 #define BEEP_GPIO   GPIOC
 #define BEEP_PIN    Pin_9 // JST-SH Pin 3
@@ -63,15 +63,15 @@
 #define BEEPER
 #define LED0
 #define LED1
-#define LED2
+//#define LED2
 
 #define M25P16_CS_GPIO        GPIOB
 #define M25P16_CS_PIN         GPIO_Pin_3
 #define M25P16_SPI_INSTANCE   SPI3
 
-#define RFM22B_CS_GPIO        GPIOA
-#define RFM22B_CS_PIN         GPIO_Pin_15
-#define RFM22B_SPI_INSTANCE   SPI3
+//#define RFM22B_CS_GPIO        GPIOA
+//#define RFM22B_CS_PIN         GPIO_Pin_15
+//#define RFM22B_SPI_INSTANCE   SPI3
 
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
@@ -115,27 +115,30 @@
 
 #define SERIAL_PORT_COUNT 4
 
-#define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define USE_SERIAL_1WIRE
+#define S1W_TX_GPIO         GPIOB
+#define S1W_TX_PIN          GPIO_Pin_10
+#define S1W_RX_GPIO         GPIOB
+#define S1W_RX_PIN          GPIO_Pin_11
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1 //MPU9250
 #define USE_SPI_DEVICE_3 //dataflash
 
-#define USE_FLASH_TOOLS
+//#define USE_FLASH_TOOLS
 
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_1)
 //#define I2C_DEVICE_EXT (I2CDEV_2)
 
-#define LED_STRIP
-#define LED_STRIP_TIMER TIM5
+//#define LED_STRIP
+//#define LED_STRIP_TIMER TIM5
 
 #define GPS
 #define BLACKBOX
 #define TELEMETRY
 #define SERIAL_RX
-#define AUTOTUNE
+#define GTUNE
 #define USE_SERVOS
 #define USE_CLI
 

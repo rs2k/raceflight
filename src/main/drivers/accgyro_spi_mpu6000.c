@@ -44,7 +44,7 @@
 #include "accgyro_mpu.h"
 #include "accgyro_spi_mpu6000.h"
 
-static void mpu6000AccAndGyroInit(void);
+static void mpu6000AccAndGyroInit(uint8_t lpf);
 
 static bool mpuSpi6000InitDone = false;
 
@@ -146,7 +146,7 @@ void mpu6000SpiGyroInit(uint8_t lpf)
 	debug[3]++;
     mpuIntExtiInit();
 
-    mpu6000AccAndGyroInit();
+    mpu6000AccAndGyroInit(lpf);
 
     spiResetErrorCounter(MPU6000_SPI_INSTANCE);
 
@@ -189,7 +189,7 @@ bool verifympu6000WriteRegister(uint8_t reg, uint8_t data) {
     return false;
 }
 
-static void mpu6000AccAndGyroInit(void) {
+static void mpu6000AccAndGyroInit(uint8_t lpf) {
 
 	if (mpuSpi6000InitDone) {
 		return;
@@ -229,7 +229,13 @@ static void mpu6000AccAndGyroInit(void) {
 #endif
 
     // Accel and Gyro DLPF Setting
-    verifympu6000WriteRegister(MPU6000_CONFIG, 7); //7 is raw data, 0 is 8KHz, 256lpf
+    if (lpf == 4) {
+    	verifympu6000WriteRegister(MPU6000_CONFIG, 1); //1KHz, 188DLPF
+    } else if (lpf < 4) {
+    	verifympu6000WriteRegister(MPU6000_CONFIG, 7); //8KHz, Raw
+    } else if (lpf > 4) {
+    	verifympu6000WriteRegister(MPU6000_CONFIG, 0); //8KHz, 256DLPF
+    }
 
     // Clock Source PPL with Z axis gyro reference
     verifympu6000WriteRegister(MPU_RA_PWR_MGMT_1, 0x09);

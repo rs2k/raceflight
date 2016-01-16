@@ -45,7 +45,7 @@
 #include "accgyro_mpu.h"
 #include "accgyro_spi_mpu9250.h"
 
-static void mpu9250AccAndGyroInit(void);
+static void mpu9250AccAndGyroInit(uint8_t lpf);
 
 static bool mpuSpi9250InitDone = false;
 
@@ -99,7 +99,7 @@ void mpu9250SpiGyroInit(uint8_t lpf)
 	debug[3]++;
     mpuIntExtiInit();
 
-    mpu9250AccAndGyroInit();
+    mpu9250AccAndGyroInit(lpf);
 
     spiResetErrorCounter(MPU9250_SPI_INSTANCE);
 
@@ -142,7 +142,7 @@ bool verifympu9250WriteRegister(uint8_t reg, uint8_t data) {
     return false;
 }
 
-static void mpu9250AccAndGyroInit(void) {
+static void mpu9250AccAndGyroInit(uint8_t lpf) {
 
 	if (mpuSpi9250InitDone) {
 		return;
@@ -160,14 +160,26 @@ static void mpu9250AccAndGyroInit(void) {
 
 	verifympu9250WriteRegister(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_DISABLED); //Fchoice_b defaults to 00 which makes fchoice 11
 
-	verifympu9250WriteRegister(MPU_RA_CONFIG, 7); //7 = 8KHz, 3600
+    if (lpf == 4) {
+    	verifympu9250WriteRegister(MPU_RA_CONFIG, 1); //1KHz, 184DLPF
+    } else if (lpf < 4) {
+    	verifympu9250WriteRegister(MPU_RA_CONFIG, 7); //8KHz, 3600DLPF
+    } else if (lpf > 4) {
+    	verifympu9250WriteRegister(MPU_RA_CONFIG, 0); //8KHz, 250DLPF
+    }
 
 	verifympu9250WriteRegister(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops()); // Get Divider Drops
 
 #else
 	verifympu9250WriteRegister(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_DISABLED); //Fchoice_b defaults to 00 which makes fchoice 11
 
-	verifympu9250WriteRegister(MPU_RA_CONFIG, 7); //7 = 8KHz.
+    if (lpf == 4) {
+    	verifympu9250WriteRegister(MPU_RA_CONFIG, 1); //1KHz, 184DLPF
+    } else if (lpf < 4) {
+    	verifympu9250WriteRegister(MPU_RA_CONFIG, 7); //8KHz, 3600DLPF
+    } else if (lpf > 4) {
+    	verifympu9250WriteRegister(MPU_RA_CONFIG, 0); //8KHz, 250DLPF
+    }
 
 	verifympu9250WriteRegister(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops()); // Get Divider Drops
 
@@ -182,6 +194,9 @@ static void mpu9250AccAndGyroInit(void) {
 	verifympu9250WriteRegister(MPU_RA_INT_ENABLE, 0x01); //this resets register MPU_RA_PWR_MGMT_1 and won't read back correctly.
 
 #endif
+
+    debug[1]=lpf;
+    debug[2]= gyroMPU6xxxGetDividerDrops();
 
     mpuSpi9250InitDone = true; //init done
 

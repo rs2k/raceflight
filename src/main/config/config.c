@@ -203,9 +203,10 @@ static void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->D8[PIDVEL] = 1;
 
     pidProfile->gyro_lpf_hz = 60;    // filtering ON by default
-    pidProfile->dterm_lpf_hz = 8;   // filtering ON by default
     pidProfile->airModeInsaneAcrobilityFactor = 0;
 
+#if defined(STM32F411xE) || defined(STM32F40_41xxx)
+    pidProfile->dterm_lpf_hz = 40;   // filtering ON by default
     pidProfile->P_f[ROLL] = 5.012f;     // new PID for raceflight. test carefully
     pidProfile->I_f[ROLL] = 1.021f;
     pidProfile->D_f[ROLL] = 0.020f;
@@ -218,6 +219,21 @@ static void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->A_level = 3.000f;
     pidProfile->H_level = 3.000f;
     pidProfile->H_sensitivity = 100;
+#else
+    pidProfile->dterm_lpf_hz = 40;   // filtering ON by default
+    pidProfile->P_f[ROLL] = 1.5f;     // new PID with preliminary defaults test carefully
+    pidProfile->I_f[ROLL] = 0.3f;
+    pidProfile->D_f[ROLL] = 0.01f;
+    pidProfile->P_f[PITCH] = 1.5f;
+    pidProfile->I_f[PITCH] = 0.3f;
+    pidProfile->D_f[PITCH] = 0.01f;
+    pidProfile->P_f[YAW] = 4.0f;
+    pidProfile->I_f[YAW] = 0.4f;
+    pidProfile->D_f[YAW] = 0.01f;
+    pidProfile->A_level = 3.000f;
+    pidProfile->H_level = 3.000f;
+    pidProfile->H_sensitivity = 100;
+#endif
 
 #ifdef GTUNE
     pidProfile->gtune_lolimP[ROLL] = 10;          // [0..200] Lower limit of ROLL P during G tune.
@@ -334,7 +350,7 @@ void resetSerialConfig(serialConfig_t *serialConfig)
 }
 
 static void resetControlRateConfig(controlRateConfig_t *controlRateConfig) {
-    controlRateConfig->rcRate8 = 20;
+    controlRateConfig->rcRate8 = 30;
     controlRateConfig->rcExpo8 = 40;
     controlRateConfig->thrMid8 = 50;
     controlRateConfig->thrExpo8 = 0;
@@ -343,11 +359,7 @@ static void resetControlRateConfig(controlRateConfig_t *controlRateConfig) {
     controlRateConfig->tpa_breakpoint = 1500;
 
     for (uint8_t axis = 0; axis < FLIGHT_DYNAMICS_INDEX_COUNT; axis++) {
-        if (axis == 2) {
-            controlRateConfig->rates[axis] = 25;
-        } else {
-            controlRateConfig->rates[axis] = 5;
-        }
+    	controlRateConfig->rates[axis] = 0;
     }
 
 }
@@ -431,7 +443,6 @@ static void resetConf(void)
     masterConfig.current_profile_index = 0;     // default profile
     masterConfig.dcm_kp = 2500;                // 1.0 * 10000
     masterConfig.dcm_ki = 0;                    // 0.003 * 10000
-    masterConfig.gyro_lpf = 1;                 // 1KHz, 2KHz, 4KHz, 8KHz, 16KHz //todo merge, check
 
     resetAccelerometerTrims(&masterConfig.accZero);
 
@@ -443,7 +454,7 @@ static void resetConf(void)
     masterConfig.acc_hardware = ACC_DEFAULT;     // default/autodetect
     masterConfig.max_angle_inclination = 700;    // 70 degrees
     masterConfig.yaw_control_direction = 1;
-    masterConfig.gyroConfig.gyroMovementCalibrationThreshold = 64;
+    masterConfig.gyroConfig.gyroMovementCalibrationThreshold = 32;
 
     // xxx_hardware: 0:default/autodetect, 1: disable
     masterConfig.mag_hardware = 1;
@@ -456,9 +467,16 @@ static void resetConf(void)
 
 #if defined(REVO) || defined(SPARKY2) || defined(REVONANO) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
     masterConfig.rxConfig.serialrx_provider = 2;
+    masterConfig.gyro_lpf = 2;                 // High DLPF, 4KHz
 #else
     masterConfig.rxConfig.serialrx_provider = 0;
+    masterConfig.gyro_lpf = 5;                 // High DLPF, 4KHz
 #endif
+
+#if defined(CC3D)
+    masterConfig.acc_hardware = 1;     // default/autodetect
+#endif
+
     masterConfig.rxConfig.spektrum_sat_bind = 0;
     masterConfig.rxConfig.midrc = 1500;
     masterConfig.rxConfig.mincheck = 1100;

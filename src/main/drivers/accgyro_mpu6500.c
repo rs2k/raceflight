@@ -112,7 +112,15 @@ void mpu6500GyroInit(uint8_t lpf)
     delay(15);
     mpuConfiguration.write(MPU_RA_ACCEL_CONFIG, INV_FSR_8G << 3);
     delay(15);
-    mpuConfiguration.write(MPU_RA_CONFIG, 7); //7 = 8KHz, 3600
+
+    if (lpf == 4) {
+    	mpuConfiguration.write(MPU_RA_CONFIG, 1); //1KHz, 184DLPF
+    } else if (lpf < 4) {
+    	mpuConfiguration.write(MPU_RA_CONFIG, 7); //8KHz, 3600DLPF
+    } else if (lpf > 4) {
+    	mpuConfiguration.write(MPU_RA_CONFIG, 0); //8KHz, 250DLPF
+    }
+
     delay(15);
     mpuConfiguration.write(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops()); // Get Divider Drops
     delay(15);
@@ -121,7 +129,15 @@ void mpu6500GyroInit(uint8_t lpf)
     delay(15);
     mpuConfiguration.write(MPU_RA_ACCEL_CONFIG, INV_FSR_8G << 3);
     delay(15);
-    mpuConfiguration.write(MPU_RA_CONFIG, 7); //7 = 8KHz.
+
+    if (lpf == 4) {
+    	mpuConfiguration.write(MPU_RA_CONFIG, 1); //1KHz, 184DLPF
+    } else if (lpf < 4) {
+    	mpuConfiguration.write(MPU_RA_CONFIG, 7); //8KHz, 3600DLPF
+    } else if (lpf > 4) {
+    	mpuConfiguration.write(MPU_RA_CONFIG, 0); //8KHz, 250DLPF
+    }
+
     delay(15);
     mpuConfiguration.write(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops()); // Get Divider Drops
     delay(15);

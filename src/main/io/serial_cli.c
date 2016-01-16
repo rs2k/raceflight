@@ -359,12 +359,17 @@ static const char * const lookupTableSerialRX[] = {
 };
 
 static const char * const lookupTableGyroLpf[] = {
-    "16KHZ",
-    "8KHZ",
-    "4KHZ",
-    "2KHZ",
-    "1KHZ"
+    "H1",
+    "H2",
+    "H4",
+    "H8",
+	"L1",
+	"M1",
+	"M2",
+	"M4",
+	"M8"
 };
+
 
 typedef struct lookupTableEntry_s {
     const char * const *values;
@@ -2364,7 +2369,7 @@ static void cliTasks(char *cmdline)
 static void cliVersion(char *cmdline)
 {
     UNUSED(cmdline);
-    printf("# RaceFlight 16.01.14b - BF Test Merge - MSPWM /%s %s %s / %s (%s)",
+    printf("# RaceFlight 16.01.15C - Gyro Changes - AcroPlus Changes - F1, F3, F4 Support /%s %s %s / %s (%s)",
         targetName,
         FC_VERSION_STRING,
         buildDate,

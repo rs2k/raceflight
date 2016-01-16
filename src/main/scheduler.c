@@ -109,7 +109,7 @@ static cfTask_t cfTasks[TASK_COUNT] = {
     [TASK_SERIAL] = {
         .taskName = "SERIAL",
         .taskFunc = taskHandleSerial,
-        .desiredPeriod = 1000000 / 100,     // 100 Hz should be enough to flush up to 115 bytes @ 115200 baud
+        .desiredPeriod = 1000000 / 200,     // 100 Hz should be enough to flush up to 115 bytes @ 115200 baud
         .staticPriority = TASK_PRIORITY_LOW,
     },
 
@@ -224,7 +224,11 @@ static cfTask_t cfTasks[TASK_COUNT] = {
 #endif
 };
 
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
 #define REALTIME_GUARD_INTERVAL_MIN     1
+#else
+#define REALTIME_GUARD_INTERVAL_MIN     10
+#endif
 #define REALTIME_GUARD_INTERVAL_MAX     300
 
 void taskSystem(void)

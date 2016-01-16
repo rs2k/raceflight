@@ -52,18 +52,9 @@ extern float dT;
 extern bool motorLimitReached;
 extern bool allowITermShrinkOnly;
 
-static bool currently_at_zero0 = false;
-static int8_t p_term_direction0 = 0;
-static bool currently_at_zero1 = false;
-static int8_t p_term_direction1 = 0;
-
 int16_t axisPID[3];
-float factor0;
-float factor1;
-float wow_factor0;
-float wow_factor1;
-float acro_plus_ki_scaler = 1.0f;
-float yaw_kp_multiplier = 1.0f;
+float factor;
+float wow_factor;
 
 #ifdef BLACKBOX
 int32_t axisPID_P[3], axisPID_I[3], axisPID_D[3];
@@ -133,9 +124,8 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
     float RateError, AngleRate, gyroRate;
     float ITerm,PTerm,DTerm;
     static float lastError[3];
-    static float deltaOld[3][9];
-    float delta, deltaSum;
-    int axis, deltaCount;
+    float delta;
+    int axis;
     float horizonLevelStrength = 1;
     static float previousErrorGyroIf[3] = { 0.0f, 0.0f, 0.0f };
 
@@ -168,7 +158,16 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
             AngleRate = (float)((rate + 10) * rcCommand[YAW]) / 50.0f;
          } else {
              // ACRO mode, control is GYRO based, direct sticks control is applied to rate PID
-             AngleRate = (float)((rate + 20) * rcCommand[axis]) / 50.0f; // 200dps to 1200dps max roll/pitch rate
+        	 if ( IS_RC_MODE_ACTIVE(BOXACROPLUS) )  {
+        		 wow_factor = fabsf(rcCommand[axis] / 500.0f) * ((float)controlRateConfig->rcRate8 / 100.0f); //0-1f
+        		 factor = (int16_t)(wow_factor * (float)rcCommand[axis]) + rcCommand[axis];
+        	 } else {
+        		 factor = rcCommand[axis]; // 200dps to 1200dps max roll/pitch rate
+        	 }
+    		 AngleRate = (float)((rate + 20) * factor) / 50.0f; // 200dps to 1200dps max roll/pitch rate
+
+        	 //25 wf + 650
+
              if (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) {
                 // calculate error angle and limit the angle to the max inclination
 #ifdef GPS
@@ -198,15 +197,17 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
         RateError = AngleRate - gyroRate;
 
         // -----calculate P component
-        if (axis == 2) {
-        	PTerm = RateError * (pidProfile->P_f[axis]/4) * yaw_kp_multiplier * PIDweight[axis] / 100;
-        } else {
-        	PTerm = RateError * (pidProfile->P_f[axis]/4) * PIDweight[axis] / 100;
-        }
-
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
+        PTerm = RateError * (pidProfile->P_f[axis]/4) * PIDweight[axis] / 100;
+#else
+        PTerm = RateError * (pidProfile->P_f[axis]) * PIDweight[axis] / 100;
+#endif
         // -----calculate I component.
-        errorGyroIf[axis] *= acro_plus_ki_scaler;
-        errorGyroIf[axis] = constrainf(errorGyroIf[axis] + 0.5f * (lastError[axis] + RateError) * dT * (pidProfile->I_f[axis]/4)  * 10, -250.0f, 250.0f);
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
+        errorGyroIf[axis] = constrainf(errorGyroIf[axis] + RateError * dT * (pidProfile->I_f[axis]/4)  * 10, -250.0f, 250.0f);
+#else
+        errorGyroIf[axis] = constrainf(errorGyroIf[axis] + RateError * dT * (pidProfile->I_f[axis])  * 10, -250.0f, 250.0f);
+#endif
 
         if (IS_RC_MODE_ACTIVE(BOXAIRMODE)) {
             airModePlus(&airModePlusAxisState[axis], axis, pidProfile);
@@ -241,7 +242,11 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
         // would be scaled by different dt each time. Division by dT fixes that.
         delta *= (1.0f / dT);
 
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
         DTerm = constrainf(delta * (pidProfile->D_f[axis]/4) * PIDweight[axis] / 100, -300.0f, 300.0f);
+#else
+        DTerm = constrainf(delta * (pidProfile->D_f[axis]) * PIDweight[axis] / 100, -300.0f, 300.0f);
+#endif
 
         // -----calculate total PID output
         axisPID[axis] = constrain(lrintf(PTerm + ITerm + DTerm), -1000, 1000);
@@ -339,7 +344,7 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
         // Precision is critical, as I prevents from long-time drift. Thus, 32 bits integrator is used.
         // Time correction (to avoid different I scaling for different builds based on average cycle time)
         // is normalized to cycle time = 2048.
-        errorGyroI[axis] = errorGyroI[axis] + ((((lastError[axis] + RateError) / 2) * (uint16_t)targetLooptime) >> 11) * pidProfile->I8[axis];
+        errorGyroI[axis] = errorGyroI[axis] + ((RateError * (uint16_t)targetLooptime) >> 11) * pidProfile->I8[axis];
 
         // limit maximum integrator value to prevent WindUp - accumulating extreme values when system is saturated.
         // I coefficient (I8) moved before integration to make limiting independent from PID settings
@@ -361,8 +366,6 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
         } else {
             previousErrorGyroI[axis] = errorGyroI[axis];
         }
-
-        ITerm = (int32_t)((errorGyroI[axis] >> 13) * acro_plus_ki_scaler);
 
         //-----calculate D-term
         delta = RateError - lastError[axis]; // 16 bits is ok here, the dif between 2 consecutive gyro reads is limited to 800

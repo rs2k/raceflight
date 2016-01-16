@@ -41,6 +41,12 @@ void systemReset(void)
 
 	resetGyro();
 
+#if defined(OPBL) && !defined(REVONANO)
+	*((uint32_t *)0x2001FFFC) = 0x08020000; // 128KB SRAM STM32F4XX
+#elif defined(OPBL)
+	*((uint32_t *)0x2001FFFC) = 0x08010000; // 128KB SRAM STM32F4XX
+#endif
+
 	__disable_irq();
 	NVIC_SystemReset();
 }
@@ -51,6 +57,7 @@ void systemResetToBootloader(void) {
 	resetGyro();
 
 	*((uint32_t *)0x2001FFFC) = 0xDEADBEEF; // 128KB SRAM STM32F4XX
+
 
 	__disable_irq();
 	NVIC_SystemReset();

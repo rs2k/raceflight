@@ -804,7 +804,7 @@ bool sensorsAutodetect(sensorAlignmentConfig_t *sensorAlignmentConfig, uint8_t a
     	//debug[3]=33;
     }
     // this is safe because either mpu6050 or mpu3050 or lg3d20 sets it, and in case of fail, we never get here.
-    gyroUpdateSampleRate();    // Set gyro refresh rate before initialisation
+    gyroUpdateSampleRate(gyroLpf);    // Set gyro refresh rate before initialisation
     gyro.init(gyroLpf);
 
     detectMag(magHardwareToUse);
