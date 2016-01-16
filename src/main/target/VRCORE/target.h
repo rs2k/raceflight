@@ -122,8 +122,25 @@
 #define S1W_RX_PIN          GPIO_Pin_7
 
 #define USE_SPI
+
 #define USE_SPI_DEVICE_1
+
 #define USE_SPI_DEVICE_2
+#define SPI2_NSS_GPIO           GPIOE
+#define SPI2_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOE
+#define SPI2_NSS_PIN            GPIO_Pin_10
+#define SPI2_NSS_PIN_SOURCE     GPIO_PinSource10
+#define SPI2_SCK_GPIO           GPIOB
+#define SPI2_SCK_PERIPHERAL     RCC_AHBPeriph_GPIOB
+#define SPI2_SCK_PIN            GPIO_Pin_13
+#define SPI2_SCK_PIN_SOURCE     GPIO_PinSource13
+#define SPI2_GPIO               GPIOB
+#define SPI2_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOB
+#define SPI2_MISO_PIN           GPIO_Pin_14
+#define SPI2_MISO_PIN_SOURCE    GPIO_PinSource14
+#define SPI2_MOSI_PIN           GPIO_Pin_15
+#define SPI2_MOSI_PIN_SOURCE    GPIO_PinSource15
+
 //#define USE_SPI_DEVICE_3
 
 /*
