@@ -331,8 +331,6 @@ void init(void)
     beeperInit(&beeperConfig);
 #endif
 
-
-
 #ifdef INVERTER
     initInverter();
 #endif
@@ -340,8 +338,6 @@ void init(void)
 #ifdef USE_BST
     bstInit(BST_DEVICE);
 #endif
-
-
 
 #ifdef USE_SPI
     spiInit(SPI1);
@@ -366,7 +362,6 @@ void init(void)
         serialRemovePort(SERIAL_PORT_SOFTSERIAL2);
     }
 #endif
-
 
 #ifdef USE_I2C
 #if defined(NAZE)
@@ -410,7 +405,6 @@ void init(void)
 
     adcInit(&adc_params);
 #endif
-
 
     initBoardAlignment(&masterConfig.boardAlignment);
 
