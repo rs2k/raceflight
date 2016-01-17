@@ -281,15 +281,22 @@ void init(void)
 	pwm_params.useMultiShotPwmRate = feature(FEATURE_MULTISHOT_PWM_RATE);
     pwm_params.useFastPWM = masterConfig.use_fast_pwm ? true : false;
     pwm_params.motorPwmRate = masterConfig.motor_pwm_rate;
-    pwm_params.idlePulse = masterConfig.escAndServoConfig.mincommand;
     if (feature(FEATURE_3D))
+    {
         pwm_params.idlePulse = masterConfig.flight3DConfig.neutral3d;
-    pwm_params.useFastPWM = masterConfig.use_fast_pwm ? true : false;
-        pwm_params.idlePulse = 0; // brushed motors
-#ifdef CC3D
-    pwm_params.useBuzzerP6 = masterConfig.use_buzzer_p6 ? true : false;
-#endif
-    pwmRxInit(masterConfig.inputFilteringMode);
+    }
+    else 
+    {
+        if ((pwm_params.motorPwmRate > 500 && !masterConfig.use_fast_pwm) && !feature(FEATURE_ONESHOT_PWM_RATE) && !feature(FEATURE_MULTISHOT_PWM_RATE))
+        {
+            pwm_params.idlePulse = 0; // brushed motors
+        }
+        else
+        {
+            pwm_params.idlePulse = masterConfig.escAndServoConfig.mincommand;
+        }
+    }
+    
 
     pwmOutputConfiguration_t *pwmOutputConfiguration = pwmInit(&pwm_params);
 
@@ -332,8 +339,6 @@ void init(void)
     beeperInit(&beeperConfig);
 #endif
 
-
-
 #ifdef INVERTER
     initInverter();
 #endif
@@ -341,8 +346,6 @@ void init(void)
 #ifdef USE_BST
     bstInit(BST_DEVICE);
 #endif
-
-
 
 #ifdef USE_SPI
     spiInit(SPI1);
@@ -367,7 +370,6 @@ void init(void)
         serialRemovePort(SERIAL_PORT_SOFTSERIAL2);
     }
 #endif
-
 
 #ifdef USE_I2C
 #if defined(NAZE)
@@ -411,7 +413,6 @@ void init(void)
 
     adcInit(&adc_params);
 #endif
-
 
     initBoardAlignment(&masterConfig.boardAlignment);
 
