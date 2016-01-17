@@ -286,10 +286,14 @@ void init(void)
     }
     else 
     {
-#ifdef BRUSHED_MOTORS
-        pwm_params.idlePulse = 0;
-#else        pwm_params.idlePulse = masterConfig.escAndServoConfig.mincommand;
-#endif
+        if ((pwm_params.motorPwmRate > 500 && !masterConfig.use_fast_pwm) && !feature(FEATURE_ONESHOT_PWM_RATE) && !feature(FEATURE_MULTISHOT_PWM_RATE))
+        {
+            pwm_params.idlePulse = 0; // brushed motors
+        }
+        else
+        {
+            pwm_params.idlePulse = masterConfig.escAndServoConfig.mincommand;
+        }
     }
     
     pwmRxInit(masterConfig.inputFilteringMode);
