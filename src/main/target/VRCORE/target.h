@@ -18,6 +18,8 @@
 #pragma once
 #define TARGET_BOARD_IDENTIFIER "VRCORE"
 
+#define CONFIG_START_FLASH_ADDRESS (0x08080000) //0x08080000 to 0x080A0000 (FLASH_Sector_8)
+
 #define LED0_GPIO   GPIOD
 #define LED0_PIN    Pin_14 // Blue LEDs - PB5
 #define LED0_PERIPHERAL RCC_AHB1Periph_GPIOD
@@ -78,6 +80,8 @@
 #define USABLE_TIMER_CHANNEL_COUNT 12
 
 #define USE_VCP
+#define VBUS_SENSING_PIN GPIO_Pin_9
+#define VBUS_SENSING_GPIO GPIOA
 
 #define USE_USART1
 #define USART1_RX_PIN Pin_7
@@ -122,8 +126,25 @@
 #define S1W_RX_PIN          GPIO_Pin_7
 
 #define USE_SPI
+
 #define USE_SPI_DEVICE_1
+
 #define USE_SPI_DEVICE_2
+#define SPI2_NSS_GPIO           GPIOE
+#define SPI2_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOE
+#define SPI2_NSS_PIN            GPIO_Pin_10
+#define SPI2_NSS_PIN_SOURCE     GPIO_PinSource10
+#define SPI2_SCK_GPIO           GPIOB
+#define SPI2_SCK_PERIPHERAL     RCC_AHBPeriph_GPIOB
+#define SPI2_SCK_PIN            GPIO_Pin_13
+#define SPI2_SCK_PIN_SOURCE     GPIO_PinSource13
+#define SPI2_GPIO               GPIOB
+#define SPI2_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOB
+#define SPI2_MISO_PIN           GPIO_Pin_14
+#define SPI2_MISO_PIN_SOURCE    GPIO_PinSource14
+#define SPI2_MOSI_PIN           GPIO_Pin_15
+#define SPI2_MOSI_PIN_SOURCE    GPIO_PinSource15
+
 //#define USE_SPI_DEVICE_3
 
 /*

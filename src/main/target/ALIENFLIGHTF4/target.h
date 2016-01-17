@@ -18,6 +18,8 @@
 #pragma once
 #define TARGET_BOARD_IDENTIFIER "AFF4"
 
+#define CONFIG_START_FLASH_ADDRESS (0x08080000) //0x08080000 to 0x080A0000 (FLASH_Sector_8)
+
 #define LED0_GPIO   GPIOC
 #define LED0_PIN    Pin_12 // Blue LED0
 #define LED0_PERIPHERAL RCC_AHB1Periph_GPIOC
@@ -51,13 +53,14 @@
 #define GYRO_MPU9250_ALIGN CW270_DEG
 
 #define MAG
-//#define USE_MAG_HMC5883
+#define USE_MAG_HMC5883
+//#define MAG_HMC5883_ALIGN CW180_DEG
 #define USE_MAG_AK8963
 #define MAG_AK8963_ALIGN CW270_DEG
 
-//#define BARO
-//#define USE_BARO_MS5611
-//#define USE_BARO_BMP280
+#define BARO
+#define USE_BARO_MS5611
+#define USE_BARO_BMP280
 
 #define INVERTER
 #define BEEPER
@@ -123,11 +126,28 @@
 //#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
 
 #define USE_SPI
+
 #define USE_SPI_DEVICE_1
+
 #define USE_SPI_DEVICE_2
+#define SPI2_NSS_GPIO           GPIOB
+#define SPI2_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOB
+#define SPI2_NSS_PIN            GPIO_Pin_12
+#define SPI2_NSS_PIN_SOURCE     GPIO_PinSource12
+#define SPI2_SCK_GPIO           GPIOB
+#define SPI2_SCK_PERIPHERAL     RCC_AHBPeriph_GPIOB
+#define SPI2_SCK_PIN            GPIO_Pin_13
+#define SPI2_SCK_PIN_SOURCE     GPIO_PinSource13
+#define SPI2_GPIO               GPIOC
+#define SPI2_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOC
+#define SPI2_MISO_PIN           GPIO_Pin_2
+#define SPI2_MISO_PIN_SOURCE    GPIO_PinSource2
+#define SPI2_MOSI_PIN           GPIO_Pin_3
+#define SPI2_MOSI_PIN_SOURCE    GPIO_PinSource3
+
 #define USE_SPI_DEVICE_3
 
-//#define USE_I2C
+#define USE_I2C
 #define I2C_DEVICE (I2CDEV_1)
 //#define I2C_DEVICE_EXT (I2CDEV_2)
 #define I2C1_SCL_GPIO        GPIOB

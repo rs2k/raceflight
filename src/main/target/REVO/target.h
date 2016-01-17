@@ -17,6 +17,7 @@
 
 #pragma once
 #define TARGET_BOARD_IDENTIFIER "REVO"
+#define CONFIG_START_FLASH_ADDRESS (0x08080000) //0x08080000 to 0x080A0000 (FLASH_Sector_8)
 
 #define LED0_GPIO   GPIOB
 #define LED0_PIN    Pin_5 // Blue LEDs - PB5
@@ -79,6 +80,8 @@
 #define USABLE_TIMER_CHANNEL_COUNT 12
 
 #define USE_VCP
+#define VBUS_SENSING_PIN GPIO_Pin_5
+#define VBUS_SENSING_GPIO GPIOC
 
 #define USE_USART1
 #define USART1_RX_PIN Pin_10
@@ -110,8 +113,22 @@
 #define S1W_RX_PIN          GPIO_Pin_11
 
 #define USE_SPI
+
 #define USE_SPI_DEVICE_1
+
 #define USE_SPI_DEVICE_3
+#define SPI3_NSS_GPIO           GPIOB
+#define SPI3_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOB
+#define SPI3_NSS_PIN            GPIO_Pin_3
+#define SPI3_NSS_PIN_SOURCE     GPIO_PinSource3
+#define SPI3_GPIO               GPIOC
+#define SPI3_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOC
+#define SPI3_SCK_PIN            GPIO_Pin_10
+#define SPI3_SCK_PIN_SOURCE     GPIO_PinSource10
+#define SPI3_MISO_PIN           GPIO_Pin_11
+#define SPI3_MISO_PIN_SOURCE    GPIO_PinSource11
+#define SPI3_MOSI_PIN           GPIO_Pin_12
+#define SPI3_MOSI_PIN_SOURCE    GPIO_PinSource12
 
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_1)

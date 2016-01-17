@@ -202,8 +202,8 @@ ifeq ($(OPBL),NO)
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405.ld
 else
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405_bl.ld
-endif
 .DEFAULT_GOAL := binary
+endif
 endif
  
 ifeq ($(TARGET),REVONANO)
@@ -212,8 +212,8 @@ ifeq ($(OPBL),NO)
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f411.ld
 else
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f411_bl.ld
-endif
 .DEFAULT_GOAL := binary
+endif
 endif
 
 ifeq ($(TARGET),SPARKY2)
@@ -222,8 +222,8 @@ ifeq ($(OPBL),NO)
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405.ld
 else
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405_bl.ld
-endif
 .DEFAULT_GOAL := binary
+endif
 endif
 
 ifeq ($(TARGET),$(filter $(TARGET),ALIENFLIGHTF4 BLUEJAYF4))
