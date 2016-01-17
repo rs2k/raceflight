@@ -220,6 +220,7 @@ void scaleRcCommandToFpvCamAngle(void) {
 void annexCode(void)
 {
     int32_t tmp, tmp2;
+    float tmp3, tmp4;
     int32_t axis, prop1 = 0, prop2;
 
     // PITCH & ROLL only dynamic PID adjustment,  depending on throttle value
@@ -244,8 +245,15 @@ void annexCode(void)
                 }
             }
 
-            tmp2 = tmp / 100;
-            rcCommand[axis] = lookupPitchRollRC[tmp2] + (tmp - tmp2 * 100) * (lookupPitchRollRC[tmp2 + 1] - lookupPitchRollRC[tmp2]) / 100;
+
+            if (feature(FEATURE_TX_STYLE_EXPO)) {
+            	tmp3 = (float)tmp / 500.0f; //0-1
+            	tmp4 = (float)currentControlRateProfile->rcExpo8 / 100.0f;
+                rcCommand[axis] = tmp*( tmp4*(tmp3*tmp3*tmp3) + tmp3*(1-tmp4) );
+            } else {
+            	tmp2 = tmp / 100;
+                rcCommand[axis] = lookupPitchRollRC[tmp2] + (tmp - tmp2 * 100) * (lookupPitchRollRC[tmp2 + 1] - lookupPitchRollRC[tmp2]) / 100;
+            }
             prop1 = 100 - (uint16_t)currentControlRateProfile->rates[axis] * tmp / 500;
             prop1 = (uint16_t)prop1 * prop2 / 100;
         } else if (axis == YAW) {
@@ -256,8 +264,14 @@ void annexCode(void)
                     tmp = 0;
                 }
             }
-            tmp2 = tmp / 100;
-            rcCommand[axis] = (lookupYawRC[tmp2] + (tmp - tmp2 * 100) * (lookupYawRC[tmp2 + 1] - lookupYawRC[tmp2]) / 100) * -masterConfig.yaw_control_direction;
+            if (feature(FEATURE_TX_STYLE_EXPO)) {
+            	tmp3 = (float)tmp / 500.0f; //0-1
+            	tmp4 = (float)currentControlRateProfile->rcYawExpo8 / 100.0f;
+                rcCommand[axis] = tmp*( tmp4*(tmp3*tmp3*tmp3) + tmp3*(1-tmp4) ) * -masterConfig.yaw_control_direction;
+            } else {
+                tmp2 = tmp / 100;
+                rcCommand[axis] = (lookupYawRC[tmp2] + (tmp - tmp2 * 100) * (lookupYawRC[tmp2 + 1] - lookupYawRC[tmp2]) / 100) * -masterConfig.yaw_control_direction;
+            }
             prop1 = 100 - (uint16_t)currentControlRateProfile->rates[axis] * ABS(tmp) / 500;
         }
 
