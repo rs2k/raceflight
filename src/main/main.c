@@ -585,13 +585,13 @@ int main(void) {
         setTaskEnabled(TASK_ACCEL, true);
         switch(targetLooptime) {
         	case(62):
-                rescheduleTask(TASK_ACCEL, 10000000);
+                rescheduleTask(TASK_ACCEL, 10000);
                 break;
         	case(125):
-                rescheduleTask(TASK_ACCEL, 1000000);
+                rescheduleTask(TASK_ACCEL, 10000);
                 break;
         	case(250):
-                rescheduleTask(TASK_ACCEL, 100000);
+                rescheduleTask(TASK_ACCEL, 10000);
                 break;
             case(500):
                 rescheduleTask(TASK_ACCEL, 10000);

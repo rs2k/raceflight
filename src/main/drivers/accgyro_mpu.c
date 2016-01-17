@@ -261,6 +261,7 @@ void MPU_DATA_READY_EXTI_Handler(void)
 */
 #endif
 
+		mpuDataReady = true;
 
 
     }
@@ -622,7 +623,6 @@ bool mpuGyroRead(int16_t *gyroADC)
 	gyroADC[0] = (int16_t)((data[0] << 8) | data[1]);
 	gyroADC[1] = (int16_t)((data[2] << 8) | data[3]);
 	gyroADC[2] = (int16_t)((data[4] << 8) | data[5]);
-
 
     return true;
 }

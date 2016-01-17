@@ -65,19 +65,31 @@ void gyroUpdateSampleRate(uint8_t lpf) {
 #elif defined(REVONANO) || defined(SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
 	if (lpf == 0) {
 		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 8; // Sample every 4th gyro measurement 1khz
+		gyroSyncDenominator = 1; // Sample every 4th gyro measurement 1khz
 	} else  if (lpf == 1) {
 		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 4; // Sample every 4th gyro measurement 2khz
+		gyroSyncDenominator = 1; // Sample every 4th gyro measurement 2khz
 	} else  if (lpf == 2) {
 		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 2; // Sample every 2nd gyro measurement 4khz
+		gyroSyncDenominator = 1; // Sample every 2nd gyro measurement 4khz
 	} else  if (lpf == 3) {
 		gyroSamplePeriod = 125;
 		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
 	} else if (lpf == 4) {
 		gyroSamplePeriod = 1000;
 		gyroSyncDenominator = 1; // Full Sampling 1khz
+	} else if (lpf == 5) {
+		gyroSamplePeriod = 125;
+		gyroSyncDenominator = 1; // Sample every 4th gyro measurement 1khz
+	} else  if (lpf == 6) {
+		gyroSamplePeriod = 125;
+		gyroSyncDenominator = 1; // Sample every 4th gyro measurement 2khz
+	} else  if (lpf == 7) {
+		gyroSamplePeriod = 125;
+		gyroSyncDenominator = 1; // Sample every 2nd gyro measurement 4khz
+	} else  if (lpf == 8) {
+		gyroSamplePeriod = 125;
+		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
 	}
 #elif defined(REVO)
 	if (lpf == 0) {
@@ -95,6 +107,18 @@ void gyroUpdateSampleRate(uint8_t lpf) {
 	} else if (lpf == 4) {
 		gyroSamplePeriod = 1000;
 		gyroSyncDenominator = 1; // Full Sampling 1khz
+	} else if (lpf == 5) {
+		gyroSamplePeriod = 125;
+		gyroSyncDenominator = 8; // Sample every 4th gyro measurement 1khz
+	} else  if (lpf == 6) {
+		gyroSamplePeriod = 125;
+		gyroSyncDenominator = 4; // Sample every 4th gyro measurement 2khz
+	} else  if (lpf == 7) {
+		gyroSamplePeriod = 125;
+		gyroSyncDenominator = 2; // Sample every 2nd gyro measurement 4khz
+	} else  if (lpf == 8) {
+		gyroSamplePeriod = 125;
+		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
 	}
 #else
 	if (!sensors(SENSOR_ACC) && !sensors(SENSOR_BARO) && !sensors(SENSOR_MAG)) {
@@ -115,7 +139,7 @@ void gyroUpdateSampleRate(uint8_t lpf) {
 
     debug[1]=gyroSamplePeriod;
     debug[2]=mpuDividerDrops;
-    debug[3]=targetLooptime;
+    debug[3]=lpf;
 }
 
 uint8_t gyroMPU6xxxGetDividerDrops(void) {

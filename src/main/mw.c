@@ -110,6 +110,8 @@ uint16_t cycleTime = 0;         // this is the number in micro second to achieve
 
 float dT;
 
+int32_t reading_flash_timer;
+
 int16_t magHold;
 int16_t headFreeModeHold;
 
@@ -655,8 +657,14 @@ static bool haveProcessedAnnexCodeOnce = false;
 
 void taskMainPidLoop(void)
 {
+	static int counter;
     cycleTime = getTaskDeltaTime(TASK_SELF);
     dT = (float)targetLooptime * 0.000001f;
+
+	static uint32_t lastCalledAt = 0;
+	uint32_t now = micros();
+    uint32_t cycleTime = now - lastCalledAt;
+	lastCalledAt = now;
 
     // Calculate average cycle time and average jitter
     filteredCycleTime = filterApplyPt1(cycleTime, &filteredCycleTimeState, 1, dT);
@@ -666,6 +674,14 @@ void taskMainPidLoop(void)
 #endif
 
     imuUpdateGyroAndAttitude();
+
+#if defined (REVONANO) || defined (SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
+    counter++;
+    if (counter == 2) {
+    	counter=0;
+    	return;
+    }
+#endif
 
     annexCode();
 
@@ -748,6 +764,10 @@ void taskMainPidLoop(void)
 
 // Function for loop trigger
 void taskMainPidLoopCheck(void) {
+
+	if ( (micros() - reading_flash_timer) < 10000) {
+		return;
+	}
     // getTaskDeltaTime() returns delta time freezed at the moment of entering the scheduler. currentTime is freezed at the very same point.
     // To make busy-waiting timeout work we need to account for time spent within busy-waiting loop
     uint32_t currentDeltaTime = getTaskDeltaTime(TASK_SELF);
@@ -758,7 +778,9 @@ void taskMainPidLoopCheck(void) {
         }
     }
 
+
     taskMainPidLoop();
+
 }
 
 void taskUpdateAccelerometer(void)

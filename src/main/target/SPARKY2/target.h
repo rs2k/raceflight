@@ -125,14 +125,14 @@
 #define USE_SPI_DEVICE_1 //MPU9250
 #define USE_SPI_DEVICE_3 //dataflash
 
-//#define USE_FLASH_TOOLS
+#define USE_FLASH_TOOLS
 
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_1)
 //#define I2C_DEVICE_EXT (I2CDEV_2)
 
-//#define LED_STRIP
-//#define LED_STRIP_TIMER TIM5
+#define LED_STRIP
+#define LED_STRIP_TIMER TIM5
 
 #define GPS
 #define BLACKBOX

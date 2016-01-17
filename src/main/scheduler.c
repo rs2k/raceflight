@@ -226,10 +226,11 @@ static cfTask_t cfTasks[TASK_COUNT] = {
 
 #if defined(STM32F40_41xxx) || defined (STM32F411xE)
 #define REALTIME_GUARD_INTERVAL_MIN     1
+#define REALTIME_GUARD_INTERVAL_MAX     100
 #else
 #define REALTIME_GUARD_INTERVAL_MIN     10
-#endif
 #define REALTIME_GUARD_INTERVAL_MAX     300
+#endif
 
 void taskSystem(void)
 {

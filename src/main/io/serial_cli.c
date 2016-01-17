@@ -2369,7 +2369,7 @@ static void cliTasks(char *cmdline)
 static void cliVersion(char *cmdline)
 {
     UNUSED(cmdline);
-    printf("# RaceFlight 16.01.15C - Gyro Changes - AcroPlus Changes - F1, F3, F4 Support /%s %s %s / %s (%s)",
+    printf("# RaceFlight 16.01.16e - Gyro Changes - AcroPlus Changes - F1, F3, F4 Support - Faster Dataflash /%s %s %s / %s (%s)",
         targetName,
         FC_VERSION_STRING,
         buildDate,

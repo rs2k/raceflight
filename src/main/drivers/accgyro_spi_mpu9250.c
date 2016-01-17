@@ -96,14 +96,13 @@ void mpu9250SpiGyroInit(uint8_t lpf)
 {
 	(void)(lpf);
 
-	debug[3]++;
     mpuIntExtiInit();
 
     mpu9250AccAndGyroInit(lpf);
 
     spiResetErrorCounter(MPU9250_SPI_INSTANCE);
 
-    spiSetDivisor(MPU9250_SPI_INSTANCE, SPI_FAST_CLOCK); //high speed now that we don't need to write to the slow registers
+    spiSetDivisor(MPU9250_SPI_INSTANCE, SPI_ULTRAFAST_CLOCK); //high speed now that we don't need to write to the slow registers
 
     int16_t data[3];
     mpuGyroRead(data);
@@ -135,6 +134,7 @@ bool verifympu9250WriteRegister(uint8_t reg, uint8_t data) {
     	if (in == data) {
     		return true;
     	} else {
+    		debug[3]++;
     		mpu9250WriteRegister(reg, data);
     		delayMicroseconds(100);
     	}
@@ -194,9 +194,6 @@ static void mpu9250AccAndGyroInit(uint8_t lpf) {
 	verifympu9250WriteRegister(MPU_RA_INT_ENABLE, 0x01); //this resets register MPU_RA_PWR_MGMT_1 and won't read back correctly.
 
 #endif
-
-    debug[1]=lpf;
-    debug[2]= gyroMPU6xxxGetDividerDrops();
 
     mpuSpi9250InitDone = true; //init done
 

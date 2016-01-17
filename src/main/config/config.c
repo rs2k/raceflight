@@ -359,7 +359,11 @@ static void resetControlRateConfig(controlRateConfig_t *controlRateConfig) {
     controlRateConfig->tpa_breakpoint = 1500;
 
     for (uint8_t axis = 0; axis < FLIGHT_DYNAMICS_INDEX_COUNT; axis++) {
-    	controlRateConfig->rates[axis] = 0;
+        if (axis == 2) {
+            controlRateConfig->rates[axis] = 25;
+        } else {
+            controlRateConfig->rates[axis] = 5;
+        }
     }
 
 }
@@ -467,7 +471,7 @@ static void resetConf(void)
 
 #if defined(REVO) || defined(SPARKY2) || defined(REVONANO) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
     masterConfig.rxConfig.serialrx_provider = 2;
-    masterConfig.gyro_lpf = 2;                 // High DLPF, 4KHz
+    masterConfig.gyro_lpf = 7;                 // High DLPF, 4KHz
 #else
     masterConfig.rxConfig.serialrx_provider = 0;
     masterConfig.gyro_lpf = 5;                 // High DLPF, 4KHz
