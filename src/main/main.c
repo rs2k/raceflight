@@ -280,9 +280,18 @@ void init(void)
 	pwm_params.useMultiShotPwmRate = feature(FEATURE_MULTISHOT_PWM_RATE);
     pwm_params.useFastPWM = masterConfig.use_fast_pwm ? true : false;
     pwm_params.motorPwmRate = masterConfig.motor_pwm_rate;
-    pwm_params.idlePulse = masterConfig.escAndServoConfig.mincommand;
     if (feature(FEATURE_3D))
+    {
         pwm_params.idlePulse = masterConfig.flight3DConfig.neutral3d;
+    }
+    else 
+    {
+#ifdef BRUSHED_MOTORS
+        pwm_params.idlePulse = 0;
+#else        pwm_params.idlePulse = masterConfig.escAndServoConfig.mincommand;
+#endif
+    }
+    
     pwmRxInit(masterConfig.inputFilteringMode);
 
     pwmOutputConfiguration_t *pwmOutputConfiguration = pwmInit(&pwm_params);
