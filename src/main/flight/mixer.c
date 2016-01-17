@@ -763,19 +763,11 @@ void mixTable(void)
     	motorLimitReached = false; // It  always needs to be reset so it can't get stuck when flipping back and fourth
         // motors for non-servo mixes
         for (i = 0; i < motorCount; i++) {
-        	if (IS_RC_MODE_ACTIVE(BOXACROPLUS)) {
-				motor[i] =
-					rcCommand[THROTTLE] * currentMixer[i].throttle +
-					((factor0*1000) + (1.0f - wow_factor0) * axisPID[ROLL]) * currentMixer[i].roll +
-					((factor1*1000) + (1.0f - wow_factor1) * axisPID[PITCH]) * currentMixer[i].pitch +
-					-mixerConfig->yaw_motor_direction * axisPID[YAW] * currentMixer[i].yaw;
-        	} else {
-    			motor[i] =
-    				rcCommand[THROTTLE] * currentMixer[i].throttle +
-    				axisPID[PITCH] * currentMixer[i].pitch +
-    				axisPID[ROLL] * currentMixer[i].roll +
-    				-mixerConfig->yaw_motor_direction * axisPID[YAW] * currentMixer[i].yaw;
-        	}
+			motor[i] =
+				rcCommand[THROTTLE] * currentMixer[i].throttle +
+				axisPID[PITCH] * currentMixer[i].pitch +
+				axisPID[ROLL] * currentMixer[i].roll +
+				-mixerConfig->yaw_motor_direction * axisPID[YAW] * currentMixer[i].yaw;
         }
     } else {
         int16_t rollPitchYawMix[MAX_SUPPORTED_MOTORS];
@@ -784,17 +776,10 @@ void mixTable(void)
 
         // Find roll/pitch/yaw desired output
         for (i = 0; i < motorCount; i++) {
-        	if (IS_RC_MODE_ACTIVE(BOXACROPLUS)) {
-				rollPitchYawMix[i] =
-					((factor0*1000) + (1.0f - wow_factor0) * axisPID[ROLL]) * currentMixer[i].roll +
-					((factor1*1000) + (1.0f - wow_factor1) * axisPID[PITCH]) * currentMixer[i].pitch +
-					-mixerConfig->yaw_motor_direction * axisPID[YAW] * currentMixer[i].yaw;
-        	} else {
-				rollPitchYawMix[i] =
-					axisPID[PITCH] * currentMixer[i].pitch +
-					axisPID[ROLL] * currentMixer[i].roll +
-					-mixerConfig->yaw_motor_direction * axisPID[YAW] * currentMixer[i].yaw;
-        	}
+			rollPitchYawMix[i] =
+				axisPID[PITCH] * currentMixer[i].pitch +
+				axisPID[ROLL] * currentMixer[i].roll +
+				-mixerConfig->yaw_motor_direction * axisPID[YAW] * currentMixer[i].yaw;
             if (rollPitchYawMix[i] > rollPitchYawMixMax) rollPitchYawMixMax = rollPitchYawMix[i];
             if (rollPitchYawMix[i] < rollPitchYawMixMin) rollPitchYawMixMin = rollPitchYawMix[i];
         }
@@ -819,11 +804,9 @@ void mixTable(void)
 
         // Now add in the desired throttle, but keep in a range that doesn't clip adjusted
         // roll/pitch/yaw. This could move throttle down, but also up for those low throttle flips.
-        //
         for (i = 0; i < motorCount; i++) {
             motor[i] = rollPitchYawMix[i] + constrainf(rcCommand[THROTTLE] * currentMixer[i].throttle, throttleMin, throttleMax);
         }
-
     }
 
     if (ARMING_FLAG(ARMED)) {

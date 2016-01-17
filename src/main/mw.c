@@ -104,10 +104,13 @@ enum {
 // AIR MODE Reset timers
 #define ERROR_RESET_DEACTIVATE_DELAY (1 * 1000)   // 1 sec delay to disable AIR MODE Iterm resetting
 bool allowITermShrinkOnly = false;
+static bool ResetErrorActivated = true;
 
 uint16_t cycleTime = 0;         // this is the number in micro second to achieve a full loop, it can differ a little and is taken into account in the PID loop
 
 float dT;
+
+int32_t reading_flash_timer;
 
 int16_t magHold;
 int16_t headFreeModeHold;
@@ -118,7 +121,7 @@ int16_t telemTemperature1;      // gyro sensor temperature
 static uint32_t disarmAt;     // Time of automatic disarm when "Don't spin the motors when armed" is enabled and auto_disarm_delay is nonzero
 
 extern uint32_t currentTime;
-extern uint8_t dynP8[3], dynI8[3], dynD8[3], PIDweight[3];
+extern uint8_t PIDweight[3];
 
 static bool isRXDataNew;
 static filterStatePt1_t filteredCycleTimeState;
@@ -207,6 +210,13 @@ void filterRc(void){
     }
 }
 
+void scaleRcCommandToFpvCamAngle(void) {
+    int16_t roll = rcCommand[ROLL];
+    int16_t yaw = rcCommand[YAW];
+    rcCommand[ROLL] = constrain(cos(masterConfig.rxConfig.fpvCamAngleDegrees) * roll + sin(masterConfig.rxConfig.fpvCamAngleDegrees) * yaw, -500, 500);
+    rcCommand[YAW] = constrain(cos(masterConfig.rxConfig.fpvCamAngleDegrees) * yaw + sin(masterConfig.rxConfig.fpvCamAngleDegrees) * roll, -500, 500);
+}
+
 void annexCode(void)
 {
     int32_t tmp, tmp2;
@@ -250,10 +260,6 @@ void annexCode(void)
             rcCommand[axis] = (lookupYawRC[tmp2] + (tmp - tmp2 * 100) * (lookupYawRC[tmp2 + 1] - lookupYawRC[tmp2]) / 100) * -masterConfig.yaw_control_direction;
             prop1 = 100 - (uint16_t)currentControlRateProfile->rates[axis] * ABS(tmp) / 500;
         }
-        // FIXME axis indexes into pids.  use something like lookupPidIndex(rc_alias_e alias) to reduce coupling.
-        dynP8[axis] = (uint16_t)currentProfile->pidProfile.P8[axis] * prop1 / 100;
-        dynI8[axis] = (uint16_t)currentProfile->pidProfile.I8[axis] * prop1 / 100;
-        dynD8[axis] = (uint16_t)currentProfile->pidProfile.D8[axis] * prop1 / 100;
 
         // non coupled PID reduction scaler used in PID controller 1 and PID controller 2. YAW TPA disabled. 100 means 100% of the pids
         if (axis == YAW) {
@@ -285,6 +291,11 @@ void annexCode(void)
         filterRc();
     }
 
+    // experimental scaling of RC command to FPV cam angle
+    if (masterConfig.rxConfig.fpvCamAngleDegrees && !FLIGHT_MODE(HEADFREE_MODE)) {
+        scaleRcCommandToFpvCamAngle();
+    }
+
     if (ARMING_FLAG(ARMED)) {
         LED0_ON;
     } else {
@@ -296,7 +307,7 @@ void annexCode(void)
             DISABLE_ARMING_FLAG(OK_TO_ARM);
         }
 
-        if (isCalibrating() || (averageWaitingTasks100 > 500)) {
+        if (isCalibrating() || (averageWaitingTasks100 > 1000)) {
             warningLedFlash();
             DISABLE_ARMING_FLAG(OK_TO_ARM);
         } else {
@@ -477,22 +488,25 @@ void processRx(void)
 
         // Conditions to reset Error
         if (!ARMING_FLAG(ARMED) || feature(FEATURE_MOTOR_STOP) || ((IS_RC_MODE_ACTIVE(BOXAIRMODE)) && airModeErrorResetIsEnabled) || !IS_RC_MODE_ACTIVE(BOXAIRMODE)) {
-            pidResetErrorGyro();
+            ResetErrorActivated = true;                                         // As RX code is not executed each loop a flag has to be set for fast looptimes
             airModeErrorResetTimeout = millis() + ERROR_RESET_DEACTIVATE_DELAY; // Reset de-activate timer
             airModeErrorResetIsEnabled = true;                                  // Enable Reset again especially after Disarm
-            allowITermShrinkOnly = false;                                       // Disable shrink especially after Disarm
+            allowITermShrinkOnly = false;                                       // Reset shrinking
         }
     } else {
         if (!(feature(FEATURE_MOTOR_STOP)) && ARMING_FLAG(ARMED) && IS_RC_MODE_ACTIVE(BOXAIRMODE)) {
             if (airModeErrorResetIsEnabled) {
                 if (millis() > airModeErrorResetTimeout && calculateRollPitchCenterStatus(&masterConfig.rxConfig) == NOT_CENTERED) {  // Only disable error reset when roll and pitch not centered
                     airModeErrorResetIsEnabled = false;
-                    allowITermShrinkOnly = false;   // Reset shrinking for Iterm
+                    allowITermShrinkOnly = false;  // Reset shrinking for Iterm
                 }
             } else {
-                allowITermShrinkOnly = false;   // Reset shrinking for Iterm
+                allowITermShrinkOnly = false;      // Reset shrinking for Iterm
             }
+        } else {
+            allowITermShrinkOnly = false;          // Reset shrinking. Usefull when flipping between normal and AIR mode
         }
+        ResetErrorActivated = false;               // Disable resetting of error
     }
 
     // When armed and motors aren't spinning, do beeps and then disarm
@@ -643,8 +657,14 @@ static bool haveProcessedAnnexCodeOnce = false;
 
 void taskMainPidLoop(void)
 {
+	static int counter;
     cycleTime = getTaskDeltaTime(TASK_SELF);
-    dT = (float)cycleTime * 0.000001f;
+    dT = (float)targetLooptime * 0.000001f;
+
+	static uint32_t lastCalledAt = 0;
+	uint32_t now = micros();
+    uint32_t cycleTime = now - lastCalledAt;
+	lastCalledAt = now;
 
     // Calculate average cycle time and average jitter
     filteredCycleTime = filterApplyPt1(cycleTime, &filteredCycleTimeState, 1, dT);
@@ -654,6 +674,14 @@ void taskMainPidLoop(void)
 #endif
 
     imuUpdateGyroAndAttitude();
+
+#if defined (REVONANO) || defined (SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
+    counter++;
+    if (counter == 2) {
+    	counter=0;
+    	return;
+    }
+#endif
 
     annexCode();
 
@@ -703,6 +731,10 @@ void taskMainPidLoop(void)
     }
 #endif
 
+    if (ResetErrorActivated) {
+        pidResetErrorGyro();
+    }
+
     // PID - note this is function pointer set by setPIDController()
     pid_controller(
         &currentProfile->pidProfile,
@@ -732,6 +764,10 @@ void taskMainPidLoop(void)
 
 // Function for loop trigger
 void taskMainPidLoopCheck(void) {
+
+	if ( (micros() - reading_flash_timer) < 10000) {
+		return;
+	}
     // getTaskDeltaTime() returns delta time freezed at the moment of entering the scheduler. currentTime is freezed at the very same point.
     // To make busy-waiting timeout work we need to account for time spent within busy-waiting loop
     uint32_t currentDeltaTime = getTaskDeltaTime(TASK_SELF);
@@ -742,7 +778,9 @@ void taskMainPidLoopCheck(void) {
         }
     }
 
+
     taskMainPidLoop();
+
 }
 
 void taskUpdateAccelerometer(void)

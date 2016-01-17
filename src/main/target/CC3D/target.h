@@ -27,14 +27,9 @@
 #define INVERTER_PERIPHERAL RCC_APB2Periph_GPIOB
 #define INVERTER_USART USART1
 
-//#define BEEPER_PIN6 // Uncomment this line for hexacopter configurations where PIN6 is needed for motor
 
 #define BEEP_GPIO GPIOA
-#ifdef BEEPER_PIN6
-#define BEEP_PIN Pin_2 // PA2 (Beeper)
-#else
 #define BEEP_PIN Pin_15 // PA15 (Beeper)
-#endif
 #define BEEP_PERIPHERAL RCC_APB2Periph_GPIOA
 
 #define MPU6000_CS_GPIO       GPIOA
@@ -78,7 +73,7 @@
 
 #define INVERTER
 #define BEEPER
-#define DISPLAY
+//#define DISPLAY
 
 #define USE_VCP
 #define USE_USART1
@@ -139,12 +134,13 @@
 #define S1W_RX_GPIO         GPIOB
 #define S1W_RX_PIN          GPIO_Pin_11
 
-#if defined(OPBL) && defined(USE_SERIAL_1WIRE)
 #undef DISPLAY
 #undef SONAR
+#if defined(OPBL) && defined(USE_SERIAL_1WIRE)
 #undef BARO
-#define SKIP_CLI_COMMAND_HELP
+#undef BLACKBOX
 #endif
+#define SKIP_CLI_COMMAND_HELP
 
 #define SPEKTRUM_BIND
 // USART3, PB11 (Flexport)

@@ -182,6 +182,7 @@ void init(void)
 #if defined(STM32F40_41xxx) || defined (STM32F411xE)
     SetSysClock();
 #endif
+    //i2cSetOverclock(masterConfig.i2c_overclock);
 
 #ifdef USE_HARDWARE_REVISION_DETECTION
     detectHardwareRevision();
@@ -283,6 +284,11 @@ void init(void)
     pwm_params.idlePulse = masterConfig.escAndServoConfig.mincommand;
     if (feature(FEATURE_3D))
         pwm_params.idlePulse = masterConfig.flight3DConfig.neutral3d;
+    pwm_params.useFastPWM = masterConfig.use_fast_pwm ? true : false;
+        pwm_params.idlePulse = 0; // brushed motors
+#ifdef CC3D
+    pwm_params.useBuzzerP6 = masterConfig.use_buzzer_p6 ? true : false;
+#endif
     pwmRxInit(masterConfig.inputFilteringMode);
 
     pwmOutputConfiguration_t *pwmOutputConfiguration = pwmInit(&pwm_params);
@@ -317,6 +323,10 @@ void init(void)
         beeperConfig.gpioMode = Mode_Out_PP;
         beeperConfig.isInverted = true;
     }
+#endif
+#ifdef CC3D
+    if (masterConfig.use_buzzer_p6 == 1)
+        beeperConfig.gpioPin = Pin_2;
 #endif
 
     beeperInit(&beeperConfig);
@@ -411,7 +421,7 @@ void init(void)
     }
 #endif
 
-    if (!sensorsAutodetect(&masterConfig.sensorAlignmentConfig, masterConfig.acc_hardware, masterConfig.mag_hardware, masterConfig.baro_hardware, currentProfile->mag_declination, masterConfig.gyro_lpf)) {
+    if (!sensorsAutodetect(&masterConfig.sensorAlignmentConfig,masterConfig.acc_hardware, masterConfig.mag_hardware, masterConfig.baro_hardware, currentProfile->mag_declination, masterConfig.gyro_lpf)) {
         // if gyro was not detected due to whatever reason, we give up now.
         failureMode(FAILURE_MISSING_ACC);
     }
@@ -570,7 +580,28 @@ int main(void) {
     rescheduleTask(TASK_GYROPID, targetLooptime - INTERRUPT_WAIT_TIME);
 
     setTaskEnabled(TASK_GYROPID, true);
-    setTaskEnabled(TASK_ACCEL, sensors(SENSOR_ACC));
+
+    if(sensors(SENSOR_ACC)) {
+        setTaskEnabled(TASK_ACCEL, true);
+        switch(targetLooptime) {
+        	case(62):
+                rescheduleTask(TASK_ACCEL, 10000);
+                break;
+        	case(125):
+                rescheduleTask(TASK_ACCEL, 10000);
+                break;
+        	case(250):
+                rescheduleTask(TASK_ACCEL, 10000);
+                break;
+            case(500):
+                rescheduleTask(TASK_ACCEL, 10000);
+                break;
+            default:
+            case(1000):
+                rescheduleTask(TASK_ACCEL, 1000);
+        }
+    }
+
     setTaskEnabled(TASK_SERIAL, true);
     setTaskEnabled(TASK_BEEPER, true);
     setTaskEnabled(TASK_BATTERY, feature(FEATURE_VBAT) || feature(FEATURE_CURRENT_METER));
@@ -598,6 +629,11 @@ int main(void) {
 #endif
 #ifdef LED_STRIP
     setTaskEnabled(TASK_LEDSTRIP, feature(FEATURE_LED_STRIP));
+#endif
+
+#ifdef USE_BST
+    setTaskEnabled(TASK_BST_READ_WRITE, true);
+    setTaskEnabled(TASK_BST_MASTER_PROCESS, true);
 #endif
 
     while (1) {

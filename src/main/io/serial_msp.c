@@ -1310,6 +1310,8 @@ static bool processOutCommand(uint8_t cmdMSP)
 #ifdef USE_FLASHFS
     case MSP_DATAFLASH_READ:
         {
+            reading_flash_timer = micros();
+
             uint32_t readAddress = read32();
 
             serializeDataflashReadReply(readAddress, 128);

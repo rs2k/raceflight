@@ -38,23 +38,34 @@ FLASH_SIZE ?=
 
 FORKNAME			 = raceflight
 
-VALID_TARGETS	 = NAZE NAZE32PRO OLIMEXINO STM32F3DISCOVERY CHEBUZZF3 CC3D CJMCU EUSTM32F103RC SPRACINGF3 PORT103R SPARKY ALIENWIIF1 ALIENWIIF3 COLIBRI_RACE MOTOLAB RMDO REVO SPARKY2 REVONANO ALIENFLIGHTF4 BLUEJAYF4 VRCORE
+CC3D_TARGETS = CC3D CC3D_OPBL
+F1_TARGETS = NAZE OLIMEXINO CJMCU EUSTM32F103RC PORT103R ALIENWIIF1 AFROMINI
+F3_TARGETS = STM32F3DISCOVERY CHEBUZZF3 NAZE32PRO SPRACINGF3 IRCFUSIONF3 SPARKY ALIENWIIF3 COLIBRI_RACE MOTOLAB RMDO
+F4_TARGETS = REVO REVO_OPBL SPARKY2 SPARKY2_OPBL REVONANO REVONANO_OPBL ALIENFLIGHTF4 BLUEJAYF4 VRCORE
+
+F405_TARGETS = REVO REVO_OPBL SPARKY2 SPARKY2_OPBL ALIENFLIGHTF4 BLUEJAYF4 VRCORE
+F411_TARGETS = REVONANO REVONANO_OPBL
+
+VALID_TARGETS	 = $(F1_TARGETS) $(CC3D_TARGETS) $(F3_TARGETS) $(F4_TARGETS)
 
 # Valid targets for OP BootLoader support
-OPBL_VALID_TARGETS = CC3D REVO SPARKY2 REVONANO BLUEJAYF4
+OPBL_VALID_TARGETS = CC3D_OPBL REVO_OPBL REVONANO_OPBL SPARKY2_OPBL
+
+64K_TARGETS  = CJMCU
+128K_TARGETS = ALIENWIIF1 $(CC3D_TARGETS) NAZE OLIMEXINO RMDO AFROMINI
+256K_TARGETS = EUSTM32F103RC PORT103R STM32F3DISCOVERY CHEBUZZF3 NAZE32PRO SPRACINGF3 IRCFUSIONF3 SPARKY ALIENWIIF3 COLIBRI_RACE MOTOLAB $(F4_TARGETS)
+
 
 # Configure default flash sizes for the targets
 ifeq ($(FLASH_SIZE),)
-ifeq ($(TARGET),$(filter $(TARGET),CJMCU))
+ifeq ($(TARGET),$(filter $(TARGET),$(64K_TARGETS)))
 FLASH_SIZE = 64
-else ifeq ($(TARGET),$(filter $(TARGET),ALIENWIIF1 CC3D NAZE OLIMEXINO RMDO))
+else ifeq ($(TARGET),$(filter $(TARGET),$(128K_TARGETS)))
 FLASH_SIZE = 128
-else ifeq ($(TARGET),$(filter $(TARGET),EUSTM32F103RC PORT103R STM32F3DISCOVERY CHEBUZZF3 NAZE32PRO SPRACINGF3 SPARKY ALIENWIIF3 COLIBRI_RACE MOTOLAB))
-FLASH_SIZE = 256
-else ifeq ($(TARGET),$(filter $(TARGET),REVO SPARKY2 REVONANO ALIENFLIGHTF4 BLUEJAYF4 VRCORE))
+else ifeq ($(TARGET),$(filter $(TARGET),$(256K_TARGETS)))
 FLASH_SIZE = 256
 else
-$(error FLASH_SIZE not configured for target)
+$(error FLASH_SIZE not configured for target $(TARGET))
 endif
 endif
 
@@ -127,7 +138,7 @@ ifeq ($(TARGET),RMDO)
 TARGET_FLAGS := $(TARGET_FLAGS) -DSPRACINGF3
 endif
 
-else ifeq ($(TARGET),$(filter $(TARGET),REVO SPARKY2 REVONANO ALIENFLIGHTF4 BLUEJAYF4 VRCORE))
+else ifeq ($(TARGET),$(filter $(TARGET), $(F4_TARGETS)))
 
 #STDPERIPH
 STDPERIPH_DIR	= $(ROOT)/lib/main/STM32F4xx_StdPeriph_Driver
@@ -145,7 +156,7 @@ EXCLUDES = stm32f4xx_crc.c \
 		stm32f4xx_spdifrx.c
 		
 
-ifeq ($(TARGET),$(filter $(TARGET),REVONANO))
+ifeq ($(TARGET),$(filter $(TARGET), $(F411_TARGETS)))
 EXCLUDES += stm32f4xx_fsmc.c
 endif
 
@@ -190,50 +201,16 @@ INCLUDE_DIRS := $(INCLUDE_DIRS) \
 #Flags
 ARCH_FLAGS	 = -mthumb -mcpu=cortex-m4 -march=armv7e-m -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Wdouble-promotion
 
-ifeq ($(TARGET),$(filter $(TARGET),REVO SPARKY2 ALIENFLIGHTF4 BLUEJAYF4 VRCORE))
-DEVICE_FLAGS = -DSTM32F40_41xxx
-else ifeq ($(TARGET),$(filter $(TARGET),REVONANO))
+ifeq ($(TARGET),$(filter $(TARGET),$(F411_TARGETS)))
 DEVICE_FLAGS = -DSTM32F411xE
-endif
-
-ifeq ($(TARGET),REVO)
 DEVICE_FLAGS += -DHSE_VALUE=8000000
-ifeq ($(OPBL),NO)
-LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405.ld
-else
-LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405_bl.ld
-.DEFAULT_GOAL := binary
-endif
-endif
- 
-ifeq ($(TARGET),REVONANO)
-DEVICE_FLAGS += -DHSE_VALUE=8000000
-ifeq ($(OPBL),NO)
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f411.ld
-else
-LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f411_bl.ld
-.DEFAULT_GOAL := binary
-endif
-endif
-
-ifeq ($(TARGET),SPARKY2)
-DEVICE_FLAGS += -DHSE_VALUE=8000000
-ifeq ($(OPBL),NO)
-LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405.ld
-else
-LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405_bl.ld
-.DEFAULT_GOAL := binary
-endif
-endif
-
-ifeq ($(TARGET),$(filter $(TARGET),ALIENFLIGHTF4 BLUEJAYF4))
+else ifeq ($(TARGET),$(filter $(TARGET),$(F405_TARGETS)))
+DEVICE_FLAGS = -DSTM32F40_41xxx
 DEVICE_FLAGS += -DHSE_VALUE=8000000
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405.ld
-endif
-
-ifeq ($(TARGET),VRCORE)
-DEVICE_FLAGS += -DHSE_VALUE=8000000
-LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f4xx.ld
+else
+$(error Unknown MCU for F4 target)
 endif
 
 
@@ -327,6 +304,55 @@ TARGET_FLAGS := $(TARGET_FLAGS) -DNAZE -DALIENWII32
 TARGET_DIR = $(ROOT)/src/main/target/NAZE
 endif
 
+ifeq ($(TARGET),$(filter $(TARGET), $(CC3D_TARGETS)))
+TARGET_FLAGS := $(TARGET_FLAGS) -DCC3D 
+TARGET_DIR = $(ROOT)/src/main/target/CC3D
+endif
+
+ifeq ($(TARGET),$(filter $(TARGET), REVO_OPBL))
+TARGET_FLAGS := $(TARGET_FLAGS) -DREVO
+TARGET_DIR = $(ROOT)/src/main/target/REVO
+TARGET_SRC = $(notdir $(wildcard $(TARGET_DIR)/*.c))
+endif
+
+ifeq ($(TARGET),$(filter $(TARGET), REVONANO_OPBL))
+TARGET_FLAGS := $(TARGET_FLAGS) -DREVONANO
+TARGET_DIR = $(ROOT)/src/main/target/REVONANO
+TARGET_SRC = $(notdir $(wildcard $(TARGET_DIR)/*.c))
+endif
+
+ifeq ($(TARGET),$(filter $(TARGET), SPARKY2_OPBL))
+TARGET_FLAGS := $(TARGET_FLAGS) -DSPARKY2
+TARGET_DIR = $(ROOT)/src/main/target/SPARKY2
+TARGET_SRC = $(notdir $(wildcard $(TARGET_DIR)/*.c))
+endif
+
+ifneq ($(filter $(TARGET),$(OPBL_VALID_TARGETS)),)
+OPBL=yes
+endif
+
+ifeq ($(OPBL),yes)
+ifeq ($(TARGET),$(filter $(TARGET),$(OPBL_VALID_TARGETS)))
+TARGET_FLAGS := -DOPBL $(TARGET_FLAGS)
+ifeq ($(TARGET),$(filter $(TARGET),$(F411_TARGETS)))
+LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f411_bl.ld
+else ifeq ($(TARGET),$(filter $(TARGET),$(F405_TARGETS)))
+LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f405_bl.ld
+else
+LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f103_$(FLASH_SIZE)k_opbl.ld
+endif
+.DEFAULT_GOAL := binary
+else
+$(error OPBL specified with a unsupported target)
+endif
+endif
+
+ifeq ($(TARGET),AFROMINI)
+# AFROMINI is a VARIANT of NAZE being recognized as rev4, but needs to use rev5 config
+TARGET_FLAGS := $(TARGET_FLAGS) -DNAZE -DAFROMINI
+TARGET_DIR = $(ROOT)/src/main/target/NAZE
+endif
+
 INCLUDE_DIRS := $(INCLUDE_DIRS) \
 		    $(TARGET_DIR)
 
@@ -373,6 +399,7 @@ COMMON_SRC = build_config.c \
 		   rx/sumh.c \
 		   rx/spektrum.c \
 		   rx/xbus.c \
+		   rx/ibus.c \
 		   sensors/acceleration.c \
 		   sensors/battery.c \
 		   sensors/boardalignment.c \
@@ -532,16 +559,6 @@ OLIMEXINO_SRC = startup_stm32f10x_md_gcc.S \
 		   drivers/timer_stm32f10x.c \
 		   $(HIGHEND_SRC) \
 		   $(COMMON_SRC)
-
-ifeq ($(OPBL),yes)
-ifneq ($(filter $(TARGET),$(OPBL_VALID_TARGETS)),)
-TARGET_FLAGS := -DOPBL $(TARGET_FLAGS)
-LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f103_$(FLASH_SIZE)k_opbl.ld
-.DEFAULT_GOAL := binary
-else
-$(error OPBL specified with a unsupported target)
-endif
-endif
 
 CJMCU_SRC = \
 		   startup_stm32f10x_md_gcc.S \
@@ -842,6 +859,8 @@ CHEBUZZF3_SRC = \
 
 COLIBRI_RACE_SRC = \
 		   $(STM32F30x_COMMON_SRC) \
+		   io/i2c_bst.c \
+		   drivers/bus_bst_stm32f30x.c \
 		   drivers/display_ug2864hsweg01.c \
 		   drivers/accgyro_mpu.c \
 		   drivers/accgyro_mpu6500.c \
@@ -934,8 +953,8 @@ ifeq ($(DEBUG),GDB)
 OPTIMIZE	 = -O0
 LTO_FLAGS	 = $(OPTIMIZE)
 else
-ifeq ($(TARGET),$(filter $(TARGET),REVO REVONANO SPARKY2 ALIENFLIGHTF4 BLUEJAYF4 VRCORE))
-OPTIMIZE	 = -Os
+ifeq ($(TARGET),$(filter $(TARGET),REVO REVO_OPBL REVONANO REVONANO_OPBL SPARKY2 SPARKY2_OPBL ALIENFLIGHTF4 BLUEJAYF4 VRCORE))
+OPTIMIZE	 = -O2
 else
 OPTIMIZE	 = -Os
 endif
@@ -997,6 +1016,11 @@ ifeq ($(filter $(TARGET),$(VALID_TARGETS)),)
 $(error Target '$(TARGET)' is not valid, must be one of $(VALID_TARGETS))
 endif
 
+CC3D_OPBL_SRC     = $(CC3D_SRC)
+REVO_OPBL_SRC     = $(REVO_SRC)
+REVONANO_OPBL_SRC = $(REVONANO_SRC)
+SPARKY2_OPBL_SRC  = $(SPARKY2_SRC)
+
 TARGET_BIN	 = $(BIN_DIR)/$(FORKNAME)_$(TARGET).bin
 TARGET_HEX	 = $(BIN_DIR)/$(FORKNAME)_$(TARGET).hex
 TARGET_ELF	 = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).elf
@@ -1004,6 +1028,8 @@ TARGET_OBJS	 = $(addsuffix .o,$(addprefix $(OBJECT_DIR)/$(TARGET)/,$(basename $(
 TARGET_DEPS	 = $(addsuffix .d,$(addprefix $(OBJECT_DIR)/$(TARGET)/,$(basename $($(TARGET)_SRC))))
 TARGET_MAP	 = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).map
 
+
+#$(error TARGET BIN: $(DEVICE_FLAGS)  :::::::::::::::::::::::::::::::::: INCLUDE_DIRS_SRC: $(INCLUDE_DIRS))
 
 ifeq ($(OPBL),yes)
 CLEAN_ARTIFACTS := $(TARGET_BIN)

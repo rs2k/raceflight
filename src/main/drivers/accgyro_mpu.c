@@ -51,23 +51,7 @@ static bool mpuWriteRegisterI2C(uint8_t reg, uint8_t data);
 
 static void mpu6050FindRevision(void);
 
-static int gyro_i_count = 0;
 static volatile bool mpuDataReady;
-static bool filterFull = false;
-static int gyroADCnums = 0;
-#if defined(REVONANO) || defined(SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
-//#define gyroFilterLevel 8 //todo move to gyro_sync and calculate.
-#define gyroFilterLevel 2 //todo move to gyro_sync and calculate.
-#else
-#define gyroFilterLevel 2 //todo move to gyro_sync and calculate.
-#endif
-static int16_t gyroADCtable0[gyroFilterLevel];
-static int16_t gyroADCtable1[gyroFilterLevel];
-static int16_t gyroADCtable2[gyroFilterLevel];
-static int32_t gyroTotal0 = 0;
-static int32_t gyroTotal1 = 0;
-static int32_t gyroTotal2 = 0;
-
 static int32_t timewatch[32];
 static int timewatchdog = 0;
 
@@ -257,7 +241,7 @@ void MPU_DATA_READY_EXTI_Handler(void)
         uint32_t callDelta = now - lastCalledAt;
 		debug[0] = callDelta;
 		lastCalledAt = now;
-		if (callDelta > 150) {
+/*		if (callDelta > 150) {
 			if (timewatchdog < 32) {
 				timewatch[timewatchdog] = 1;
 				timewatchdog++;
@@ -274,25 +258,11 @@ void MPU_DATA_READY_EXTI_Handler(void)
 			debug[1]++;
 			timewatchdog=0;
 		}
+*/
 #endif
 
+		mpuDataReady = true;
 
-		gyro_i_count++;
-		mpuGyroReadCollect();
-
-		if (gyro_i_count >= gyroFilterLevel) {
-
-
-#ifdef DEBUG_MPU_DATA_READY_INTERRUPT
-			static uint32_t lastCalledAt1 = 0;
-			uint32_t now1 = micros();
-	        uint32_t callDelta1 = now1 - lastCalledAt1;
-	        debug[1] = callDelta1;
-    		lastCalledAt1 = now;
-#endif
-			gyro_i_count = 0;
-    		mpuDataReady = true;
-		}
 
     }
 
@@ -641,61 +611,18 @@ bool mpuAccRead(int16_t *accData)
     return true;
 }
 
-bool mpuGyroReadCollect(void)
-{
-	if (gyroFilterLevel == 1) {
-		return true; //no filtering or downsampling needed
-	}
-    uint8_t data[6];
-
-    bool ack = mpuConfiguration.read(mpuConfiguration.gyroReadXRegister, 6, data);
-    if (!ack) {
-        return false;
-    }
-
-    gyroTotal0 -= gyroADCtable0[gyroADCnums];
-    gyroTotal1 -= gyroADCtable1[gyroADCnums];
-    gyroTotal2 -= gyroADCtable2[gyroADCnums];
-
-    gyroADCtable0[gyroADCnums] = (int16_t)((data[0] << 8) | data[1]);
-    gyroADCtable1[gyroADCnums] = (int16_t)((data[2] << 8) | data[3]);
-    gyroADCtable2[gyroADCnums] = (int16_t)((data[4] << 8) | data[5]);
-
-    gyroTotal0 += gyroADCtable0[gyroADCnums];
-    gyroTotal1 += gyroADCtable1[gyroADCnums];
-    gyroTotal2 += gyroADCtable2[gyroADCnums];
-
-    gyroADCnums++;
-    if (gyroADCnums >= gyroFilterLevel) {
-    	gyroADCnums = 0;
-    	filterFull = true;
-    }
-
-    return true;
-}
-
 bool mpuGyroRead(int16_t *gyroADC)
 {
-	if ( !filterFull ) {
+	uint8_t data[6];
 
-	    uint8_t data[6];
-
-	    bool ack = mpuConfiguration.read(mpuConfiguration.gyroReadXRegister, 6, data);
-	    if (!ack) {
-	        return false;
-	    }
-
-	    gyroADC[0] = (int16_t)((data[0] << 8) | data[1]);
-		gyroADC[1] = (int16_t)((data[2] << 8) | data[3]);
-		gyroADC[2] = (int16_t)((data[4] << 8) | data[5]);
-
-	} else {
-
-		gyroADC[0] = (int16_t)( ( gyroTotal0 ) / gyroFilterLevel);
-		gyroADC[1] = (int16_t)( ( gyroTotal1 ) / gyroFilterLevel);
-		gyroADC[2] = (int16_t)( ( gyroTotal2 ) / gyroFilterLevel);
-
+	bool ack = mpuConfiguration.read(mpuConfiguration.gyroReadXRegister, 6, data);
+	if (!ack) {
+		return false;
 	}
+
+	gyroADC[0] = (int16_t)((data[0] << 8) | data[1]);
+	gyroADC[1] = (int16_t)((data[2] << 8) | data[3]);
+	gyroADC[2] = (int16_t)((data[4] << 8) | data[5]);
 
     return true;
 }

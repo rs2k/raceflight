@@ -354,29 +354,20 @@ static const char * const lookupTableSerialRX[] = {
     "SUMD",
     "SUMH",
     "XB-B",
-    "XB-B-RJ01"
-};
-
-static const char * const lookupTableGyroFilter[] = {
-    "LOW", "MEDIUM", "HIGH"
+    "XB-B-RJ01",
+    "IBUS"
 };
 
 static const char * const lookupTableGyroLpf[] = {
-    "5HZ",
-    "10HZ",
-    "20HZ",
-    "42HZ",
-    "98HZ",
-    "188HZ",
-    "256Hz",
-};
-
-static const char * const lookupTableGyroSampling[] = {
-	"1KHZ",
-    "2KHZ",
-    "4KHZ",
-	"8KHZ",
-    "16KHZ",
+    "H1",
+    "H2",
+    "H4",
+    "H8",
+	"L1",
+	"M1",
+	"M2",
+	"M4",
+	"M8"
 };
 
 typedef struct lookupTableEntry_s {
@@ -399,8 +390,6 @@ typedef enum {
     TABLE_GIMBAL_MODE,
     TABLE_PID_CONTROLLER,
     TABLE_SERIAL_RX,
-    TABLE_GYRO_FILTER,
-    TABLE_GYRO_SAMPLING,
     TABLE_GYRO_LPF,
 } lookupTableIndex_e;
 
@@ -417,8 +406,6 @@ static const lookupTableEntry_t lookupTables[] = {
     { lookupTableGimbalMode, sizeof(lookupTableGimbalMode) / sizeof(char *) },
     { lookupTablePidController, sizeof(lookupTablePidController) / sizeof(char *) },
     { lookupTableSerialRX, sizeof(lookupTableSerialRX) / sizeof(char *) },
-    { lookupTableGyroFilter, sizeof(lookupTableGyroFilter) / sizeof(char *) },
-    { lookupTableGyroSampling, sizeof(lookupTableGyroSampling) / sizeof(char *) },
     { lookupTableGyroLpf, sizeof(lookupTableGyroLpf) / sizeof(char *) }
 };
 
@@ -482,6 +469,7 @@ const clivalue_t valueTable[] = {
     { "rssi_ppm_invert",            VAR_INT8   | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.rxConfig.rssi_ppm_invert, .config.lookup = { TABLE_OFF_ON } },
     { "input_filtering_mode",       VAR_INT8   | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.inputFilteringMode, .config.lookup = { TABLE_OFF_ON } },
     { "rc_smoothing",               VAR_INT8   | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.rxConfig.rcSmoothing, .config.lookup = { TABLE_OFF_ON } },
+    { "rc_fpv_cam_correct_degrees", VAR_UINT8  | MASTER_VALUE,  &masterConfig.rxConfig.fpvCamAngleDegrees, .config.minmax = { 0,  50 } },
 
     { "min_throttle",               VAR_UINT16 | MASTER_VALUE,  &masterConfig.escAndServoConfig.minthrottle, .config.minmax = { PWM_RANGE_ZERO,  PWM_RANGE_MAX } },
     { "max_throttle",               VAR_UINT16 | MASTER_VALUE,  &masterConfig.escAndServoConfig.maxthrottle, .config.minmax = { PWM_RANGE_ZERO,  PWM_RANGE_MAX } },
@@ -494,6 +482,9 @@ const clivalue_t valueTable[] = {
     { "3d_deadband_throttle",       VAR_UINT16 | MASTER_VALUE,  &masterConfig.flight3DConfig.deadband3d_throttle, .config.minmax = { PWM_RANGE_ZERO,  PWM_RANGE_MAX } },
 
     { "enable_fast_pwm",            VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.use_fast_pwm, .config.lookup = { TABLE_OFF_ON } },
+#ifdef CC3D
+    { "enable_buzzer_p6",           VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.use_buzzer_p6, .config.lookup = { TABLE_OFF_ON } },
+#endif
     { "motor_pwm_rate",             VAR_UINT16 | MASTER_VALUE,  &masterConfig.motor_pwm_rate, .config.minmax = { 50,  32000 } },
     { "servo_pwm_rate",             VAR_UINT16 | MASTER_VALUE,  &masterConfig.servo_pwm_rate, .config.minmax = { 50,  498 } },
 
@@ -570,9 +561,8 @@ const clivalue_t valueTable[] = {
 
     { "max_angle_inclination",      VAR_UINT16 | MASTER_VALUE,  &masterConfig.max_angle_inclination, .config.minmax = { 100,  900 } },
 
-    { "gyro_lpf",                   VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, &masterConfig.gyro_lpf, .config.lookup = { TABLE_GYRO_LPF } },
-    { "gyro_sampling",              VAR_UINT8  | MASTER_VALUE,  &masterConfig.gyro_sampling, .config.minmax = { 1, 16 } }, 
-    { "moron_threshold",            VAR_UINT8  | MASTER_VALUE,  &masterConfig.gyroConfig.gyroMovementCalibrationThreshold, .config.minmax = { 0, 128 } },
+    { "gyro_lpf",                   VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.gyro_lpf, .config.lookup = { TABLE_GYRO_LPF } },
+    { "moron_threshold",            VAR_UINT8  | MASTER_VALUE,  &masterConfig.gyroConfig.gyroMovementCalibrationThreshold, .config.minmax = { 0,  128 } },
     { "imu_dcm_kp",                 VAR_UINT16 | MASTER_VALUE,  &masterConfig.dcm_kp, .config.minmax = { 0,  50000 } },
     { "imu_dcm_ki",                 VAR_UINT16 | MASTER_VALUE,  &masterConfig.dcm_ki, .config.minmax = { 0,  50000 } },
 
@@ -675,9 +665,9 @@ const clivalue_t valueTable[] = {
     { "i_vel",                      VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.I8[PIDVEL], .config.minmax = { 0,  200 } },
     { "d_vel",                      VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.D8[PIDVEL], .config.minmax = { 0,  200 } },
 
-    { "gyro_soft_lpf",              VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, &masterConfig.profile[0].pidProfile.gyro_soft_lpf, .config.lookup = { TABLE_GYRO_FILTER } },
-    { "dterm_cut_hz",               VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.dterm_cut_hz, .config.minmax = {0, 200 } },
-    { "yaw_pterm_cut_hz",           VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.yaw_pterm_cut_hz, .config.minmax = {0, 200 } },
+    { "gyro_lpf_hz",                VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.gyro_lpf_hz, .config.minmax = {0, 255 } },
+    { "dterm_lpf_hz",               VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.dterm_lpf_hz, .config.minmax = {0, 255 } },
+    { "insane_acro_factor",         VAR_UINT16 | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.airModeInsaneAcrobilityFactor, .config.minmax = {0, 100 } },
 
 #ifdef BLACKBOX
     { "blackbox_rate_num",          VAR_UINT8  | MASTER_VALUE,  &masterConfig.blackbox_rate_num, .config.minmax = { 1,  32 } },
@@ -2398,7 +2388,7 @@ static void cliTasks(char *cmdline)
 static void cliVersion(char *cmdline)
 {
     UNUSED(cmdline);
-    cliPrintf("# RaceFlight 16.01.13a - 32KHz / %s %s %s / %s (%s)",
+    printf("# RaceFlight 16.01.17a - Gyro Changes - AcroPlus Changes - F1, F3, F4 Support - Faster Dataflash /%s %s %s / %s (%s)",
         targetName,
         FC_VERSION_STRING,
         buildDate,
