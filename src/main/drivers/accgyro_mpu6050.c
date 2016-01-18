@@ -111,9 +111,9 @@ static void mpu6050GyroInit(uint8_t lpf)
     if (lpf == 4) {
     	ack = mpuConfiguration.write(MPU_RA_CONFIG, 1); //1KHz, 184DLPF
     } else if (lpf < 4) {
-    	ack = mpuConfiguration.write(MPU_RA_CONFIG, 7); //8KHz, 3600DLPF
+    	ack = mpuConfiguration.write(MPU_RA_CONFIG, 7); //8KHz, BypassedDLPF
     } else if (lpf > 4) {
-    	ack = mpuConfiguration.write(MPU_RA_CONFIG, 0); //8KHz, 250DLPF
+    	ack = mpuConfiguration.write(MPU_RA_CONFIG, 0); //8KHz, 256DLPF
     }
 
     //ack = mpuConfiguration.write(MPU_RA_CONFIG, lpf); //CONFIG        -- EXT_SYNC_SET 0 (disable input pin for data sync) ; default DLPF_CFG = 0 => ACC bandwidth = 260Hz  GYRO bandwidth = 256Hz)

@@ -28,7 +28,12 @@
 extern gyro_t gyro;
 
 uint32_t targetLooptime;
+uint32_t targetESCwritetime;
+
 static uint8_t mpuDividerDrops;
+
+uint8_t ESCWriteDenominator;
+static bool mpuDividerDropsOverride;
 
 bool getMpuDataStatus(gyro_t *gyro)
 {
@@ -47,79 +52,153 @@ void gyroUpdateSampleRate(uint8_t lpf) {
     int gyroSamplePeriod, gyroSyncDenominator;
 
 #if defined(COLIBRI_RACE)
-    if (lpf == 4) {
-    	gyroSamplePeriod = 1000;
-    	gyroSyncDenominator = 1; // Full Sampling 1khz
-    } else {
-    	gyroSamplePeriod = 125;
-    	gyroSyncDenominator = 3; // Sample every 3d gyro measurement 2,6khz
+    switch (lpf) {
+		case 0:
+        	gyroSamplePeriod = 125;
+    		gyroSyncDenominator = 8; // Sample every 8th gyro measurement 1khz
+    		ESCWriteDenominator = 1; // ESC Write at 1khz
+    		mpuDividerDropsOverride = false; // override mpuDividerDrops
+    		break;
+		case 1:
+		case 2:
+		case 3:
+        	gyroSamplePeriod = 125;
+    		gyroSyncDenominator = 4; // Sample every 4th gyro measurement 2khz
+    		ESCWriteDenominator = 1; // ESC Write at 2khz
+    		mpuDividerDropsOverride = false; // override mpuDividerDrops
+    		break;
+        case 4:
+        	gyroSamplePeriod = 1000;
+        	gyroSyncDenominator = 1; // Full Sampling 1khz
+    		ESCWriteDenominator = 1; // ESC Write at 1khz
+    		mpuDividerDropsOverride = false; // do not override mpuDividerDrops
+        	break;
+        default:
+        	gyroSamplePeriod = 125;
+        	gyroSyncDenominator = 3; // Sample every 3d gyro measurement 2.6khz
+    		ESCWriteDenominator = 1; // ESC Write at 2.6khz
+    		mpuDividerDropsOverride = false; // do not override mpuDividerDrops
+            break;
     }
 #elif defined(STM32F303xC)
-    if (lpf == 4) {
-    	gyroSamplePeriod = 1000;
-    	gyroSyncDenominator = 1; // Full Sampling 1khz
-    } else {
-    	gyroSamplePeriod = 125;
-    	gyroSyncDenominator = 4; // Sample every 8th gyro measurement 1khz
+    switch (lpf) {
+		case 0:
+        	gyroSamplePeriod = 125;
+    		gyroSyncDenominator = 8; // Sample every gyro measurement 1khz
+    		ESCWriteDenominator = 1; // ESC Write at 1khz
+    		mpuDividerDropsOverride = false; // override mpuDividerDrops
+    		break;
+		case 1:
+		case 2:
+		case 3:
+        	gyroSamplePeriod = 125;
+    		gyroSyncDenominator = 4; // Sample every 4th gyro measurement 2khz
+        	ESCWriteDenominator = 1; // ESC Write at 2khz
+    		mpuDividerDropsOverride = false; // override mpuDividerDrops
+    		break;
+        case 4:
+        	gyroSamplePeriod = 1000;
+        	gyroSyncDenominator = 1; // Full Sampling 1khz
+        	ESCWriteDenominator = 1; // ESC Write at 1khz
+    		mpuDividerDropsOverride = false; // do not override mpuDividerDrops
+    		break;
+        default:
+        	gyroSamplePeriod = 125;
+    		gyroSyncDenominator = 8; // Sample every 8th gyro measurement 1khz
+        	ESCWriteDenominator = 1; // ESC Write at 1khz
+    		mpuDividerDropsOverride = false; // do not override mpuDividerDrops
+           break;
     }
 #elif defined(REVONANO) || defined(SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
-	if (lpf == 0) {
-		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 1; // Sample every 4th gyro measurement 1khz
-	} else  if (lpf == 1) {
-		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 1; // Sample every 4th gyro measurement 2khz
-	} else  if (lpf == 2) {
-		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 1; // Sample every 2nd gyro measurement 4khz
-	} else  if (lpf == 3) {
-		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
-	} else if (lpf == 4) {
-		gyroSamplePeriod = 1000;
-		gyroSyncDenominator = 1; // Full Sampling 1khz
-	} else if (lpf == 5) {
-		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 1; // Sample every 4th gyro measurement 1khz
-	} else  if (lpf == 6) {
-		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 1; // Sample every 4th gyro measurement 2khz
-	} else  if (lpf == 7) {
-		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 1; // Sample every 2nd gyro measurement 4khz
-	} else  if (lpf == 8) {
-		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
-	}
+    switch (lpf) {
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+        	gyroSamplePeriod = 125;
+    		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
+    		mpuDividerDropsOverride = true; // override mpuDividerDrops
+    		break;
+		case 4:
+        	gyroSamplePeriod = 1000;
+        	gyroSyncDenominator = 1; // Full Sampling 1khz
+    		mpuDividerDropsOverride = false; // do not override mpuDividerDrops
+    		break;
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+        	gyroSamplePeriod = 125;
+    		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
+    		mpuDividerDropsOverride = false; // do not override mpuDividerDrops
+    		break;
+    }
+    switch (lpf) {
+		case 0:
+		case 5:
+    		ESCWriteDenominator = 8; // ESC Write at 1khz
+    		break;
+		case 1:
+		case 6:
+    		ESCWriteDenominator = 4; // ESC Write at 2khz
+    		break;
+		case 2:
+		case 7:
+    		ESCWriteDenominator = 2; // ESC Write at 4khz
+    		break;
+		case 3:
+		case 8:
+    		ESCWriteDenominator = 1; // ESC Write at 8khz
+    		break;
+        case 4:
+    		ESCWriteDenominator = 1; // ESC Write at 8khz
+    		break;
+    }
 #elif defined(REVO)
-	if (lpf == 0) {
-		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 8; // Sample every 4th gyro measurement 1khz
-	} else  if (lpf == 1) {
-		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 4; // Sample every 4th gyro measurement 2khz
-	} else  if (lpf == 2) {
-		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 2; // Sample every 2nd gyro measurement 4khz
-	} else  if (lpf == 3) {
-		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
-	} else if (lpf == 4) {
-		gyroSamplePeriod = 1000;
-		gyroSyncDenominator = 1; // Full Sampling 1khz
-	} else if (lpf == 5) {
-		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 8; // Sample every 4th gyro measurement 1khz
-	} else  if (lpf == 6) {
-		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 4; // Sample every 4th gyro measurement 2khz
-	} else  if (lpf == 7) {
-		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 2; // Sample every 2nd gyro measurement 4khz
-	} else  if (lpf == 8) {
-		gyroSamplePeriod = 125;
-		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
-	}
+    switch (lpf) {
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+        	gyroSamplePeriod = 125;
+    		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
+    		mpuDividerDropsOverride = true; // override mpuDividerDrops
+    		break;
+		case 4:
+        	gyroSamplePeriod = 125;
+    		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
+    		mpuDividerDropsOverride = true; // override mpuDividerDrops
+    		break;
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+        	gyroSamplePeriod = 125;
+    		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
+    		mpuDividerDropsOverride = true; // override mpuDividerDrops
+    		break;
+    }
+    switch (lpf) {
+		case 0:
+		case 5:
+    		ESCWriteDenominator = 8; // ESC Write at 1khz
+    		break;
+		case 1:
+		case 6:
+    		ESCWriteDenominator = 4; // ESC Write at 2khz
+    		break;
+		case 2:
+		case 7:
+    		ESCWriteDenominator = 2; // ESC Write at 4khz
+    		break;
+		case 3:
+		case 8:
+    		ESCWriteDenominator = 1; // ESC Write at 8khz
+    		break;
+        case 4:
+    		ESCWriteDenominator = 1; // ESC Write at 8khz
+    		break;
+    }
 #else
 	if (!sensors(SENSOR_ACC) && !sensors(SENSOR_BARO) && !sensors(SENSOR_MAG)) {
 		gyroSamplePeriod = 125;
@@ -131,14 +210,19 @@ void gyroUpdateSampleRate(uint8_t lpf) {
 		gyroSamplePeriod = 125;
 		gyroSyncDenominator = 8; // Sample every 8th gyro measurement 1khz
 	}
+	mpuDividerDropsOverride = false;
 #endif
 
     // calculate gyro divider and targetLooptime (expected cycleTime)
     mpuDividerDrops  = gyroSyncDenominator - 1;
     targetLooptime = (mpuDividerDrops + 1) * gyroSamplePeriod;
+    targetESCwritetime = gyroSamplePeriod*ESCWriteDenominator;
 
 }
 
 uint8_t gyroMPU6xxxGetDividerDrops(void) {
+	if (mpuDividerDropsOverride) {
+		return 0;
+	}
     return mpuDividerDrops;
 }

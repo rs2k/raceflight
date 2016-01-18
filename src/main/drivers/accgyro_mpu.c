@@ -44,7 +44,7 @@
 #include "accgyro_spi_mpu9250.h"
 #include "accgyro_mpu.h"
 
-//#define DEBUG_MPU_DATA_READY_INTERRUPT
+#define DEBUG_MPU_DATA_READY_INTERRUPT
 
 static bool mpuReadRegisterI2C(uint8_t reg, uint8_t length, uint8_t* data);
 static bool mpuWriteRegisterI2C(uint8_t reg, uint8_t data);

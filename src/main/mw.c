@@ -669,19 +669,18 @@ void processRx(void)
 static bool haveProcessedAnnexCodeOnce = false;
 #endif
 
+#define debugESCwriteFrequency
+
 void taskMainPidLoop(void)
 {
-	static int counter;
+	static uint8_t counter = 1;
     cycleTime = getTaskDeltaTime(TASK_SELF);
-    dT = (float)targetLooptime * 0.000001f;
-
-	static uint32_t lastCalledAt = 0;
-	uint32_t now = micros();
-    uint32_t cycleTime = now - lastCalledAt;
-	lastCalledAt = now;
+    dT = (float)targetESCwritetime * 0.000001f;
 
     // Calculate average cycle time and average jitter
     filteredCycleTime = filterApplyPt1(cycleTime, &filteredCycleTimeState, 1, dT);
+
+
 
 #if defined JITTER_DEBUG
     debug[JITTER_DEBUG] = cycleTime - filteredCycleTime;
@@ -689,12 +688,17 @@ void taskMainPidLoop(void)
 
     imuUpdateGyroAndAttitude();
 
-#if defined (REVONANO) || defined (SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
-    counter++;
-    if (counter == 2) {
-    	counter=0;
+    if (counter == ESCWriteDenominator) { } else {
+        counter++;
     	return;
     }
+	counter=1;
+
+#ifdef debugESCwriteFrequency
+	static uint32_t lastCalledAt = 0;
+	uint32_t now = micros();
+    debug[1] = now - lastCalledAt;
+	lastCalledAt = now;
 #endif
 
     annexCode();
@@ -766,6 +770,24 @@ void taskMainPidLoop(void)
 #endif
 
     if (motorControlEnable) {
+
+    	if (feature(FEATURE_ONESHOT125)) { //prevent jitter causing the frequency to be higher than 4KHz.
+        	static uint32_t EWlastCalledAt = 0;
+
+			//oneshotguard
+			while (1) {
+				if (micros() - EWlastCalledAt > 249) {
+					break;
+				}
+			}
+			uint32_t EWnow = micros();
+			EWlastCalledAt = EWnow;
+			uint32_t unfilteredEWTime  = EWnow - EWlastCalledAt;
+			//debug[0] = micros() - EWlastCalledAt;
+			//debug[2] = ESCWriteDenominator;
+			debug[3] = unfilteredEWTime;
+    	}
+
         writeMotors();
     }
 
