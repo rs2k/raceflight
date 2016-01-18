@@ -462,10 +462,10 @@ static void resetConf(void)
 
 #if defined(REVO) || defined(SPARKY2) || defined(REVONANO) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
     masterConfig.rxConfig.serialrx_provider = 2;
-    masterConfig.gyro_lpf = 7;                 // High DLPF, 4KHz
+    masterConfig.gyro_lpf = 2;                 // High DLPF, 4KHz
 #else
     masterConfig.rxConfig.serialrx_provider = 0;
-    masterConfig.gyro_lpf = 5;                 // High DLPF, 4KHz
+    masterConfig.gyro_lpf = 1;                 // High DLPF, 2KHz
 #endif
 
 #if defined(CC3D)
