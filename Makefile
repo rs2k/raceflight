@@ -21,10 +21,10 @@ TARGET		?= NAZE
 OPTIONS		?=
 
 # compile for OpenPilot BootLoader support
-OPBL ?= NO
+OPBL ?=no
 
 # Debugger optons, must be empty or GDB
-DEBUG ?= 
+DEBUG ?=
 
 # Serial port/Device for flashing
 SERIAL_DEVICE	?= $(firstword $(wildcard /dev/ttyUSB*) no-port-found)
@@ -87,7 +87,7 @@ USBPERIPH_SRC = $(notdir $(wildcard $(USBFS_DIR)/src/*.c))
 
 CSOURCES        := $(shell find $(SRC_DIR) -name '*.c')
 
-ifeq ($(TARGET),$(filter $(TARGET),STM32F3DISCOVERY CHEBUZZF3 NAZE32PRO SPRACINGF3 SPARKY ALIENWIIF3 COLIBRI_RACE MOTOLAB RMDO))
+ifeq ($(TARGET),$(filter $(TARGET),$(F3_TARGETS)))
 
 STDPERIPH_DIR	= $(ROOT)/lib/main/STM32F30x_StdPeriph_Driver
 
@@ -111,7 +111,7 @@ INCLUDE_DIRS := $(INCLUDE_DIRS) \
 		   $(CMSIS_DIR)/CM1/CoreSupport \
 		   $(CMSIS_DIR)/CM1/DeviceSupport/ST/STM32F30x
 
-ifneq ($(TARGET),SPRACINGF3)
+ifneq ($(TARGET),$(filter $(TARGET),SPRACINGF3 IRCFUSIONF3))
 INCLUDE_DIRS := $(INCLUDE_DIRS) \
 		   $(USBFS_DIR)/inc \
 		   $(ROOT)/src/main/vcp
@@ -130,11 +130,11 @@ DEVICE_FLAGS = -DSTM32F303xC -DSTM32F303
 TARGET_FLAGS = -D$(TARGET)
 ifeq ($(TARGET),CHEBUZZF3)
 # CHEBUZZ is a VARIANT of STM32F3DISCOVERY
-TARGET_FLAGS := $(TARGET_FLAGS) -DSTM32F3DISCOVERY
+TARGET_FLAGS := $(TARGET_FLAGS) -DSTM32F3DISCOVERY 
 endif
 
-ifeq ($(TARGET),RMDO)
-# RMDO is a VARIANT of SPRACINGF3
+ifeq ($(TARGET),$(filter $(TARGET),RMDO IRCFUSIONF3))
+# RMDO and IRCFUSIONF3 are a VARIANT of SPRACINGF3
 TARGET_FLAGS := $(TARGET_FLAGS) -DSPRACINGF3
 endif
 
@@ -271,7 +271,8 @@ INCLUDE_DIRS := $(INCLUDE_DIRS) \
 
 DEVICE_STDPERIPH_SRC = $(STDPERIPH_SRC)
 
-ifeq ($(TARGET),CC3D)
+#118,784 max flash
+ifeq ($(TARGET),$(filter $(TARGET),CC3D CC3D_OPBL))
 INCLUDE_DIRS := $(INCLUDE_DIRS) \
 		   $(USBFS_DIR)/inc \
 		   $(ROOT)/src/main/vcp
@@ -488,6 +489,8 @@ NAZE_SRC = startup_stm32f10x_md_gcc.S \
 		   $(COMMON_SRC)
 
 ALIENWIIF1_SRC = $(NAZE_SRC)
+
+AFROMINI_SRC = $(NAZE_SRC)
 
 EUSTM32F103RC_SRC = startup_stm32f10x_hd_gcc.S \
 		   drivers/accgyro_adxl345.c \
@@ -919,11 +922,28 @@ SPRACINGF3_SRC = \
 		   $(HIGHEND_SRC) \
 		   $(COMMON_SRC)
 
+IRCFUSIONF3_SRC = \
+		   $(STM32F30x_COMMON_SRC) \
+		   drivers/accgyro_mpu.c \
+		   drivers/accgyro_mpu6050.c \
+		   drivers/barometer_ms5611.c \
+		   drivers/compass_ak8975.c \
+		   drivers/barometer_bmp085.c \
+		   drivers/compass_hmc5883l.c \
+		   drivers/display_ug2864hsweg01.h \
+		   drivers/flash_m25p16.c \
+		   drivers/serial_softserial.c \
+		   drivers/sonar_hcsr04.c \
+		   io/flashfs.c \
+		   $(HIGHEND_SRC) \
+		   $(COMMON_SRC)
+
 MOTOLAB_SRC = \
 		   $(STM32F30x_COMMON_SRC) \
 		   drivers/accgyro_mpu.c \
 		   drivers/display_ug2864hsweg01.c \
 		   drivers/accgyro_mpu6050.c \
+		   drivers/accgyro_spi_mpu6000.c \
 		   drivers/barometer_ms5611.c \
 		   drivers/compass_hmc5883l.c \
 		   drivers/serial_usb_vcp.c \
@@ -1093,6 +1113,7 @@ st-flash_$(TARGET): $(TARGET_BIN)
 st-flash: st-flash_$(TARGET)
 
 binary: $(TARGET_BIN)
+hex:    $(TARGET_HEX)
 
 unbrick_$(TARGET): $(TARGET_HEX)
 	stty -F $(SERIAL_DEVICE) raw speed 115200 -crtscts cs8 -parenb -cstopb -ixon

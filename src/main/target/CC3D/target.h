@@ -138,6 +138,7 @@
 #undef SONAR
 #if defined(OPBL) && defined(USE_SERIAL_1WIRE)
 #undef BARO
+#undef GPS
 #undef BLACKBOX
 #endif
 #define SKIP_CLI_COMMAND_HELP

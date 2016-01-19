@@ -465,7 +465,7 @@ static void resetConf(void)
     masterConfig.gyro_lpf = 2;                 // High DLPF, 4KHz
 #else
     masterConfig.rxConfig.serialrx_provider = 0;
-    masterConfig.gyro_lpf = 1;                 // High DLPF, 2KHz
+    masterConfig.gyro_lpf = 4;                 // High DLPF, 2KHz
 #endif
 
 #if defined(CC3D)

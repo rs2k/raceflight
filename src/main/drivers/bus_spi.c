@@ -48,6 +48,9 @@ static volatile uint16_t spi3ErrorCount = 0;
 #define SPI1_MOSI_PIN           GPIO_Pin_7
 #define SPI1_MOSI_PIN_SOURCE    GPIO_PinSource7
 #endif
+#ifndef GPIO_AF_SPI1
+#define GPIO_AF_SPI1			GPIO_AF_5
+#endif
 
 void initSpi1(void)
 {
@@ -75,7 +78,7 @@ void initSpi1(void)
     // Init pins
     GPIO_InitStructure.GPIO_Pin = SPI1_SCK_PIN | SPI1_MISO_PIN | SPI1_MOSI_PIN;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
     GPIO_Init(SPI1_GPIO, &GPIO_InitStructure);
@@ -87,7 +90,7 @@ void initSpi1(void)
 
     GPIO_InitStructure.GPIO_Pin = SPI1_NSS_PIN;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 
@@ -164,6 +167,9 @@ void initSpi1(void)
 #define SPI2_MISO_PIN_SOURCE    GPIO_PinSource14
 #define SPI2_MOSI_PIN           GPIO_Pin_15
 #define SPI2_MOSI_PIN_SOURCE    GPIO_PinSource15
+#endif
+#ifndef GPIO_AF_SPI2
+#define GPIO_AF_SPI2			GPIO_AF_5
 #endif
 
 void initSpi2(void)
@@ -318,7 +324,7 @@ void initSpi3(void)
     // Init pins
     GPIO_InitStructure.GPIO_Pin = SPI3_SCK_PIN | SPI3_MISO_PIN | SPI3_MOSI_PIN;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
     GPIO_Init(SPI3_GPIO, &GPIO_InitStructure);
@@ -330,7 +336,7 @@ void initSpi3(void)
 
     GPIO_InitStructure.GPIO_Pin = SPI3_NSS_PIN;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 

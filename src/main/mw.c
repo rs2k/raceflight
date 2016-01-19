@@ -771,7 +771,7 @@ void taskMainPidLoop(void)
 
     if (motorControlEnable) {
 
-    	if (feature(FEATURE_ONESHOT125)) { //prevent jitter causing the frequency to be higher than 4KHz.
+    	if (feature(FEATURE_ONESHOT125) || micros() < 7000000 ) { //prevent jitter causing the frequency to be higher than 4KHz.
         	static uint32_t EWlastCalledAt = 0;
 
 			//oneshotguard

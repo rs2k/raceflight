@@ -105,15 +105,21 @@
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_1) // PB6/SCL, PB7/SDA
 
-//#define USE_SPI
-//#define USE_SPI_DEVICE_2 // PB12,13,14,15 on AF5
+#define USE_SPI
+#define USE_SPI_DEVICE_2 // PB12,13,14,15 on AF5
+//GPIO_AF_1
 
-#define SPI2_GPIO               GPIOB
-#define SPI2_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOB
+#define GPIO_AF_SPI2			GPIO_AF_5
+#define SPI2_NSS_GPIO           GPIOB
+#define SPI2_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOB
 #define SPI2_NSS_PIN            Pin_12
 #define SPI2_NSS_PIN_SOURCE     GPIO_PinSource12
+#define SPI2_GPIO               GPIOB
+#define SPI2_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOB
 #define SPI2_SCK_PIN            Pin_13
 #define SPI2_SCK_PIN_SOURCE     GPIO_PinSource13
+#define SPI2_SCK_GPIO    		GPIOB
+#define SPI2_SCK_PERIPHERAL     RCC_AHBPeriph_GPIOB
 #define SPI2_MISO_PIN           Pin_14
 #define SPI2_MISO_PIN_SOURCE    GPIO_PinSource14
 #define SPI2_MOSI_PIN           Pin_15
