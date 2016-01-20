@@ -214,26 +214,8 @@ static void mpu6050FindRevision(void)
 
 void MPU_DATA_READY_EXTI_Handler(void)
 {
-
-#if defined (REVO)
-    if (EXTI_GetITStatus(EXTI_Line4) != RESET) {
-        EXTI_ClearITPendingBit(EXTI_Line4);
-#elif defined (REVONANO)
-    if (EXTI_GetITStatus(EXTI_Line15) != RESET) {
-        EXTI_ClearITPendingBit(EXTI_Line15);
-#elif defined (SPARKY2) || defined(BLUEJAYF4)
-    if (EXTI_GetITStatus(EXTI_Line5) != RESET) {
-        EXTI_ClearITPendingBit(EXTI_Line5);
-#elif defined (ALIENFLIGHTF4)
-    if (EXTI_GetITStatus(EXTI_Line14) != RESET) {
-        EXTI_ClearITPendingBit(EXTI_Line14);
-#elif defined (VRCORE)
-    if (EXTI_GetITStatus(EXTI_Line10) != RESET) {
-        EXTI_ClearITPendingBit(EXTI_Line10);
-#else
     if (EXTI_GetITStatus(mpuIntExtiConfig->exti_line) != RESET) {
         EXTI_ClearITPendingBit(mpuIntExtiConfig->exti_line);
-#endif
 
 #ifdef DEBUG_MPU_DATA_READY_INTERRUPT
 		static uint32_t lastCalledAt = 0;
@@ -241,254 +223,15 @@ void MPU_DATA_READY_EXTI_Handler(void)
         uint32_t callDelta = now - lastCalledAt;
 		debug[0] = callDelta;
 		lastCalledAt = now;
-/*		if (callDelta > 150) {
-			if (timewatchdog < 32) {
-				timewatch[timewatchdog] = 1;
-				timewatchdog++;
-			}
-		} else {
-			if (timewatchdog < 32) {
-				timewatch[timewatchdog] = 0;
-				timewatchdog++;
-			}
-		}
-		if (timewatchdog == 32) {
-			debug[2]=timewatch[0] << 0 | timewatch[1] << 1 | timewatch[2] << 2  | timewatch[3] << 3  | timewatch[4] << 4  | timewatch[5] << 5  | timewatch[6] << 6  | timewatch[7] << 7 | timewatch[8] << 8 | timewatch[9] << 9 | timewatch[10]<< 10 | timewatch[11]<< 11 | timewatch[12]<< 12 | timewatch[13]<< 13 | timewatch[14]<< 14 | timewatch[15]<< 15;
-			debug[3]=timewatch[16]<< 0 | timewatch[17]<< 1 | timewatch[18]<< 2  | timewatch[19]<< 3  | timewatch[20]<< 4  | timewatch[21]<< 5  | timewatch[22]<< 6  | timewatch[23]<< 7 | timewatch[24]<< 8 | timewatch[25]<< 9 | timewatch[26]<< 10 | timewatch[27]<< 11 | timewatch[28]<< 12 | timewatch[29]<< 13 | timewatch[30]<< 14 | timewatch[31]<< 15;
-			debug[1]++;
-			timewatchdog=0;
-		}
-*/
 #endif
 
 		mpuDataReady = true;
-
-
     }
-
 }
-
 
 void configureMPUDataReadyInterruptHandling(void)
 {
-#if defined(USE_MPU_DATA_READY_SIGNAL) && defined(REVO)
-
-	GPIO_InitTypeDef GPIO_InitStruct;
-	EXTI_InitTypeDef EXTI_InitStruct;
-	NVIC_InitTypeDef NVIC_InitStruct;
-
-	RCC_APB2PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-
-	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN;
-	GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_4;
-	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
-	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
-	GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource4);
-
-	EXTI_InitStruct.EXTI_Line = EXTI_Line4;
-	EXTI_InitStruct.EXTI_LineCmd = ENABLE;
-	EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-	EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
-	EXTI_Init(&EXTI_InitStruct);
-
-	NVIC_InitStruct.NVIC_IRQChannel = EXTI4_IRQn;
-	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-	NVIC_InitStruct.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-	NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&NVIC_InitStruct);
-
-	registerExtiCallbackHandler(EXTI4_IRQn, MPU_DATA_READY_EXTI_Handler);
-
-	EXTI_ClearITPendingBit(EXTI_Line4);
-
-#elif defined(USE_MPU_DATA_READY_SIGNAL) && defined(SPARKY2)
-
-    GPIO_InitTypeDef GPIO_InitStruct;
-    EXTI_InitTypeDef EXTI_InitStruct;
-    NVIC_InitTypeDef NVIC_InitStruct;
-
-    RCC_APB2PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-
-    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN;
-    GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_5;
-    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
-    GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-    SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource5);
-
-    EXTI_InitStruct.EXTI_Line = EXTI_Line5;
-    EXTI_InitStruct.EXTI_LineCmd = ENABLE;
-    EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-    EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
-    EXTI_Init(&EXTI_InitStruct);
-
-    NVIC_InitStruct.NVIC_IRQChannel = EXTI9_5_IRQn;
-    NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-    NVIC_InitStruct.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-    NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStruct);
-
-    registerExtiCallbackHandler(EXTI9_5_IRQn, MPU_DATA_READY_EXTI_Handler);
-
-    EXTI_ClearITPendingBit(EXTI_Line5);
-    
-#elif defined(USE_MPU_DATA_READY_SIGNAL) && defined(BLUEJAYF4)
-
-    GPIO_InitTypeDef GPIO_InitStruct;
-    EXTI_InitTypeDef EXTI_InitStruct;
-    NVIC_InitTypeDef NVIC_InitStruct;
-
-    RCC_APB2PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-
-    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN;
-    GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_5;
-    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
-    GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-    SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource5);
-
-    EXTI_InitStruct.EXTI_Line = EXTI_Line5;
-    EXTI_InitStruct.EXTI_LineCmd = ENABLE;
-    EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-    EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
-    EXTI_Init(&EXTI_InitStruct);
-
-    NVIC_InitStruct.NVIC_IRQChannel = EXTI9_5_IRQn;
-    NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-    NVIC_InitStruct.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-    NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStruct);
-
-    registerExtiCallbackHandler(EXTI9_5_IRQn, MPU_DATA_READY_EXTI_Handler);
-
-    EXTI_ClearITPendingBit(EXTI_Line5);
-
-#elif defined(USE_MPU_DATA_READY_SIGNAL) && defined(ALIENFLIGHTF4)
-
-    GPIO_InitTypeDef GPIO_InitStruct;
-    EXTI_InitTypeDef EXTI_InitStruct;
-    NVIC_InitTypeDef NVIC_InitStruct;
-
-    /* Enable clock for SYSCFG */
-    RCC_APB2PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-    /* Enable clock for SYSCFG */
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-
-    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN;
-    GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_14;
-    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
-    GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-    SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource14);
-
-    /* PD0 is connected to EXTI_Line0 */
-    EXTI_InitStruct.EXTI_Line = EXTI_Line14;
-    /* Enable interrupt */
-    EXTI_InitStruct.EXTI_LineCmd = ENABLE;
-    /* Interrupt mode */
-    EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-    /* Triggers on rising and falling edge */
-    EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
-    /* Add to EXTI */
-    EXTI_Init(&EXTI_InitStruct);
-
-    /* Add IRQ vector to NVIC */
-    NVIC_InitStruct.NVIC_IRQChannel = EXTI15_10_IRQn;
-    /* Set priority */
-    NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-    /* Set sub priority */
-    NVIC_InitStruct.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-    /* Enable interrupt */
-    NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
-    /* Add to NVIC */
-    NVIC_Init(&NVIC_InitStruct);
-
-    registerExtiCallbackHandler(EXTI15_10_IRQn, MPU_DATA_READY_EXTI_Handler);
-
-    EXTI_ClearITPendingBit(EXTI_Line14);
-
-#elif defined(USE_MPU_DATA_READY_SIGNAL) && defined(REVONANO)
-
-	GPIO_InitTypeDef GPIO_InitStruct;
-	EXTI_InitTypeDef EXTI_InitStruct;
-	NVIC_InitTypeDef NVIC_InitStruct;
-
-	RCC_APB2PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-
-	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN;
-	GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_15;
-	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
-	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
-	GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA, EXTI_PinSource15);
-
-	EXTI_InitStruct.EXTI_Line = EXTI_Line15;
-	EXTI_InitStruct.EXTI_LineCmd = ENABLE;
-	EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-	EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
-	EXTI_Init(&EXTI_InitStruct);
-
-	NVIC_InitStruct.NVIC_IRQChannel = EXTI15_10_IRQn;
-	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-	NVIC_InitStruct.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-	NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&NVIC_InitStruct);
-
-	registerExtiCallbackHandler(EXTI15_10_IRQn, MPU_DATA_READY_EXTI_Handler);
-
-	EXTI_ClearITPendingBit(EXTI_Line15);
-
-#elif defined(USE_MPU_DATA_READY_SIGNAL) && defined(VRCORE)
-
-	GPIO_InitTypeDef GPIO_InitStruct;
-	EXTI_InitTypeDef EXTI_InitStruct;
-	NVIC_InitTypeDef NVIC_InitStruct;
-
-	RCC_APB2PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-
-	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN;
-	GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_10;
-	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
-	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
-	GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOD, EXTI_PinSource10);
-
-	EXTI_InitStruct.EXTI_Line = EXTI_Line10;
-	EXTI_InitStruct.EXTI_LineCmd = ENABLE;
-	EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-	EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
-	EXTI_Init(&EXTI_InitStruct);
-
-	NVIC_InitStruct.NVIC_IRQChannel = EXTI15_10_IRQn;
-	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-	NVIC_InitStruct.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-	NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&NVIC_InitStruct);
-
-	registerExtiCallbackHandler(EXTI15_10_IRQn, MPU_DATA_READY_EXTI_Handler);
-
-	EXTI_ClearITPendingBit(EXTI_Line10);
-
-
-#elif defined(USE_MPU_DATA_READY_SIGNAL)
+#if defined(USE_MPU_DATA_READY_SIGNAL) 
 
 #ifdef STM32F10X
     // enable AFIO for EXTI support
@@ -501,6 +244,8 @@ void configureMPUDataReadyInterruptHandling(void)
 #endif
 
 #if defined(STM32F40_41xxx) || defined (STM32F411xE)
+    RCC_APB2PeriphClockCmd(mpuIntExtiConfig->gpioAHB1Peripherals, ENABLE);
+
     /* Enable SYSCFG clock otherwise the EXTI irq handlers are not called */
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 #endif
@@ -524,6 +269,8 @@ void configureMPUDataReadyInterruptHandling(void)
     }
 #endif
 
+#endif
+
     registerExtiCallbackHandler(mpuIntExtiConfig->exti_irqn, MPU_DATA_READY_EXTI_Handler);
 
     EXTI_ClearITPendingBit(mpuIntExtiConfig->exti_line);
@@ -542,7 +289,6 @@ void configureMPUDataReadyInterruptHandling(void)
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_SUB(NVIC_PRIO_MPU_DATA_READY);
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
-#endif
 }
 
 void mpuIntExtiInit(void)
