@@ -130,7 +130,7 @@ void gyroUpdateSampleRate(uint8_t lpf) {
 		case 8:
         	gyroSamplePeriod = 125;
     		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
-    		mpuDividerDropsOverride = false; // do not override mpuDividerDrops
+    		mpuDividerDropsOverride = true; // do not override mpuDividerDrops
     		break;
     }
     switch (lpf) {
@@ -165,9 +165,9 @@ void gyroUpdateSampleRate(uint8_t lpf) {
     		mpuDividerDropsOverride = true; // override mpuDividerDrops
     		break;
 		case 4:
-        	gyroSamplePeriod = 125;
+        	gyroSamplePeriod = 1000;
     		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
-    		mpuDividerDropsOverride = true; // override mpuDividerDrops
+    		mpuDividerDropsOverride = false; // override mpuDividerDrops
     		break;
 		case 5:
 		case 6:
@@ -210,6 +210,7 @@ void gyroUpdateSampleRate(uint8_t lpf) {
 		gyroSamplePeriod = 125;
 		gyroSyncDenominator = 8; // Sample every 8th gyro measurement 1khz
 	}
+	ESCWriteDenominator = 1;
 	mpuDividerDropsOverride = false;
 #endif
 

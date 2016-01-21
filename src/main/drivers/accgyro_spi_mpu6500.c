@@ -20,7 +20,6 @@
 #include <stdlib.h>
 
 #include "platform.h"
-#include "debug.h"
 
 #include "common/axis.h"
 #include "common/maths.h"
@@ -57,7 +56,6 @@ bool verifympu6500WriteRegister(uint8_t reg, uint8_t data) {
 
     uint8_t in;
     uint8_t attemptsRemaining = 20;
-    static uint32_t loop = 0;
     mpu6500WriteRegister(reg, data);
     delayMicroseconds(100);
 
@@ -109,7 +107,7 @@ static void mpu6500SpiInit(void)
     GPIO_InitTypeDef GPIO_InitStructure;
     GPIO_InitStructure.GPIO_Pin = MPU6500_CS_PIN;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 

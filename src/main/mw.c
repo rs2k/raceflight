@@ -124,8 +124,6 @@ extern uint32_t currentTime;
 extern uint8_t PIDweight[3];
 
 static bool isRXDataNew;
-static filterStatePt1_t filteredCycleTimeState;
-uint16_t filteredCycleTime;
 
 typedef void (*pidControllerFuncPtr)(pidProfile_t *pidProfile, controlRateConfig_t *controlRateConfig,
         uint16_t max_angle_inclination, rollAndPitchTrims_t *angleTrim, rxConfig_t *rxConfig);            // pid controller function prototype
@@ -182,9 +180,20 @@ void filterRc(void){
     static int16_t deltaRC[4] = { 0, 0, 0, 0 };
     static int16_t factor, rcInterpolationFactor;
     uint16_t rxRefreshRate;
+    static biquad_t filteredCycleTimeState;
+    static bool filterIsSet;
+    uint16_t filteredCycleTime;
 
     // Set RC refresh rate for sampling and channels to filter
     initRxRefreshRate(&rxRefreshRate);
+
+	/* Initialize cycletime filter */
+	 if (!filterIsSet) {
+		 BiQuadNewLpf(1, &filteredCycleTimeState, 0);
+		 filterIsSet = true;
+	 }
+
+         filteredCycleTime = applyBiQuadFilter((float) cycleTime, &filteredCycleTimeState);
 
     rcInterpolationFactor = rxRefreshRate / filteredCycleTime + 1;
 
@@ -677,15 +686,6 @@ void taskMainPidLoop(void)
     cycleTime = getTaskDeltaTime(TASK_SELF);
     dT = (float)targetESCwritetime * 0.000001f;
 
-    // Calculate average cycle time and average jitter
-    filteredCycleTime = filterApplyPt1(cycleTime, &filteredCycleTimeState, 1, dT);
-
-
-
-#if defined JITTER_DEBUG
-    debug[JITTER_DEBUG] = cycleTime - filteredCycleTime;
-#endif
-
     imuUpdateGyroAndAttitude();
 
     if (counter == ESCWriteDenominator) { } else {
@@ -771,7 +771,7 @@ void taskMainPidLoop(void)
 
     if (motorControlEnable) {
 
-    	if (feature(FEATURE_ONESHOT125)) { //prevent jitter causing the frequency to be higher than 4KHz.
+    	if (feature(FEATURE_ONESHOT125) ) { //prevent jitter causing the frequency to be higher than 4KHz.
         	static uint32_t EWlastCalledAt = 0;
 
 			//oneshotguard
@@ -804,6 +804,7 @@ void taskMainPidLoopCheck(void) {
 	if ( (micros() - reading_flash_timer) < 10000) {
 		return;
 	}
+
     // getTaskDeltaTime() returns delta time freezed at the moment of entering the scheduler. currentTime is freezed at the very same point.
     // To make busy-waiting timeout work we need to account for time spent within busy-waiting loop
     uint32_t currentDeltaTime = getTaskDeltaTime(TASK_SELF);

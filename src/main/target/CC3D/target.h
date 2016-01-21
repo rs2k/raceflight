@@ -61,18 +61,18 @@
 // MPU6000 interrupts
 #define USE_MPU_DATA_READY_SIGNAL
 
-// External I2C BARO
-#define BARO
-#define USE_BARO_MS5611
-#define USE_BARO_BMP085
-#define USE_BARO_BMP280
+//// External I2C BARO
+//#define BARO
+//#define USE_BARO_MS5611
+//#define USE_BARO_BMP085
+//#define USE_BARO_BMP280
 
-// External I2C MAG
-#define MAG
-#define USE_MAG_HMC5883
+//// External I2C MAG
+//#define MAG
+//#define USE_MAG_HMC5883
 
 #define INVERTER
-#define BEEPER
+//#define BEEPER
 //#define DISPLAY
 
 #define USE_VCP
@@ -138,7 +138,10 @@
 #undef SONAR
 #if defined(OPBL) && defined(USE_SERIAL_1WIRE)
 #undef BARO
+#undef GPS
 #undef BLACKBOX
+#undef LED_STRIP
+#undef USE_ADC
 #endif
 #define SKIP_CLI_COMMAND_HELP
 

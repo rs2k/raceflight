@@ -95,7 +95,11 @@ static cfTask_t cfTasks[TASK_COUNT] = {
     [TASK_GYROPID] = {
         .taskName = "GYRO/PID",
         .taskFunc = taskMainPidLoopCheck,
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
         .desiredPeriod = 125,
+#else
+        .desiredPeriod = 1000,
+#endif
         .staticPriority = TASK_PRIORITY_REALTIME,
     },
 
@@ -276,7 +280,11 @@ void rescheduleTask(cfTaskId_e taskId, uint32_t newPeriodMicros)
         taskId = currentTaskId;
 
     if (taskId < TASK_COUNT) {
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
         cfTasks[taskId].desiredPeriod = MAX(10, newPeriodMicros);  // Limit delay to 10us (100 kHz) to prevent scheduler clogging
+#else
+        cfTasks[taskId].desiredPeriod = MAX(100, newPeriodMicros);  // Limit delay to 100us (10 kHz) to prevent scheduler clogging
+#endif
     }
 }
 

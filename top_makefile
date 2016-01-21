@@ -16,6 +16,16 @@ ALL_TARGETS += colibri_race
 ALL_TARGETS += motolab
 ALL_TARGETS += rmdo
 ALL_TARGETS += ircfusionf3
+ALL_TARGETS += afromini
+ALL_TARGETS += REVO
+ALL_TARGETS += REVO_OPBL
+ALL_TARGETS += SPARKY2
+ALL_TARGETS += SPARKY2_OPBL
+ALL_TARGETS += REVONANO
+ALL_TARGETS += REVONANO_OPBL
+ALL_TARGETS += ALIENFLIGHTF4
+ALL_TARGETS += BLUEJAYF4
+ALL_TARGETS += VRCORE
 
 CLEAN_TARGETS     := $(addprefix clean_, $(ALL_TARGETS)) 
 
@@ -36,8 +46,16 @@ clean_alienwiif3 alienwiif3  :            opts := TARGET=ALIENWIIF3
 clean_colibri_race colibri_race :         opts := TARGET=COLIBRI_RACE
 clean_motolab motolab :                   opts := TARGET=MOTOLAB
 clean_rmdo rmdo :                         opts := TARGET=RMDO
-clean_ircfusionf3 ircfusionf3 :           opts := TARGET=IRCFUSIONF3
-
+clean_afromini afromini :                 opts := TARGET=AFROMINI
+clean_VRCORE VRCORE :                     opts := TARGET=VRCORE
+clean_BLUEJAYF4 BLUEJAYF4 :               opts := TARGET=BLUEJAYF4
+clean_ALIENFLIGHTF4 ALIENFLIGHTF4 :       opts := TARGET=ALIENFLIGHTF4
+clean_REVONANO_OPBL REVONANO_OPBL :       opts := TARGET=REVONANO_OPBL
+clean_REVONANO REVONANO :                 opts := TARGET=REVONANO
+clean_SPARKY2_OPBL SPARKY2_OPBL :         opts := TARGET=SPARKY2_OPBL
+clean_SPARKY2 SPARKY2 :                   opts := TARGET=SPARKY2
+clean_REVO_OPBL REVO_OPBL :               opts := TARGET=REVO_OPBL
+clean_REVO REVO :                         opts := TARGET=REVO
 
 .PHONY: all clean
 all: everything

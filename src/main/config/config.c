@@ -151,7 +151,7 @@ static uint32_t activeFeaturesLatch = 0;
 static uint8_t currentControlRateProfileIndex = 0;
 controlRateConfig_t *currentControlRateProfile;
 
-static const uint8_t EEPROM_CONF_VERSION = 118;
+static const uint8_t EEPROM_CONF_VERSION = 120;
 
 static void resetAccelerometerTrims(flightDynamicsTrims_t *accelerometerTrims)
 {
@@ -164,12 +164,12 @@ static void resetPidProfile(pidProfile_t *pidProfile)
 {
     pidProfile->pidController = 2; //default is LUX
 
-    pidProfile->P8[ROLL] = 40;
-    pidProfile->I8[ROLL] = 30;
+    pidProfile->P8[ROLL] = 42;
+    pidProfile->I8[ROLL] = 40;
     pidProfile->D8[ROLL] = 13;
-    pidProfile->P8[PITCH] = 50;
-    pidProfile->I8[PITCH] = 30;
-    pidProfile->D8[PITCH] = 20;
+    pidProfile->P8[PITCH] = 54;
+    pidProfile->I8[PITCH] = 40;
+    pidProfile->D8[PITCH] = 18;
     pidProfile->P8[YAW] = 100;
     pidProfile->I8[YAW] = 50;
     pidProfile->D8[YAW] = 5;
@@ -185,8 +185,8 @@ static void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->P8[PIDNAVR] = 25; // NAV_P * 10;
     pidProfile->I8[PIDNAVR] = 33; // NAV_I * 100;
     pidProfile->D8[PIDNAVR] = 83; // NAV_D * 1000;
-    pidProfile->P8[PIDLEVEL] = 50;
-    pidProfile->I8[PIDLEVEL] = 50;
+    pidProfile->P8[PIDLEVEL] = 55;
+    pidProfile->I8[PIDLEVEL] = 55;
     pidProfile->D8[PIDLEVEL] = 100;
     pidProfile->P8[PIDMAG] = 40;
     pidProfile->P8[PIDVEL] = 120;
@@ -194,10 +194,10 @@ static void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->D8[PIDVEL] = 1;
 
     pidProfile->gyro_lpf_hz = 60;    // filtering ON by default
-    pidProfile->airModeInsaneAcrobilityFactor = 0;
+    pidProfile->AcroPlusFactor = 0;
 
 #if defined(STM32F411xE) || defined(STM32F40_41xxx)
-    pidProfile->dterm_lpf_hz = 40;   // filtering ON by default
+    pidProfile->dterm_lpf_hz = 60;   // filtering ON by default
     pidProfile->P_f[ROLL] = 5.012f;     // new PID for raceflight. test carefully
     pidProfile->I_f[ROLL] = 1.021f;
     pidProfile->D_f[ROLL] = 0.020f;
@@ -211,16 +211,16 @@ static void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->H_level = 3.000f;
     pidProfile->H_sensitivity = 100;
 #else
-    pidProfile->dterm_lpf_hz = 40;   // filtering ON by default
-    pidProfile->P_f[ROLL] = 1.5f;     // new PID with preliminary defaults test carefully
-    pidProfile->I_f[ROLL] = 0.3f;
+    pidProfile->dterm_lpf_hz = 0;   // filtering ON by default
+    pidProfile->P_f[ROLL] = 1.1f;     // new PID with preliminary defaults test carefully
+    pidProfile->I_f[ROLL] = 0.4f;
     pidProfile->D_f[ROLL] = 0.01f;
     pidProfile->P_f[PITCH] = 1.5f;
-    pidProfile->I_f[PITCH] = 0.3f;
+    pidProfile->I_f[PITCH] = 0.4f;
     pidProfile->D_f[PITCH] = 0.01f;
     pidProfile->P_f[YAW] = 4.0f;
     pidProfile->I_f[YAW] = 0.4f;
-    pidProfile->D_f[YAW] = 0.01f;
+    pidProfile->D_f[YAW] = 0.00f;
     pidProfile->A_level = 3.000f;
     pidProfile->H_level = 3.000f;
     pidProfile->H_sensitivity = 100;
@@ -341,8 +341,8 @@ void resetSerialConfig(serialConfig_t *serialConfig)
 }
 
 static void resetControlRateConfig(controlRateConfig_t *controlRateConfig) {
-    controlRateConfig->rcRate8 = 30;
-    controlRateConfig->rcExpo8 = 40;
+    controlRateConfig->rcRate8 = 100;
+    controlRateConfig->rcExpo8 = 70;
     controlRateConfig->thrMid8 = 50;
     controlRateConfig->thrExpo8 = 0;
     controlRateConfig->dynThrPID = 0;
@@ -433,6 +433,7 @@ static void resetConf(void)
 
     featureSet(FEATURE_FAILSAFE);
     featureSet(FEATURE_ONESHOT125);
+    featureSet(FEATURE_SBUS_INVERTER);
 
     // global settings
     masterConfig.current_profile_index = 0;     // default profile
@@ -465,7 +466,7 @@ static void resetConf(void)
     masterConfig.gyro_lpf = 2;                 // High DLPF, 4KHz
 #else
     masterConfig.rxConfig.serialrx_provider = 0;
-    masterConfig.gyro_lpf = 1;                 // High DLPF, 2KHz
+    masterConfig.gyro_lpf = 4;                 // High DLPF, 2KHz
 #endif
 
 #if defined(CC3D)
@@ -488,7 +489,7 @@ static void resetConf(void)
     masterConfig.rxConfig.rssi_channel = 0;
     masterConfig.rxConfig.rssi_scale = RSSI_SCALE_DEFAULT;
     masterConfig.rxConfig.rssi_ppm_invert = 0;
-    masterConfig.rxConfig.rcSmoothing = 0;
+    masterConfig.rxConfig.rcSmoothing = 1;
     masterConfig.rxConfig.fpvCamAngleDegrees = 0;
 
     resetAllRxChannelRangeConfigurations(masterConfig.rxConfig.channelRanges);
@@ -541,7 +542,7 @@ static void resetConf(void)
     resetRollAndPitchTrims(&currentProfile->accelerometerTrims);
 
     currentProfile->mag_declination = 0;
-    currentProfile->acc_cut_hz = 15;
+    currentProfile->acc_lpf_hz = 20;
     currentProfile->accz_lpf_cutoff = 5.0f;
     currentProfile->accDeadband.xy = 40;
     currentProfile->accDeadband.z = 40;
@@ -834,7 +835,7 @@ void activateConfig(void)
         &currentProfile->pidProfile
     );
 
-    useGyroConfig(&masterConfig.gyroConfig, &currentProfile->pidProfile.gyro_lpf_hz);
+    useGyroConfig(&masterConfig.gyroConfig, currentProfile->pidProfile.gyro_lpf_hz);
 
 #ifdef TELEMETRY
     telemetryUseConfig(&masterConfig.telemetryConfig);
@@ -864,7 +865,7 @@ void activateConfig(void)
 
     imuRuntimeConfig.dcm_kp = masterConfig.dcm_kp / 10000.0f;
     imuRuntimeConfig.dcm_ki = masterConfig.dcm_ki / 10000.0f;
-    imuRuntimeConfig.acc_cut_hz = currentProfile->acc_cut_hz;
+    imuRuntimeConfig.acc_cut_hz = currentProfile->acc_lpf_hz;
     imuRuntimeConfig.acc_unarmedcal = currentProfile->acc_unarmedcal;
     imuRuntimeConfig.small_angle = masterConfig.small_angle;
 
