@@ -50,14 +50,7 @@
 // MPU6000 interrupts
 #define USE_MPU_DATA_READY_SIGNAL
 #define EXTI_CALLBACK_HANDLER_COUNT 2 // MPU data ready (mag disabled)
-#define MPU_INT_EXTI_CONFIG {                       \
-	.gpioAHB1Peripherals = RCC_AHB1Periph_GPIOC,    \
-	.gpioPort = GPIOC,                              \
-	.gpioPin = Pin_4,                               \
-	.exti_port_source = EXTI_PortSourceGPIOC,       \
-	.exti_pin_source = EXTI_PinSource4,             \
-	.exti_line = EXTI_Line4,                        \
-	.exti_irqn = EXTI4_IRQn }
+#define MPU_INT_EXTI_CONFIG { RCC_AHB1Periph_GPIOC, Pin_4, GPIOC, EXTI_PortSourceGPIOC, EXTI_Line4, EXTI_PinSource4, EXTI4_IRQn }
 
 #define MAG
 #define USE_MAG_HMC5883

@@ -91,14 +91,7 @@
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
 #define EXTI_CALLBACK_HANDLER_COUNT 1 // MPU data ready
-#define MPU_INT_EXTI_CONFIG {                       \
-    .gpioAHB1Peripherals = RCC_AHB1Periph_GPIOC,    \
-    .gpioPort = GPIOC,                              \
-    .gpioPin = Pin_5,                               \
-    .exti_port_source = EXTI_PortSourceGPIOC,       \
-    .exti_pin_source = EXTI_PinSource5,             \
-    .exti_line = EXTI_Line5,                        \
-    .exti_irqn = EXTI9_5_IRQn }
+#define MPU_INT_EXTI_CONFIG { RCC_AHB1Periph_GPIOC, Pin_5, GPIOC, EXTI_PortSourceGPIOC, EXTI_Line5, EXTI_PinSource5, EXTI9_5_IRQn }
 
 #define USE_VCP
 #define VBUS_SENSING_PIN GPIO_Pin_8

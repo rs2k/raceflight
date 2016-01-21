@@ -66,14 +66,7 @@
 #define USE_MPU_DATA_READY_SIGNAL
 //#define ENSURE_MPU_DATA_READY_IS_LOW
 #define EXTI_CALLBACK_HANDLER_COUNT 1 // MPU data ready (mag disabled)
-#define MPU_INT_EXTI_CONFIG {                       \
-    .gpioAHB1Peripherals = RCC_AHB1Periph_GPIOA,    \
-    .gpioPort = GPIOA,                              \
-    .gpioPin = Pin_15,                              \
-    .exti_port_source = EXTI_PortSourceGPIOA,       \
-    .exti_pin_source = EXTI_PinSource15,            \
-    .exti_line = EXTI_Line15,                       \
-    .exti_irqn = EXTI15_10_IRQn }
+#define MPU_INT_EXTI_CONFIG { RCC_AHB1Periph_GPIOA, Pin_15, GPIOA, EXTI_PortSourceGPIOA, EXTI_Line15, EXTI_PinSource15, EXTI15_10_IRQn }
 
 #define USABLE_TIMER_CHANNEL_COUNT 13
 

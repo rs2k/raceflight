@@ -37,15 +37,7 @@
 // MPU6050 interrupts
 #define EXTI15_10_CALLBACK_HANDLER_COUNT 1 // MPU data ready
 #define USE_MPU_DATA_READY_SIGNAL
-#define MPU_INT_EXTI_CONFIG {               \
-.gpioAHBPeripherals = RCC_AHBPeriph_GPIOA,  \
-.gpioPort = GPIOA,                          \
-.gpioPin = Pin_15,                          \
-.exti_port_source = EXTI_PortSourceGPIOA,   \
-.exti_pin_source = EXTI_PinSource15,        \
-.exti_line = EXTI_Line15,                   \
-.exti_irqn = EXTI15_10_IRQn                 \
-}
+#define MPU_INT_EXTI_CONFIG { RCC_AHBPeriph_GPIOA, Pin_15, GPIOA, EXTI_PortSourceGPIOA, EXTI_Line15, EXTI_PinSource15, EXTI15_10_IRQn }
 
 // MPU 9150 INT connected to PA15, pulled up to VCC by 10K Resistor, contains MPU6050 and AK8975 in single component.
 #define GYRO
