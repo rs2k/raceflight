@@ -293,7 +293,11 @@ void init(void)
         }
         else
         {
-            pwm_params.idlePulse = masterConfig.escAndServoConfig.mincommand;
+        	if (feature(FEATURE_MULTISHOT_PWM_RATE)) {
+        		pwm_params.idlePulse = (uint16_t)((float)(masterConfig.escAndServoConfig.mincommand-1000) / 4.1666f)+60;
+        	} else {
+        		pwm_params.idlePulse = (uint16_t)((float)masterConfig.escAndServoConfig.mincommand*1.5f);
+        	}
         }
     }
     
@@ -340,7 +344,9 @@ void init(void)
 #endif
 
 #ifdef INVERTER
-    initInverter();
+    if (feature(FEATURE_SBUS_INVERTER)) {
+    	initInverter();
+    }
 #endif
 
 #ifdef USE_BST
@@ -583,24 +589,30 @@ int main(void) {
     setTaskEnabled(TASK_GYROPID, true);
 
     if(sensors(SENSOR_ACC)) {
+    	uint32_t accTargetLooptime = 0;
         setTaskEnabled(TASK_ACCEL, true);
         switch(targetLooptime) {
         	case(62):
-                rescheduleTask(TASK_ACCEL, 10000);
+				accTargetLooptime = 10000;
                 break;
         	case(125):
-                rescheduleTask(TASK_ACCEL, 10000);
+				accTargetLooptime = 10000;
                 break;
         	case(250):
-                rescheduleTask(TASK_ACCEL, 10000);
+				accTargetLooptime = 10000;
                 break;
             case(500):
-                rescheduleTask(TASK_ACCEL, 10000);
+				accTargetLooptime = 10000;
                 break;
             default:
             case(1000):
-                rescheduleTask(TASK_ACCEL, 1000);
+#ifdef STM32F10X
+                accTargetLooptime = 5000;
+#else
+                accTargetLooptime = 1000;
+#endif
         }
+        rescheduleTask(TASK_ACCEL, accTargetLooptime);
     }
 
     setTaskEnabled(TASK_SERIAL, true);

@@ -20,7 +20,6 @@
 #include <stdlib.h>
 
 #include "platform.h"
-#include "debug.h"
 
 #include "common/axis.h"
 #include "common/maths.h"
@@ -57,7 +56,6 @@ bool verifympu6500WriteRegister(uint8_t reg, uint8_t data) {
 
     uint8_t in;
     uint8_t attemptsRemaining = 20;
-    static uint32_t loop = 0;
     mpu6500WriteRegister(reg, data);
     delayMicroseconds(100);
 

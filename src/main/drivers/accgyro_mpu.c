@@ -597,9 +597,7 @@ bool mpuAccRead(int16_t *accData)
 {
     uint8_t data[6];
 
-    __disable_irq();
     bool ack = mpuConfiguration.read(MPU_RA_ACCEL_XOUT_H, 6, data);
-    __enable_irq();
     if (!ack) {
         return false;
     }

@@ -137,6 +137,8 @@ static void pwmWriteStandard(uint8_t index, uint16_t value)
 
 static void pwmWriteOneshot(uint8_t index, uint16_t value)
 {
+	value = value >> 2;
+	value = value << 2;
     *motors[index]->ccr = (uint16_t)((float)value*1.5f);  //Expecting 8MHz timer, multiply by 1.5 to scale to 12MHz timer
 }
 

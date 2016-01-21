@@ -26,9 +26,9 @@
 #define LED1_GPIO   GPIOB
 #define LED1_PIN    Pin_4  // Red LED
 #define LED1_PERIPHERAL RCC_AHB1Periph_GPIOB
-//#define LED2_GPIO   GPIOB
-//#define LED2_PIN    Pin_6 // Blue LED
-//#define LED2_PERIPHERAL RCC_AHB1Periph_GPIOB
+#define LED2_GPIO   GPIOB
+#define LED2_PIN    Pin_6 // Blue LED
+#define LED2_PERIPHERAL RCC_AHB1Periph_GPIOB
 
 #define BEEP_GPIO   GPIOC
 #define BEEP_PIN    Pin_9 // JST-SH Pin 3
@@ -65,7 +65,7 @@
 #define BEEPER
 #define LED0
 #define LED1
-//#define LED2
+#define LED2
 
 #define M25P16_CS_GPIO        GPIOB
 #define M25P16_CS_PIN         GPIO_Pin_3
@@ -160,6 +160,8 @@
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_1)
 //#define I2C_DEVICE_EXT (I2CDEV_2)
+
+#define USE_ADC
 
 #define LED_STRIP
 #define LED_STRIP_TIMER TIM5
