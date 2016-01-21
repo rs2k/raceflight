@@ -86,6 +86,11 @@ uint8_t detectedSensors[MAX_SENSORS_TO_DETECT] = { GYRO_NONE, ACC_NONE, BARO_NON
 
 const extiConfig_t *selectMPUIntExtiConfig(void)
 {
+#if defined(MPU_INT_EXTI_CONFIG)
+    static const extiConfig_t mpuIntExtiConfig = MPU_INT_EXTI_CONFIG;
+    return &mpuIntExtiConfig;
+#endif
+    
 #ifdef NAZE
     // MPU_INT output on rev4 PB13
     static const extiConfig_t nazeRev4MPUIntExtiConfig = {
@@ -156,98 +161,6 @@ const extiConfig_t *selectMPUIntExtiConfig(void)
          .exti_irqn = EXTI9_5_IRQn
     };
     return &colibriRaceMPUIntExtiConfig;
-#endif
-
-#if defined(REVO)
-    static const extiConfig_t revoMPUIntExtiConfig = {
-            .gpioAHB1Peripherals = RCC_AHB1Periph_GPIOC,
-            .gpioPort = GPIOC,
-            .gpioPin = Pin_4,
-            .exti_port_source = EXTI_PortSourceGPIOC,
-            .exti_pin_source = EXTI_PinSource4,
-            .exti_line = EXTI_Line4,
-            .exti_irqn = EXTI4_IRQn
-    };
-    return &revoMPUIntExtiConfig;
-#endif
-
-#if defined(REVONANO)
-    static const extiConfig_t revonanoMPUIntExtiConfig = {
-            .gpioAHB1Peripherals = RCC_AHB1Periph_GPIOA,
-            .gpioPort = GPIOA,
-            .gpioPin = Pin_15,
-            .exti_port_source = EXTI_PortSourceGPIOA,
-            .exti_pin_source = EXTI_PinSource15,
-            .exti_line = EXTI_Line15,
-            .exti_irqn = EXTI15_10_IRQn
-    };
-    return &revonanoMPUIntExtiConfig;
-#endif
-
-#if defined(SPARKY2)
-    static const extiConfig_t sparky2MPUIntExtiConfig = {
-            .gpioAHB1Peripherals = RCC_AHB1Periph_GPIOC,
-            .gpioPort = GPIOC,
-            .gpioPin = Pin_5,
-            .exti_port_source = EXTI_PortSourceGPIOC,
-            .exti_pin_source = EXTI_PinSource5,
-            .exti_line = EXTI_Line5,
-            .exti_irqn = EXTI9_5_IRQn
-    };
-    return &sparky2MPUIntExtiConfig;
-#endif
-
-#if defined(BLUEJAYF4)
-    static const extiConfig_t bluejayf4MPUIntExtiConfig = {
-            .gpioAHB1Peripherals = RCC_AHB1Periph_GPIOC,
-            .gpioPort = GPIOC,
-            .gpioPin = Pin_5,
-            .exti_port_source = EXTI_PortSourceGPIOC,
-            .exti_pin_source = EXTI_PinSource5,
-            .exti_line = EXTI_Line5,
-            .exti_irqn = EXTI9_5_IRQn
-    };
-    return &bluejayf4MPUIntExtiConfig;
-#endif
-
-#if defined(ALIENFLIGHTF4)
-    static const extiConfig_t alienflightf4MPUIntExtiConfig = {
-            .gpioAHB1Peripherals = RCC_AHB1Periph_GPIOC,
-            .gpioPort = GPIOC,
-            .gpioPin = Pin_14,
-            .exti_port_source = EXTI_PortSourceGPIOC,
-            .exti_pin_source = EXTI_PinSource14,
-            .exti_line = EXTI_Line14,
-            .exti_irqn = EXTI15_10_IRQn
-    };
-    return &alienflightf4MPUIntExtiConfig;
-#endif
-
-#if defined (VRCORE)
-    static const extiConfig_t vrcoref4MPUIntExtiConfig = {
-            .gpioAHB1Peripherals = RCC_AHB1Periph_GPIOD,
-            .gpioPort = GPIOD,
-            .gpioPin = Pin_10,
-            .exti_port_source = EXTI_PortSourceGPIOD,
-            .exti_pin_source = EXTI_PinSource10,
-            .exti_line = EXTI_Line10,
-            .exti_irqn = EXTI15_10_IRQn
-    };
-    return &vrcoref4MPUIntExtiConfig;
-#endif
-
-
-#if defined(MOTOLAB) || defined(SPARKY)
-    static const extiConfig_t MotolabF3MPU6050Config = {
-            .gpioAHBPeripherals = RCC_AHBPeriph_GPIOA,
-            .gpioPort = GPIOA,
-            .gpioPin = Pin_15,
-            .exti_port_source = EXTI_PortSourceGPIOA,
-            .exti_pin_source = EXTI_PinSource15,
-            .exti_line = EXTI_Line15,
-            .exti_irqn = EXTI15_10_IRQn
-    };
-    return &MotolabF3MPU6050Config;
 #endif
 
     return NULL;

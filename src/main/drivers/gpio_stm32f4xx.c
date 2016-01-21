@@ -72,7 +72,16 @@ void gpioInit(GPIO_TypeDef *gpio, gpio_config_t *config)
 
 void gpioExtiLineConfig(uint8_t portsrc, uint8_t pinsrc)
 {
-    UNUSED(portsrc);
-    UNUSED(pinsrc);
-    // FIXME needed yet? implement?
+    /*
+    
+    May or may not need this. Testing thus far indicates it is a not required.
+    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN;
+    GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStruct.GPIO_Pin = pin;
+    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
+    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_Init(port, &GPIO_InitStruct);
+    */
+    SYSCFG_EXTILineConfig(portsrc, pinsrc);
+
 }
