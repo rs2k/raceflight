@@ -1156,7 +1156,7 @@ if (init->useBuzzerP6) {
                 } 
                 else 
                 {
-                    if (init->useOneshotPwmRate)
+                    if (init->usePwmRate)
                     {
                         pwmOneshotPwmRateMotorConfig(timerHardwarePtr, pwmOutputConfiguration.motorCount, init->motorPwmRate, init->idlePulse);
                     }
@@ -1168,7 +1168,7 @@ if (init->useBuzzerP6) {
                 pwmOutputConfiguration.portConfigurations[pwmOutputConfiguration.outputCount].flags = PWM_PF_MOTOR | PWM_PF_OUTPUT_PROTOCOL_ONESHOT|PWM_PF_OUTPUT_PROTOCOL_PWM ;
             } 
             else if (init->useMultiShot) {
-                if (init->useMultiShotPwmRate)
+                if (init->usePwmRate)
                 {
                     pwmMultiShotPwmRateMotorConfig(timerHardwarePtr, pwmOutputConfiguration.motorCount, init->motorPwmRate, init->idlePulse);
                 }

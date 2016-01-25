@@ -276,9 +276,8 @@ void init(void)
 #endif
 
 	pwm_params.useOneshot = feature(FEATURE_ONESHOT125);
-	pwm_params.useOneshotPwmRate = feature(FEATURE_ONESHOT_PWM_RATE);
 	pwm_params.useMultiShot = feature(FEATURE_MULTISHOT);
-	pwm_params.useMultiShotPwmRate = feature(FEATURE_MULTISHOT_PWM_RATE);
+	pwm_params.usePwmRate = feature(FEATURE_USE_PWM_RATE);
     pwm_params.useFastPWM = masterConfig.use_fast_pwm ? true : false;
     pwm_params.motorPwmRate = masterConfig.motor_pwm_rate;
     if (feature(FEATURE_3D))
@@ -287,20 +286,19 @@ void init(void)
     }
     else 
     {
-        if ((pwm_params.motorPwmRate > 500 && !masterConfig.use_fast_pwm) && !feature(FEATURE_ONESHOT_PWM_RATE) && !feature(FEATURE_MULTISHOT_PWM_RATE))
+        if ((pwm_params.motorPwmRate > 500 && !masterConfig.use_fast_pwm) && !feature(FEATURE_USE_PWM_RATE))
         {
             pwm_params.idlePulse = 0; // brushed motors
         }
         else
         {
-        	if (feature(FEATURE_MULTISHOT_PWM_RATE)) {
+        	if (feature(FEATURE_USE_PWM_RATE)) {
         		pwm_params.idlePulse = (uint16_t)((float)(masterConfig.escAndServoConfig.mincommand-1000) / 4.1666f)+60;
         	} else {
         		pwm_params.idlePulse = (uint16_t)((float)masterConfig.escAndServoConfig.mincommand*1.5f);
         	}
         }
-    }
-    
+    }    
 
     pwmOutputConfiguration_t *pwmOutputConfiguration = pwmInit(&pwm_params);
 
