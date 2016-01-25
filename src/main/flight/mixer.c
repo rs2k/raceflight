@@ -753,7 +753,7 @@ STATIC_UNIT_TESTED void servoMixer(void)
 void mixTable(void)
 {
     uint32_t i;
-
+    
     bool isFailsafeActive = failsafeIsActive(); // TODO - Find out if failsafe checks are really needed here in mixer code
 
     if (motorCount >= 4 && mixerConfig->yaw_jump_prevention_limit < YAW_JUMP_PREVENTION_LIMIT_HIGH) {
@@ -793,6 +793,7 @@ void mixTable(void)
         int16_t throttleMin, throttleMax;
         static bool flightDirection3dReversed;
 
+        throttleMin = 0;
         throttle = rcData[THROTTLE];
 
         // Find min and max throttle based on condition

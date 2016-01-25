@@ -472,7 +472,15 @@ static void resetConf(void)
 #if defined(CC3D)
     masterConfig.acc_hardware = 1;     // default/autodetect
 #endif
-
+        
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
+    masterConfig.rxConfig.max_rx_channels = 16;
+#elif defined(STM32F303xC)
+    masterConfig.rxConfig.max_rx_channels = 10;
+#else
+    masterConfig.rxConfig.max_rx_channels = 8;
+#endif
+    
     masterConfig.rxConfig.spektrum_sat_bind = 0;
     masterConfig.rxConfig.midrc = 1500;
     masterConfig.rxConfig.mincheck = 1100;
