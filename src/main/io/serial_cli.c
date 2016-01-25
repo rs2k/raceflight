@@ -359,7 +359,7 @@ static const char * const lookupTableSerialRX[] = {
     "IBUS"
 };
 
-static const char * const lookupTableGyroLpf[] = {
+static const char * const lookupTableRFLoopCtrl[] = {
     "H1",
     "H2",
     "H4",
@@ -391,7 +391,7 @@ typedef enum {
     TABLE_GIMBAL_MODE,
     TABLE_PID_CONTROLLER,
     TABLE_SERIAL_RX,
-    TABLE_GYRO_LPF,
+	TABLE_RF_LOOP_CTRL,
 } lookupTableIndex_e;
 
 static const lookupTableEntry_t lookupTables[] = {
@@ -407,7 +407,7 @@ static const lookupTableEntry_t lookupTables[] = {
     { lookupTableGimbalMode, sizeof(lookupTableGimbalMode) / sizeof(char *) },
     { lookupTablePidController, sizeof(lookupTablePidController) / sizeof(char *) },
     { lookupTableSerialRX, sizeof(lookupTableSerialRX) / sizeof(char *) },
-    { lookupTableGyroLpf, sizeof(lookupTableGyroLpf) / sizeof(char *) }
+    { lookupTableRFLoopCtrl, sizeof(lookupTableRFLoopCtrl) / sizeof(char *) }
 };
 
 #define VALUE_TYPE_OFFSET 0
@@ -562,7 +562,7 @@ const clivalue_t valueTable[] = {
 
     { "max_angle_inclination",      VAR_UINT16 | MASTER_VALUE,  &masterConfig.max_angle_inclination, .config.minmax = { 100,  900 } },
 
-    { "rf_loop_ctrl",               VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.gyro_lpf, .config.lookup = { TABLE_GYRO_LPF } },
+    { "rf_loop_ctrl",               VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.rf_loop_ctrl, .config.lookup = { TABLE_RF_LOOP_CTRL } },
     { "moron_threshold",            VAR_UINT8  | MASTER_VALUE,  &masterConfig.gyroConfig.gyroMovementCalibrationThreshold, .config.minmax = { 0,  128 } },
     { "imu_dcm_kp",                 VAR_UINT16 | MASTER_VALUE,  &masterConfig.dcm_kp, .config.minmax = { 0,  50000 } },
     { "imu_dcm_ki",                 VAR_UINT16 | MASTER_VALUE,  &masterConfig.dcm_ki, .config.minmax = { 0,  50000 } },

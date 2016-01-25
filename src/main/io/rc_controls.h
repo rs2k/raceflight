@@ -147,6 +147,7 @@ typedef struct controlRateConfig_s {
     uint8_t dynThrPID;
     uint8_t rcYawExpo8;
     uint16_t tpa_breakpoint;                // Breakpoint where TPA is activated
+    uint16_t AcroPlusFactor;
 } controlRateConfig_t;
 
 extern int16_t rcCommand[4];

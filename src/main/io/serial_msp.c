@@ -956,7 +956,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize16((uint16_t)targetLooptime);
         break;
     case MSP_RC_TUNING:
-        headSerialReply(11);
+        headSerialReply(12);
         serialize8(currentControlRateProfile->rcRate8);
         serialize8(currentControlRateProfile->rcExpo8);
         for (i = 0 ; i < 3; i++) {
@@ -967,10 +967,11 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize8(currentControlRateProfile->thrExpo8);
         serialize16(currentControlRateProfile->tpa_breakpoint);
         serialize8(currentControlRateProfile->rcYawExpo8);
+        serialize8(currentControlRateProfile->AcroPlusFactor);
         break;
     case MSP_PID:
-        headSerialReply(3 * PID_ITEM_COUNT);
-        if (IS_PID_CONTROLLER_FP_BASED(currentProfile->pidProfile.pidController)) { // convert float stuff into uint8_t to keep backwards compatability with all 8-bit shit with new pid
+        headSerialReply( (3 * PID_ITEM_COUNT) + 3 );
+        if (IS_PID_CONTROLLER_FP_BASED(currentProfile->pidProfile.pidController)) { // convert float stuff into uint8_t to keep backwards compatability with all 8-bit crap with new pid
             for (i = 0; i < 3; i++) {
                 serialize8(constrain(lrintf(currentProfile->pidProfile.P_f[i] * 10.0f), 0, 255));
                 serialize8(constrain(lrintf(currentProfile->pidProfile.I_f[i] * 100.0f), 0, 255));
@@ -994,6 +995,9 @@ static bool processOutCommand(uint8_t cmdMSP)
                 serialize8(currentProfile->pidProfile.D8[i]);
             }
         }
+        serialize8(currentProfile->pidProfile.gyro_lpf_hz);
+        serialize8(currentProfile->pidProfile.dterm_lpf_hz);
+        serialize8(masterConfig.rf_loop_ctrl);
         break;
     case MSP_PID_FLOAT:
         headSerialReply(3 * PID_ITEM_COUNT * 2);
