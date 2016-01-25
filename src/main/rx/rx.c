@@ -455,7 +455,7 @@ static uint8_t getRxChannelCount(void) {
 	    if (rxConfig->max_rx_channels > rxRuntimeConfig.channelCount) {
             maxChannelsAllowed = rxRuntimeConfig.channelCount;
         } else {
-	        maxChannelsAllowed = rxConfig->max_rx_channels;
+            maxChannelsAllowed = rxConfig->max_rx_channels;
         }
     }
     return maxChannelsAllowed;
