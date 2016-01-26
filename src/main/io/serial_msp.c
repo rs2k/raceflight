@@ -1406,11 +1406,21 @@ static bool processInCommand(void)
                     currentProfile->pidProfile.D8[i] = read8();
                 }
             }
+            if (currentPort->dataSize >= PID_ITEM_COUNT+4) {
+    			currentProfile->pidProfile.gyro_lpf_hz = read8();
+    			currentProfile->pidProfile.dterm_lpf_hz = read8();
+    			masterConfig.rf_loop_ctrl = read8();
+            }
         } else {
             for (i = 0; i < PID_ITEM_COUNT; i++) {
                 currentProfile->pidProfile.P8[i] = read8();
                 currentProfile->pidProfile.I8[i] = read8();
                 currentProfile->pidProfile.D8[i] = read8();
+            }
+            if (currentPort->dataSize >= PID_ITEM_COUNT+1) {
+    			currentProfile->pidProfile.gyro_lpf_hz = read8();
+    			currentProfile->pidProfile.dterm_lpf_hz = read8();
+    			masterConfig.rf_loop_ctrl = read8();
             }
         }
         break;
@@ -1488,6 +1498,9 @@ static bool processInCommand(void)
             currentControlRateProfile->tpa_breakpoint = read16();
             if (currentPort->dataSize >= 11) {
                 currentControlRateProfile->rcYawExpo8 = read8();
+            }
+            if (currentPort->dataSize >= 12) {
+                currentControlRateProfile->AcroPlusFactor = read8();
             }
         } else {
             headSerialError(0);
