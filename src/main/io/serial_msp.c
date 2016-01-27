@@ -1071,7 +1071,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         }
         break;
     case MSP_MISC:
-        headSerialReply(2 * 5 + 3 + 3 + 2 + 4);
+        headSerialReply(2 * 5 + 3 + 3 + 2 + 4 + 1);
         serialize16(masterConfig.rxConfig.midrc);
 
         serialize16(masterConfig.escAndServoConfig.minthrottle);
@@ -1099,6 +1099,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize8(masterConfig.batteryConfig.vbatmincellvoltage);
         serialize8(masterConfig.batteryConfig.vbatmaxcellvoltage);
         serialize8(masterConfig.batteryConfig.vbatwarningcellvoltage);
+        serialize8(masterConfig.rf_loop_ctrl);
         break;
 
     case MSP_MOTOR_PINS:
@@ -1536,6 +1537,7 @@ static bool processInCommand(void)
         masterConfig.batteryConfig.vbatmincellvoltage = read8();  // vbatlevel_warn1 in MWC2.3 GUI
         masterConfig.batteryConfig.vbatmaxcellvoltage = read8();  // vbatlevel_warn2 in MWC2.3 GUI
         masterConfig.batteryConfig.vbatwarningcellvoltage = read8();  // vbatlevel when buzzer starts to alert
+        masterConfig.rf_loop_ctrl = read8();
         break;
     case MSP_SET_MOTOR:
         for (i = 0; i < 8; i++) // FIXME should this use MAX_MOTORS or MAX_SUPPORTED_MOTORS instead of 8
