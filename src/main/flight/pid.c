@@ -212,7 +212,7 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
             errorGyroIf[axis] *= airModePlusAxisState[axis].iTermScaler;
         }
 
-        if (allowITermShrinkOnly || motorLimitReached) {
+        if ( (IS_RC_MODE_ACTIVE(BOXAIRMODE)) && (allowITermShrinkOnly || motorLimitReached) ) { //only in airmode do we affect Ki.
             if (ABS(errorGyroIf[axis]) < ABS(previousErrorGyroIf[axis])) {
                 previousErrorGyroIf[axis] = errorGyroIf[axis];
             } else {
