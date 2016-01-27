@@ -510,7 +510,7 @@ void processRx(void)
         }
 
         // Conditions to reset Error
-        if (!ARMING_FLAG(ARMED) || feature(FEATURE_MOTOR_STOP) || ((IS_RC_MODE_ACTIVE(BOXAIRMODE)) && airModeErrorResetIsEnabled) || !IS_RC_MODE_ACTIVE(BOXAIRMODE)) {
+        if (!ARMING_FLAG(ARMED) || feature(FEATURE_MOTOR_STOP) || ((IS_RC_MODE_ACTIVE(BOXAIRMODE)) && airModeErrorResetIsEnabled) || !IS_RC_MODE_ACTIVE(BOXAIRMODE) || !IS_RC_MODE_ACTIVE(BOXALWAYSSTABILIZED) ) {
             ResetErrorActivated = true;                                         // As RX code is not executed each loop a flag has to be set for fast looptimes
             airModeErrorResetTimeout = millis() + ERROR_RESET_DEACTIVATE_DELAY; // Reset de-activate timer
             airModeErrorResetIsEnabled = true;                                  // Enable Reset again especially after Disarm
