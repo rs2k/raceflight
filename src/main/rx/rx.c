@@ -88,6 +88,7 @@ uint32_t rcInvalidPulsPeriod[MAX_SUPPORTED_RC_CHANNEL_COUNT];
 
 #define MAX_INVALID_PULS_TIME    300
 #define PPM_AND_PWM_SAMPLE_COUNT 3
+#define BASE_CHANNELS 4
 
 #define DELAY_50_HZ (1000000 / 50)
 #define DELAY_10_HZ (1000000 / 10)
@@ -452,10 +453,10 @@ static uint8_t getRxChannelCount(void) {
     static uint8_t maxChannelsAllowed;
 
     if (!maxChannelsAllowed) {
-	    if (rxConfig->max_rx_channels > rxRuntimeConfig.channelCount) {
+        if (BASE_CHANNELS + rxConfig->max_aux_channels > rxRuntimeConfig.channelCount) {
             maxChannelsAllowed = rxRuntimeConfig.channelCount;
         } else {
-            maxChannelsAllowed = rxConfig->max_rx_channels;
+            maxChannelsAllowed = BASE_CHANNELS + rxConfig->max_aux_channels;
         }
     }
     return maxChannelsAllowed;
