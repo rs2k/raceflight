@@ -2398,16 +2398,11 @@ static void cliTasks(char *cmdline)
 static void cliVersion(char *cmdline)
 {
     UNUSED(cmdline);
-    cliPrintf("# RaceFlight %s%s.%s%s.%s%s%s - %s / %s / %s (%s)",
-		BUILD_YEAR_CH2,
-		BUILD_YEAR_CH3,
-		BUILD_MONTH_CH0,
-		BUILD_MONTH_CH1,
-		BUILD_DAY_CH0,
-		BUILD_DAY_CH1,
-		FC_VERSION_BUILD_LETTER,
-		FC_VERSION_BUILD_COMMENT,
-        targetName,
+    printf("# RaceFlight %s%s - %s /%s %s / %s (%s)",
+		FC_VERSION_STRING,
+		FC_VERSION_LETTER,
+		FC_VERSION_COMMENT,
+	    targetName,
         buildDate,
         buildTime,
         shortGitRevision
