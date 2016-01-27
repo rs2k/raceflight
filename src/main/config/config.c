@@ -95,13 +95,13 @@ void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, es
         #define FLASH_PAGE_SIZE                 ((uint16_t)0x800)
     #endif
 
-	#if defined(STM32F40_41xxx)
-    	#define FLASH_PAGE_SIZE                 ((uint32_t)0x20000)
-	#endif
+    #if defined(STM32F40_41xxx)
+        #define FLASH_PAGE_SIZE                 ((uint32_t)0x20000)
+    #endif
 
-	#if defined (STM32F411xE)
-		#define FLASH_PAGE_SIZE                 ((uint32_t)0x20000)
-	#endif
+    #if defined (STM32F411xE)
+        #define FLASH_PAGE_SIZE                 ((uint32_t)0x20000)
+    #endif
 
 #endif
 
@@ -119,9 +119,9 @@ void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, es
 #if defined(STM32F40_41xxx)
     #define FLASH_PAGE_COUNT 4 // just to make calculations work
 #elif defined (STM32F411xE)
-	#define FLASH_PAGE_COUNT 4 // just to make calculations work
+    #define FLASH_PAGE_COUNT 4 // just to make calculations work
 #else
-	#define FLASH_PAGE_COUNT ((FLASH_SIZE * 0x400) / FLASH_PAGE_SIZE)
+    #define FLASH_PAGE_COUNT ((FLASH_SIZE * 0x400) / FLASH_PAGE_SIZE)
 #endif
 #endif
 
@@ -475,11 +475,11 @@ static void resetConf(void)
 #endif
         
 #if defined(STM32F40_41xxx) || defined (STM32F411xE)
-    masterConfig.rxConfig.max_rx_channels = 16;
+    masterConfig.rxConfig.max_aux_channels = 99;
 #elif defined(STM32F303xC)
-    masterConfig.rxConfig.max_rx_channels = 10;
+    masterConfig.rxConfig.max_aux_channels = 6;
 #else
-    masterConfig.rxConfig.max_rx_channels = 8;
+    masterConfig.rxConfig.max_aux_channels = 4;
 #endif
     
     masterConfig.rxConfig.spektrum_sat_bind = 0;
@@ -986,13 +986,13 @@ void validateAndFixConfig(void)
 #if defined(COLIBRI_RACE)
     masterConfig.serialConfig.portConfigs[0].functionMask = FUNCTION_MSP;
     if(featureConfigured(FEATURE_RX_PARALLEL_PWM) || featureConfigured(FEATURE_RX_MSP)) {
-	    featureClear(FEATURE_RX_PARALLEL_PWM);
-	    featureClear(FEATURE_RX_MSP);
-	    featureSet(FEATURE_RX_PPM);
+        featureClear(FEATURE_RX_PARALLEL_PWM);
+        featureClear(FEATURE_RX_MSP);
+        featureSet(FEATURE_RX_PPM);
     }
     if(featureConfigured(FEATURE_RX_SERIAL)) {
-	    masterConfig.serialConfig.portConfigs[2].functionMask = FUNCTION_RX_SERIAL;
-	    //masterConfig.rxConfig.serialrx_provider = SERIALRX_SBUS;
+        masterConfig.serialConfig.portConfigs[2].functionMask = FUNCTION_RX_SERIAL;
+        //masterConfig.rxConfig.serialrx_provider = SERIALRX_SBUS;
     }
 #endif
 
@@ -1080,10 +1080,10 @@ void writeEEPROM(void)
         for (wordOffset = 0; wordOffset < sizeof(master_t); wordOffset += 4) {
             if (wordOffset % FLASH_PAGE_SIZE == 0) {
 #if defined(STM32F40_41xxx)
-            	//status = FLASH_EraseSector(FLASH_Sector_11, VoltageRange_3); //0x080E0000 to 0x08100000
-            	status = FLASH_EraseSector(FLASH_Sector_8, VoltageRange_3); //0x08080000 to 0x080A0000
+                //status = FLASH_EraseSector(FLASH_Sector_11, VoltageRange_3); //0x080E0000 to 0x08100000
+                status = FLASH_EraseSector(FLASH_Sector_8, VoltageRange_3); //0x08080000 to 0x080A0000
 #elif defined (STM32F411xE)
-            	status = FLASH_EraseSector(FLASH_Sector_7, VoltageRange_3); //0x08060000 to 0x08080000
+                status = FLASH_EraseSector(FLASH_Sector_7, VoltageRange_3); //0x08060000 to 0x08080000
 #else
                 status = FLASH_ErasePage(CONFIG_START_FLASH_ADDRESS + wordOffset);
 #endif
