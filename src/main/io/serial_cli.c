@@ -359,7 +359,7 @@ static const char * const lookupTableSerialRX[] = {
     "IBUS"
 };
 
-static const char * const lookupTableGyroLpf[] = {
+static const char * const lookupTableRFLoopCtrl[] = {
     "H1",
     "H2",
     "H4",
@@ -391,7 +391,7 @@ typedef enum {
     TABLE_GIMBAL_MODE,
     TABLE_PID_CONTROLLER,
     TABLE_SERIAL_RX,
-    TABLE_GYRO_LPF,
+	TABLE_RF_LOOP_CTRL,
 } lookupTableIndex_e;
 
 static const lookupTableEntry_t lookupTables[] = {
@@ -407,7 +407,7 @@ static const lookupTableEntry_t lookupTables[] = {
     { lookupTableGimbalMode, sizeof(lookupTableGimbalMode) / sizeof(char *) },
     { lookupTablePidController, sizeof(lookupTablePidController) / sizeof(char *) },
     { lookupTableSerialRX, sizeof(lookupTableSerialRX) / sizeof(char *) },
-    { lookupTableGyroLpf, sizeof(lookupTableGyroLpf) / sizeof(char *) }
+    { lookupTableRFLoopCtrl, sizeof(lookupTableRFLoopCtrl) / sizeof(char *) }
 };
 
 #define VALUE_TYPE_OFFSET 0
@@ -562,7 +562,7 @@ const clivalue_t valueTable[] = {
 
     { "max_angle_inclination",      VAR_UINT16 | MASTER_VALUE,  &masterConfig.max_angle_inclination, .config.minmax = { 100,  900 } },
 
-    { "rf_loop_ctrl",               VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.gyro_lpf, .config.lookup = { TABLE_GYRO_LPF } },
+    { "rf_loop_ctrl",               VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.rf_loop_ctrl, .config.lookup = { TABLE_RF_LOOP_CTRL } },
     { "moron_threshold",            VAR_UINT8  | MASTER_VALUE,  &masterConfig.gyroConfig.gyroMovementCalibrationThreshold, .config.minmax = { 0,  128 } },
     { "imu_dcm_kp",                 VAR_UINT16 | MASTER_VALUE,  &masterConfig.dcm_kp, .config.minmax = { 0,  50000 } },
     { "imu_dcm_ki",                 VAR_UINT16 | MASTER_VALUE,  &masterConfig.dcm_ki, .config.minmax = { 0,  50000 } },
@@ -596,6 +596,8 @@ const clivalue_t valueTable[] = {
     { "yaw_rate",                   VAR_UINT8  | CONTROL_RATE_VALUE, &masterConfig.controlRateProfiles[0].rates[FD_YAW], .config.minmax = { 0,  CONTROL_RATE_CONFIG_YAW_RATE_MAX } },
     { "tpa_rate",                   VAR_UINT8  | CONTROL_RATE_VALUE, &masterConfig.controlRateProfiles[0].dynThrPID, .config.minmax = { 0,  CONTROL_RATE_CONFIG_TPA_MAX} },
     { "tpa_breakpoint",             VAR_UINT16 | CONTROL_RATE_VALUE, &masterConfig.controlRateProfiles[0].tpa_breakpoint, .config.minmax = { PWM_RANGE_MIN,  PWM_RANGE_MAX} },
+
+    { "acro_plus_factor",         	VAR_UINT8  | CONTROL_RATE_VALUE, &masterConfig.controlRateProfiles[0].AcroPlusFactor, .config.minmax = {0, 100 } },
 
     { "failsafe_delay",             VAR_UINT8  | MASTER_VALUE,  &masterConfig.failsafeConfig.failsafe_delay, .config.minmax = { 0,  200 } },
     { "failsafe_off_delay",         VAR_UINT8  | MASTER_VALUE,  &masterConfig.failsafeConfig.failsafe_off_delay, .config.minmax = { 0,  200 } },
@@ -669,7 +671,6 @@ const clivalue_t valueTable[] = {
 
     { "gyro_lpf_hz",                VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.gyro_lpf_hz, .config.minmax = {0, 255 } },
     { "dterm_lpf_hz",               VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.dterm_lpf_hz, .config.minmax = {0, 255 } },
-    { "acro_plus_factor",         VAR_UINT16 | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.AcroPlusFactor, .config.minmax = {0, 100 } },
 
 #ifdef BLACKBOX
     { "blackbox_rate_num",          VAR_UINT8  | MASTER_VALUE,  &masterConfig.blackbox_rate_num, .config.minmax = { 1,  32 } },
@@ -2397,16 +2398,11 @@ static void cliTasks(char *cmdline)
 static void cliVersion(char *cmdline)
 {
     UNUSED(cmdline);
-    cliPrintf("# RaceFlight %s%s.%s%s.%s%s%s - %s / %s / %s (%s)",
-		BUILD_YEAR_CH2,
-		BUILD_YEAR_CH3,
-		BUILD_MONTH_CH0,
-		BUILD_MONTH_CH1,
-		BUILD_DAY_CH0,
-		BUILD_DAY_CH1,
-		FC_VERSION_BUILD_LETTER,
-		FC_VERSION_BUILD_COMMENT,
-        targetName,
+    printf("# RaceFlight %s%s - %s /%s %s / %s (%s)",
+		FC_VERSION_STRING,
+		FC_VERSION_LETTER,
+		FC_VERSION_COMMENT,
+	    targetName,
         buildDate,
         buildTime,
         shortGitRevision

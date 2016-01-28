@@ -194,7 +194,6 @@ static void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->D8[PIDVEL] = 1;
 
     pidProfile->gyro_lpf_hz = 60;    // filtering ON by default
-    pidProfile->AcroPlusFactor = 0;
 
 #if defined(STM32F411xE) || defined(STM32F40_41xxx)
     pidProfile->dterm_lpf_hz = 60;   // filtering ON by default
@@ -349,11 +348,13 @@ static void resetControlRateConfig(controlRateConfig_t *controlRateConfig) {
     controlRateConfig->rcYawExpo8 = 20;
     controlRateConfig->tpa_breakpoint = 1500;
 
+    controlRateConfig->AcroPlusFactor = 20;
+
     for (uint8_t axis = 0; axis < FLIGHT_DYNAMICS_INDEX_COUNT; axis++) {
         if (axis == 2) {
-            controlRateConfig->rates[axis] = 25;
+            controlRateConfig->rates[axis] = 35;
         } else {
-            controlRateConfig->rates[axis] = 5;
+            controlRateConfig->rates[axis] = 20;
         }
     }
 
@@ -463,10 +464,10 @@ static void resetConf(void)
 
 #if defined(REVO) || defined(SPARKY2) || defined(REVONANO) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
     masterConfig.rxConfig.serialrx_provider = 2;
-    masterConfig.gyro_lpf = 2;                 // High DLPF, 4KHz
+    masterConfig.rf_loop_ctrl = 7;                 // Medium DLPF, 4KHz
 #else
     masterConfig.rxConfig.serialrx_provider = 0;
-    masterConfig.gyro_lpf = 4;                 // High DLPF, 2KHz
+    masterConfig.rf_loop_ctrl = 4;                 // Low DLPF, 1KHz
 #endif
 
 #if defined(CC3D)

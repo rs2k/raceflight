@@ -693,6 +693,7 @@ static bool bstSlaveProcessFeedbackCommand(uint8_t bstRequest)
 			bstWrite8(currentControlRateProfile->thrExpo8);
 			bstWrite16(currentControlRateProfile->tpa_breakpoint);
 			bstWrite8(currentControlRateProfile->rcYawExpo8);
+			bstWrite8(currentControlRateProfile->AcroPlusFactor);
 			break;
 	    case BST_PID:
 			if (IS_PID_CONTROLLER_FP_BASED(currentProfile->pidProfile.pidController)) { // convert float stuff into uint8_t to keep backwards compatability with all 8-bit shit with new pid
@@ -719,6 +720,9 @@ static bool bstSlaveProcessFeedbackCommand(uint8_t bstRequest)
 					bstWrite8(currentProfile->pidProfile.D8[i]);
 				}
 			}
+			bstWrite8(currentProfile->pidProfile.gyro_lpf_hz);
+			bstWrite8(currentProfile->pidProfile.dterm_lpf_hz);
+			bstWrite8(masterConfig.rf_loop_ctrl);
 			break;
 	    case BST_PIDNAMES:
 			bstWriteNames(pidnames);
@@ -993,7 +997,7 @@ static bool bstSlaveProcessFeedbackCommand(uint8_t bstRequest)
 			bstWrite8(masterConfig.profile[0].rcControlsConfig.yaw_deadband);
 			break;
 	    case BST_FC_FILTERS:
-			bstWrite16(constrain(masterConfig.gyro_lpf, 0, 1)); // Extra safety to prevent OSD setting corrupt values
+			bstWrite16(constrain(masterConfig.rf_loop_ctrl, 0, 1)); // Extra safety to prevent OSD setting corrupt values
 			break;
 		default:
 			// we do not know how to handle the (valid) message, indicate error BST
@@ -1078,11 +1082,21 @@ static bool bstSlaveProcessWriteCommand(uint8_t bstWriteCommand)
 							currentProfile->pidProfile.D8[i] = bstRead8();
 						}
 					}
+					if (bstReadDataSize() >= PID_ITEM_COUNT+4) {
+						currentProfile->pidProfile.gyro_lpf_hz = bstRead8();
+						currentProfile->pidProfile.dterm_lpf_hz = bstRead8();
+						masterConfig.rf_loop_ctrl = bstRead8();
+					}
 				} else {
 					for (i = 0; i < PID_ITEM_COUNT; i++) {
 						currentProfile->pidProfile.P8[i] = bstRead8();
 						currentProfile->pidProfile.I8[i] = bstRead8();
 						currentProfile->pidProfile.D8[i] = bstRead8();
+					}
+					if (bstReadDataSize() >= PID_ITEM_COUNT+1) {
+						currentProfile->pidProfile.gyro_lpf_hz = bstRead8();
+						currentProfile->pidProfile.dterm_lpf_hz = bstRead8();
+						masterConfig.rf_loop_ctrl = bstRead8();
 					}
 				}
 			break;
@@ -1139,8 +1153,11 @@ static bool bstSlaveProcessWriteCommand(uint8_t bstWriteCommand)
 	            currentControlRateProfile->thrExpo8 = bstRead8();
 	            currentControlRateProfile->tpa_breakpoint = bstRead16();
 	            if (bstReadDataSize() >= 11) {
-	                currentControlRateProfile->rcYawExpo8 = bstRead8();
-	            }
+					currentControlRateProfile->rcYawExpo8 = bstRead8();
+				}
+	            if (bstReadDataSize() >= 12) {
+					currentControlRateProfile->AcroPlusFactor = bstRead8();
+				}
 	        } else {
 	        	ret = BST_FAILED;
 	        }
@@ -1455,7 +1472,7 @@ static bool bstSlaveProcessWriteCommand(uint8_t bstWriteCommand)
 			masterConfig.profile[0].rcControlsConfig.yaw_deadband = bstRead8();
 			break;
 	    case BST_SET_FC_FILTERS:
-			masterConfig.gyro_lpf = bstRead16();
+			masterConfig.rf_loop_ctrl = bstRead16();
 			break;
 
 	    default:

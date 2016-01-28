@@ -85,7 +85,7 @@ void pidResetErrorGyro(void)
     errorGyroIf[YAW] = 0.0f;
 }
 
-void airModePlus(airModePlus_t *axisState, int axis, pidProfile_t *pidProfile) {
+void airModePlus(airModePlus_t *axisState, int axis, controlRateConfig_t *controlRateConfig) {
     float rcCommandReflection = (float)rcCommand[axis] / 500.0f;
     axisState->wowFactor = 1;
     axisState->factor = 0;
@@ -103,11 +103,12 @@ void airModePlus(airModePlus_t *axisState, int axis, pidProfile_t *pidProfile) {
     }
 
     /* acro plus factor handling */
-    if (axis != YAW && pidProfile->AcroPlusFactor && (!flightModeFlags)) {
-        axisState->wowFactor = rcCommandReflection * ((float)pidProfile->AcroPlusFactor / 100.0f); //0-1f
+    if (axis != YAW && controlRateConfig->AcroPlusFactor && (!flightModeFlags)) {
+        axisState->wowFactor = rcCommandReflection * ((float)controlRateConfig->AcroPlusFactor / 100.0f); //0-1f
         axisState->factor = axisState->wowFactor * rcCommandReflection * 1000;
         axisState->wowFactor = 1.0f - axisState->wowFactor;
     }
+
 }
 
 const angle_index_t rcAliasToAngleIndexMap[] = { AI_ROLL, AI_PITCH };
@@ -157,7 +158,7 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
          } else {
              // ACRO mode, control is GYRO based, direct sticks control is applied to rate PID
         	 if ( IS_RC_MODE_ACTIVE(BOXACROPLUS) )  {
-        		 wow_factor = fabsf(rcCommand[axis] / 500.0f) * ((float)pidProfile->AcroPlusFactor / 100.0f); //0-1f
+        		 wow_factor = fabsf(rcCommand[axis] / 500.0f) * ((float)controlRateConfig->AcroPlusFactor / 100.0f); //0-1f
         		 factor = (int16_t)(wow_factor * (float)rcCommand[axis]) + rcCommand[axis];
         	 } else {
         		 factor = rcCommand[axis]; // 200dps to 1200dps max roll/pitch rate
@@ -208,7 +209,7 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
 #endif
 
         if (IS_RC_MODE_ACTIVE(BOXAIRMODE)) {
-            airModePlus(&airModePlusAxisState[axis], axis, pidProfile);
+            airModePlus(&airModePlusAxisState[axis], axis, controlRateConfig);
             errorGyroIf[axis] *= airModePlusAxisState[axis].iTermScaler;
         }
 
@@ -307,7 +308,7 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
             AngleRateTmp = ((int32_t)(rate + 27) * rcCommand[YAW]) >> 5;
         } else {
 			 if ( IS_RC_MODE_ACTIVE(BOXACROPLUS) )  {
-				 wow_factor = fabsf(rcCommand[axis] / 500.0f) * ((float)pidProfile->AcroPlusFactor / 100.0f); //0-1f
+				 wow_factor = fabsf(rcCommand[axis] / 500.0f) * ((float)controlRateConfig->AcroPlusFactor / 100.0f); //0-1f
 				 factor = (int16_t)(wow_factor * (float)rcCommand[axis]) + rcCommand[axis];
 			 } else {
 				 factor = rcCommand[axis]; // 200dps to 1200dps max roll/pitch rate
@@ -358,7 +359,7 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
         ITerm = errorGyroI[axis] >> 13;
 
         if (IS_RC_MODE_ACTIVE(BOXAIRMODE)) {
-            airModePlus(&airModePlusAxisState[axis], axis, pidProfile);
+            airModePlus(&airModePlusAxisState[axis], axis, controlRateConfig);
             errorGyroI[axis] *= airModePlusAxisState[axis].iTermScaler;
         }
 

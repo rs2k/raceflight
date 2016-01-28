@@ -64,12 +64,12 @@
 #define BUILD_DAY_CH1 (__DATE__[ 5])
 
 
-#define FC_VERSION_MAJOR            16  // increment when a major release is made (big new feature, etc)
-#define FC_VERSION_MINOR            01  // increment when a minor release is made (small new feature, change etc)
-#define FC_VERSION_PATCH_LEVEL      28  // increment when a bug is fixed
-#define FC_VERSION_BUILD_LETTER     "a"  // increment when a bug is fixed
+#define FC_VERSION_MAJOR            16  // build year
+#define FC_VERSION_MINOR            01  // build month
+#define FC_VERSION_PATCH_LEVEL      28  // build day
+#define FC_VERSION_LETTER           "c" // build of day
 
-#define FC_VERSION_BUILD_COMMENT	"Fix iterm issues, always stab"
+#define FC_VERSION_COMMENT          "New Configurator options"
 
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
