@@ -464,14 +464,14 @@ static void resetConf(void)
 
 #if defined(REVO) || defined(SPARKY2) || defined(REVONANO) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
     masterConfig.rxConfig.serialrx_provider = 2;
-    masterConfig.rf_loop_ctrl = 7;                 // Medium DLPF, 4KHz
+    masterConfig.rf_loop_ctrl = 4;                 // Low DLPF, 1KHz
 #else
     masterConfig.rxConfig.serialrx_provider = 0;
     masterConfig.rf_loop_ctrl = 4;                 // Low DLPF, 1KHz
 #endif
 
 #if defined(CC3D)
-    masterConfig.acc_hardware = 1;     // default/autodetect
+    masterConfig.acc_hardware = 0;     // default/autodetect
 #endif
         
 #if defined(STM32F40_41xxx) || defined (STM32F411xE)

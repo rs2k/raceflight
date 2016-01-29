@@ -598,6 +598,7 @@ const clivalue_t valueTable[] = {
     { "tpa_breakpoint",             VAR_UINT16 | CONTROL_RATE_VALUE, &masterConfig.controlRateProfiles[0].tpa_breakpoint, .config.minmax = { PWM_RANGE_MIN,  PWM_RANGE_MAX} },
 
     { "acro_plus_factor",         	VAR_UINT8  | CONTROL_RATE_VALUE, &masterConfig.controlRateProfiles[0].AcroPlusFactor, .config.minmax = {0, 100 } },
+    { "giant_green_catfish",       	VAR_UINT8  | CONTROL_RATE_VALUE, &masterConfig.controlRateProfiles[0].AcroPlusFactor, .config.minmax = {0, 100 } },
 
     { "failsafe_delay",             VAR_UINT8  | MASTER_VALUE,  &masterConfig.failsafeConfig.failsafe_delay, .config.minmax = { 0,  200 } },
     { "failsafe_off_delay",         VAR_UINT8  | MASTER_VALUE,  &masterConfig.failsafeConfig.failsafe_off_delay, .config.minmax = { 0,  200 } },
@@ -1572,9 +1573,12 @@ static void dumpValues(uint16_t valueSection)
         }
 
         delayMicroseconds(1000);
-        cliPrintf("set %s = ", valueTable[i].name);
-        cliPrintVar(value, 0);
-        cliPrint("\r\n");
+
+        if ( !strcmp( valueTable[i].name, "giant_green_catfish") == 0 ) {
+        	cliPrintf("set %s = ", valueTable[i].name);
+        	cliPrintVar(value, 0);
+        	cliPrint("\r\n");
+        }
     }
 }
 
@@ -2053,12 +2057,6 @@ static void cliRateProfile(char *cmdline)
 
     if (isEmpty(cmdline)) {
 
-    	i = getCurrentControlRateProfile();
-    	if (i >= 0 && i < MAX_CONTROL_RATE_PROFILE_COUNT) {
-        } else {
-        	changeControlRateProfile(0);
-        }
-        //setControlRateProfile(profileIndex);
         cliPrintf("rateprofile %d\r\n", getCurrentControlRateProfile());
 
         return;

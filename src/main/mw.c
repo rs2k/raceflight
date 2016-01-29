@@ -770,24 +770,6 @@ void taskMainPidLoop(void)
 #endif
 
     if (motorControlEnable) {
-
-    	if (feature(FEATURE_ONESHOT125) ) { //prevent jitter causing the frequency to be higher than 4KHz.
-        	static uint32_t EWlastCalledAt = 0;
-
-			//oneshotguard
-			while (1) {
-				if (micros() - EWlastCalledAt > 249) {
-					break;
-				}
-			}
-			uint32_t EWnow = micros();
-			EWlastCalledAt = EWnow;
-			uint32_t unfilteredEWTime  = EWnow - EWlastCalledAt;
-			//debug[0] = micros() - EWlastCalledAt;
-			//debug[2] = ESCWriteDenominator;
-			debug[3] = unfilteredEWTime;
-    	}
-
         writeMotors();
     }
 
