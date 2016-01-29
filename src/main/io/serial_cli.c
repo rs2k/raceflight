@@ -2052,7 +2052,15 @@ static void cliRateProfile(char *cmdline)
     int i;
 
     if (isEmpty(cmdline)) {
+
+    	i = getCurrentControlRateProfile();
+    	if (i >= 0 && i < MAX_CONTROL_RATE_PROFILE_COUNT) {
+        } else {
+        	changeControlRateProfile(0);
+        }
+        //setControlRateProfile(profileIndex);
         cliPrintf("rateprofile %d\r\n", getCurrentControlRateProfile());
+
         return;
     } else {
         i = atoi(cmdline);

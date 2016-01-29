@@ -67,9 +67,9 @@
 #define FC_VERSION_MAJOR            16  // build year
 #define FC_VERSION_MINOR            01  // build month
 #define FC_VERSION_PATCH_LEVEL      28  // build day
-#define FC_VERSION_LETTER           "c" // build of day
+#define FC_VERSION_LETTER           "d" // build of day
 
-#define FC_VERSION_COMMENT          "New Configurator options"
+#define FC_VERSION_COMMENT          "RaceFlight Release 1 RC3a"
 
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
