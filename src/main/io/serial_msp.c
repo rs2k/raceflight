@@ -1418,7 +1418,6 @@ static bool processInCommand(void)
             if (currentPort->dataSize >= PID_ITEM_COUNT+4) {
     			currentProfile->pidProfile.gyro_lpf_hz = read8();
     			currentProfile->pidProfile.dterm_lpf_hz = read8();
-    			masterConfig.rf_loop_ctrl = read8();
             }
         } else {
             for (i = 0; i < PID_ITEM_COUNT; i++) {
@@ -1429,7 +1428,6 @@ static bool processInCommand(void)
             if (currentPort->dataSize >= PID_ITEM_COUNT+1) {
     			currentProfile->pidProfile.gyro_lpf_hz = read8();
     			currentProfile->pidProfile.dterm_lpf_hz = read8();
-    			masterConfig.rf_loop_ctrl = read8();
             }
         }
         break;
