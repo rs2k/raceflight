@@ -1545,11 +1545,13 @@ static bool processInCommand(void)
         masterConfig.batteryConfig.vbatmincellvoltage = read8();  // vbatlevel_warn1 in MWC2.3 GUI
         masterConfig.batteryConfig.vbatmaxcellvoltage = read8();  // vbatlevel_warn2 in MWC2.3 GUI
         masterConfig.batteryConfig.vbatwarningcellvoltage = read8();  // vbatlevel when buzzer starts to alert
-        masterConfig.rf_loop_ctrl = read8();
-        masterConfig.motor_pwm_rate = read16();
-        masterConfig.acc_hardware = read8();
-        masterConfig.baro_hardware = read8();
-        masterConfig.mag_hardware = read8();
+        if (currentPort->dataSize >= 24) {
+            masterConfig.rf_loop_ctrl = read8();
+            masterConfig.motor_pwm_rate = read16();
+            masterConfig.acc_hardware = read8();
+            masterConfig.baro_hardware = read8();
+            masterConfig.mag_hardware = read8();
+        }
         break;
     case MSP_SET_MOTOR:
         for (i = 0; i < 8; i++) // FIXME should this use MAX_MOTORS or MAX_SUPPORTED_MOTORS instead of 8
