@@ -46,6 +46,7 @@
 #include "drivers/gpio.h"
 #include "drivers/timer.h"
 #include "drivers/pwm_rx.h"
+#include "drivers/sdcard.h"
 
 
 #include "io/escservo.h"
@@ -56,6 +57,7 @@
 #include "io/ledstrip.h"
 #include "io/flashfs.h"
 #include "io/beeper.h"
+#include "io/asyncfatfs/asyncfatfs.h"
 
 #include "rx/rx.h"
 #include "rx/spektrum.h"
@@ -152,6 +154,10 @@ static void cliFlashFill(char *cmdline);
 static void cliFlashWrite(char *cmdline);
 static void cliFlashRead(char *cmdline);
 #endif
+#endif
+
+#ifdef USE_SDCARD
+static void cliSdInfo(char *cmdline);
 #endif
 
 // buffer
@@ -293,6 +299,9 @@ const clicmd_t cmdTable[] = {
         "\tload <mixer>\r\n"
         "\treverse <servo> <source> r|n", cliServoMix),
 #endif
+#ifdef USE_SDCARD
+    CLI_COMMAND_DEF("sd_info", "sdcard info", NULL, cliSdInfo),
+#endif
     CLI_COMMAND_DEF("status", "show status", NULL, cliStatus),
 #ifndef SKIP_TASK_STATISTICS
     CLI_COMMAND_DEF("tasks", "show task stats", NULL, cliTasks),
@@ -340,7 +349,7 @@ static const char * const lookupTableGimbalMode[] = {
 };
 
 static const char * const lookupTableBlackboxDevice[] = {
-    "SERIAL", "SPIFLASH"
+    "SERIAL", "SPIFLASH", "SDCARD"
 };
 
 
@@ -607,6 +616,7 @@ const clivalue_t valueTable[] = {
     { "failsafe_throttle",          VAR_UINT16 | MASTER_VALUE,  &masterConfig.failsafeConfig.failsafe_throttle, .config.minmax = { PWM_RANGE_MIN,  PWM_RANGE_MAX } },
     { "failsafe_kill_switch",       VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.failsafeConfig.failsafe_kill_switch, .config.lookup = { TABLE_OFF_ON } },
     { "failsafe_throttle_low_delay",VAR_UINT16 | MASTER_VALUE,  &masterConfig.failsafeConfig.failsafe_throttle_low_delay, .config.minmax = { 0,  300 } },
+    { "failsafe_procedure",         VAR_UINT8  | MASTER_VALUE,  &masterConfig.failsafeConfig.failsafe_procedure, .config.minmax = { 0,  1 } },
 
     { "rx_min_usec",                VAR_UINT16 | MASTER_VALUE,  &masterConfig.rxConfig.rx_min_usec, .config.minmax = { PWM_PULSE_MIN,  PWM_PULSE_MAX } },
     { "rx_max_usec",                VAR_UINT16 | MASTER_VALUE,  &masterConfig.rxConfig.rx_max_usec, .config.minmax = { PWM_PULSE_MIN,  PWM_PULSE_MAX } },
@@ -625,14 +635,18 @@ const clivalue_t valueTable[] = {
     { "acc_trim_pitch",             VAR_INT16  | PROFILE_VALUE, &masterConfig.profile[0].accelerometerTrims.values.pitch, .config.minmax = { -300,  300 } },
     { "acc_trim_roll",              VAR_INT16  | PROFILE_VALUE, &masterConfig.profile[0].accelerometerTrims.values.roll, .config.minmax = { -300,  300 } },
 
+#ifdef BARO
     { "baro_tab_size",              VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].barometerConfig.baro_sample_count, .config.minmax = { 0,  BARO_SAMPLE_COUNT_MAX } },
     { "baro_noise_lpf",             VAR_FLOAT  | PROFILE_VALUE, &masterConfig.profile[0].barometerConfig.baro_noise_lpf, .config.minmax = { 0 , 1 } },
     { "baro_cf_vel",                VAR_FLOAT  | PROFILE_VALUE, &masterConfig.profile[0].barometerConfig.baro_cf_vel, .config.minmax = { 0 , 1 } },
     { "baro_cf_alt",                VAR_FLOAT  | PROFILE_VALUE, &masterConfig.profile[0].barometerConfig.baro_cf_alt, .config.minmax = { 0 , 1 } },
     { "baro_hardware",              VAR_UINT8  | MASTER_VALUE,  &masterConfig.baro_hardware, .config.minmax = { 0,  BARO_MAX } },
+#endif
 
+#ifdef MAG
     { "mag_hardware",               VAR_UINT8  | MASTER_VALUE,  &masterConfig.mag_hardware, .config.minmax = { 0,  MAG_MAX } },
     { "mag_declination",            VAR_INT16  | PROFILE_VALUE, &masterConfig.profile[0].mag_declination, .config.minmax = { -18000,  18000 } },
+#endif
 
     { "pid_controller",             VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, &masterConfig.profile[0].pidProfile.pidController, .config.lookup = { TABLE_PID_CONTROLLER } },
 
@@ -1458,6 +1472,77 @@ static void cliServoMix(char *cmdline)
 }
 #endif
 
+#ifdef USE_SDCARD
+
+static void cliWriteBytes(const uint8_t *buffer, int count)
+{
+    while (count > 0) {
+        cliWrite(*buffer);
+        buffer++;
+        count--;
+    }
+}
+
+static void cliSdInfo(char *cmdline) {
+    UNUSED(cmdline);
+
+    cliPrint("SD card: ");
+
+    if (!sdcard_isInserted()) {
+        cliPrint("None inserted\r\n");
+        return;
+    }
+
+    if (!sdcard_isInitialized()) {
+        cliPrint("Startup failed\r\n");
+        return;
+    }
+
+    const sdcardMetadata_t *metadata = sdcard_getMetadata();
+
+    cliPrintf("Manufacturer 0x%x, %ukB, %02d/%04d, v%d.%d, '",
+        metadata->manufacturerID,
+        metadata->numBlocks / 2, /* One block is half a kB */
+        metadata->productionMonth,
+        metadata->productionYear,
+        metadata->productRevisionMajor,
+        metadata->productRevisionMinor
+    );
+
+    cliWriteBytes((uint8_t*)metadata->productName, sizeof(metadata->productName));
+
+    cliPrint("'\r\n" "Filesystem: ");
+
+    switch (afatfs_getFilesystemState()) {
+        case AFATFS_FILESYSTEM_STATE_READY:
+            cliPrint("Ready");
+        break;
+        case AFATFS_FILESYSTEM_STATE_INITIALIZATION:
+            cliPrint("Initializing");
+        break;
+        case AFATFS_FILESYSTEM_STATE_UNKNOWN:
+        case AFATFS_FILESYSTEM_STATE_FATAL:
+            cliPrint("Fatal");
+
+            switch (afatfs_getLastError()) {
+                case AFATFS_ERROR_BAD_MBR:
+                    cliPrint(" - no FAT MBR partitions");
+                break;
+                case AFATFS_ERROR_BAD_FILESYSTEM_HEADER:
+                    cliPrint(" - bad FAT header");
+                break;
+                case AFATFS_ERROR_GENERIC:
+                case AFATFS_ERROR_NONE:
+                    ; // Nothing more detailed to print
+                break;
+            }
+
+            cliPrint("\r\n");
+        break;
+    }
+}
+
+#endif
 
 #ifdef USE_FLASHFS
 
@@ -1653,6 +1738,7 @@ static void cliDump(char *cmdline)
             cliPrintf("%s\r\n", ftoa(yaw, buf));
         }
 
+#ifdef USE_SERVOS
         // print custom servo mixer if exists
         cliPrintf("smix reset\r\n");
 
@@ -1673,6 +1759,7 @@ static void cliDump(char *cmdline)
             );
         }
 
+#endif
 #endif
 
         cliPrint("\r\n\r\n# feature\r\n");

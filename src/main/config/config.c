@@ -23,6 +23,8 @@
 
 #include "build_config.h"
 
+#include "blackbox/blackbox_io.h"
+
 #include "common/color.h"
 #include "common/axis.h"
 #include "common/maths.h"
@@ -151,7 +153,7 @@ static uint32_t activeFeaturesLatch = 0;
 static uint8_t currentControlRateProfileIndex = 0;
 controlRateConfig_t *currentControlRateProfile;
 
-static const uint8_t EEPROM_CONF_VERSION = 123;
+static const uint8_t EEPROM_CONF_VERSION = 124;
 
 static void resetAccelerometerTrims(flightDynamicsTrims_t *accelerometerTrims)
 {
@@ -160,7 +162,7 @@ static void resetAccelerometerTrims(flightDynamicsTrims_t *accelerometerTrims)
     accelerometerTrims->values.yaw = 0;
 }
 
-static void resetPidProfile(pidProfile_t *pidProfile)
+void resetPidProfile(pidProfile_t *pidProfile)
 {
     pidProfile->pidController = 2; //default is LUX
 
@@ -253,6 +255,7 @@ void resetGpsProfile(gpsProfile_t *gpsProfile)
 }
 #endif
 
+#ifdef BARO
 void resetBarometerConfig(barometerConfig_t *barometerConfig)
 {
     barometerConfig->baro_sample_count = 21;
@@ -260,6 +263,7 @@ void resetBarometerConfig(barometerConfig_t *barometerConfig)
     barometerConfig->baro_cf_vel = 0.985f;
     barometerConfig->baro_cf_alt = 0.965f;
 }
+#endif
 
 void resetSensorAlignment(sensorAlignmentConfig_t *sensorAlignmentConfig)
 {
@@ -284,6 +288,7 @@ void resetFlight3DConfig(flight3DConfig_t *flight3DConfig)
     flight3DConfig->deadband3d_throttle = 50;
 }
 
+#ifdef TELEMETRY
 void resetTelemetryConfig(telemetryConfig_t *telemetryConfig)
 {
     telemetryConfig->telemetry_inversion = 0;
@@ -295,6 +300,7 @@ void resetTelemetryConfig(telemetryConfig_t *telemetryConfig)
     telemetryConfig->frsky_vfas_precision = 0;
     telemetryConfig->hottAlarmSoundInterval = 5;
 }
+#endif
 
 void resetBatteryConfig(batteryConfig_t *batteryConfig)
 {
@@ -333,7 +339,7 @@ void resetSerialConfig(serialConfig_t *serialConfig)
 
     serialConfig->portConfigs[0].functionMask = FUNCTION_MSP;
 
-#ifdef CC3D 
+#if defined(USE_VCP)
     // This allows MSP connection via USART & VCP so the board can be reconfigured.
     serialConfig->portConfigs[1].functionMask = FUNCTION_MSP;
 #endif
@@ -462,12 +468,14 @@ static void resetConf(void)
 
     resetBatteryConfig(&masterConfig.batteryConfig);
 
+#ifdef TELEMETRY
     resetTelemetryConfig(&masterConfig.telemetryConfig);
+#endif
 
 #ifdef CONFIG_SERIALRX_PROVIDER
 	masterConfig.rxConfig.serialrx_provider = CONFIG_SERIALRX_PROVIDER;
 #else
-    masterConfig.rxConfig.serialrx_provider = 0;
+    masterConfig.rxConfig.serialrx_provider = SERIALRX_SPEKTRUM1024;
 #endif
 	masterConfig.rf_loop_ctrl = 4;                 // Low DLPF, 1KHz
 
@@ -558,7 +566,9 @@ static void resetConf(void)
     currentProfile->accDeadband.z = 40;
     currentProfile->acc_unarmedcal = 1;
 
+#ifdef BARO
     resetBarometerConfig(&currentProfile->barometerConfig);
+#endif
 
     // Radio
     parseRcChannels("AETR1234", &masterConfig.rxConfig);
@@ -574,6 +584,7 @@ static void resetConf(void)
     masterConfig.failsafeConfig.failsafe_throttle = 1000;         // default throttle off.
     masterConfig.failsafeConfig.failsafe_kill_switch = 0;         // default failsafe switch action is identical to rc link loss
     masterConfig.failsafeConfig.failsafe_throttle_low_delay = 100; // default throttle low delay for "just disarm" on failsafe condition
+    masterConfig.failsafeConfig.failsafe_procedure = 0;           // default full failsafe procedure is 0: auto-landing
 
 #ifdef USE_SERVOS
     // servos
@@ -609,7 +620,7 @@ static void resetConf(void)
 #ifdef CONFIG_BLACKBOX_DEVICE
 	masterConfig.blackbox_device = CONFIG_BLACKBOX_DEVICE;
 #else
-    masterConfig.blackbox_device = 0;
+    masterConfig.blackbox_device = BLACKBOX_DEVICE_SERIAL;
 #endif
     masterConfig.blackbox_rate_num = 1;
     masterConfig.blackbox_rate_denom = 1;
@@ -681,18 +692,7 @@ static void resetConf(void)
 
     // alternative defaults settings for ALIENWIIF1 and ALIENWIIF3 targets
 #ifdef ALIENWII32
-    featureSet(FEATURE_RX_SERIAL);
     featureSet(FEATURE_MOTOR_STOP);
-    featureClear(FEATURE_ONESHOT125);
-#if defined(ALIENWIIF3) || defined(ALIENFLIGHTF4)
-    masterConfig.serialConfig.portConfigs[1].functionMask = FUNCTION_MSP; //default config USART1 for MSP at 9600 for use with 1wire.
-    masterConfig.serialConfig.portConfigs[1].msp_baudrateIndex = BAUD_9600;
-    masterConfig.serialConfig.portConfigs[2].functionMask = FUNCTION_RX_SERIAL;
-    masterConfig.batteryConfig.vbatscale = 20;
-#else
-    masterConfig.serialConfig.portConfigs[1].functionMask = FUNCTION_RX_SERIAL;
-#endif
-    masterConfig.rxConfig.serialrx_provider = 1;
     masterConfig.rxConfig.spektrum_sat_bind = 5;
     masterConfig.escAndServoConfig.minthrottle = 1000;
     masterConfig.escAndServoConfig.maxthrottle = 2000;
@@ -793,6 +793,7 @@ static bool isEEPROMContentValid(void)
 {
     const master_t *temp = (const master_t *) CONFIG_START_FLASH_ADDRESS;
     uint8_t checksum = 0;
+
     // check version number
     if (EEPROM_CONF_VERSION != temp->version)
         return false;
@@ -873,12 +874,14 @@ void activateConfig(void)
         currentProfile->throttle_correction_angle
     );
 
+#if defined(BARO) || defined(SONAR)
     configureAltitudeHold(
         &currentProfile->pidProfile,
         &currentProfile->barometerConfig,
         &currentProfile->rcControlsConfig,
         &masterConfig.escAndServoConfig
     );
+#endif
 
 #ifdef BARO
     useBarometerConfig(&currentProfile->barometerConfig);
@@ -1101,7 +1104,6 @@ void writeEEPROM(void)
 
 void ensureEEPROMContainsValidData(void)
 {
-
     if (isEEPROMContentValid()) {
         return;
     }
@@ -1113,7 +1115,6 @@ void resetEEPROM(void)
 {
     resetConf();
     writeEEPROM();
-
 }
 
 void saveConfigAndNotify(void)
