@@ -968,6 +968,8 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize16(currentControlRateProfile->tpa_breakpoint);
         serialize8(currentControlRateProfile->rcYawExpo8);
         serialize8(currentControlRateProfile->AcroPlusFactor);
+        serialize8(masterConfig.profile[0].rcControlsConfig.deadband);
+        serialize8(masterConfig.profile[0].rcControlsConfig.yaw_deadband);
         break;
     case MSP_PID:
         headSerialReply( (3 * PID_ITEM_COUNT) + 3 );
@@ -1507,6 +1509,8 @@ static bool processInCommand(void)
             }
             if (currentPort->dataSize >= 12) {
                 currentControlRateProfile->AcroPlusFactor = read8();
+                masterConfig.profile[0].rcControlsConfig.deadband = read8();
+                masterConfig.profile[0].rcControlsConfig.yaw_deadband = read8();
             }
         } else {
             headSerialError(0);
