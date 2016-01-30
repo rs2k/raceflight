@@ -1102,6 +1102,9 @@ static bool processOutCommand(uint8_t cmdMSP)
 
         serialize8(masterConfig.rf_loop_ctrl);
         serialize16(masterConfig.motor_pwm_rate);
+        serialize8(masterConfig.acc_hadrware);
+        serialize8(masterConfig.baro_hardware);
+        serialize8(masterConfig.mag_hardware);
         break;
 
     case MSP_MOTOR_PINS:
@@ -1541,6 +1544,9 @@ static bool processInCommand(void)
         masterConfig.batteryConfig.vbatwarningcellvoltage = read8();  // vbatlevel when buzzer starts to alert
         masterConfig.rf_loop_ctrl = read8();
         masterConfig.motor_pwm_rate = read16();
+        masterConfig.acc_hardware = read8();
+        masterConfig.baro_hardware = read8();
+        masterConfig.mag_hardware = read8();
         break;
     case MSP_SET_MOTOR:
         for (i = 0; i < 8; i++) // FIXME should this use MAX_MOTORS or MAX_SUPPORTED_MOTORS instead of 8
