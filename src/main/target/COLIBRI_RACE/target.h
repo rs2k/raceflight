@@ -21,6 +21,8 @@
 #define BST_DEVICE_NAME "COLIBRI RACE"
 #define BST_DEVICE_NAME_LENGTH 12
 
+#define USBD_PRODUCT_STRING "TBS Colibri Race"
+
 #define LED0_GPIO   GPIOC
 #define LED0_PIN    Pin_15
 #define LED0_PERIPHERAL RCC_AHBPeriph_GPIOC

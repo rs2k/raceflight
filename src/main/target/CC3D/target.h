@@ -17,6 +17,11 @@
 
 #define TARGET_BOARD_IDENTIFIER "CC3D" // CopterControl 3D
 
+#define USBD_PRODUCT_STRING "CC3D"
+#ifdef OPBL
+	#define USBD_SERIALNUMBER_STRING "0x8003000"
+#endif
+
 #define LED0_GPIO   GPIOB
 #define LED0_PIN    Pin_3 // PB3 (LED)
 #define LED0_PERIPHERAL RCC_APB2Periph_GPIOB

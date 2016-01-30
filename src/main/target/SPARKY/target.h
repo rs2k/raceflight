@@ -19,6 +19,11 @@
 
 #define TARGET_BOARD_IDENTIFIER "SPKY" // SParKY
 
+#define USBD_PRODUCT_STRING "Sparky 1.x"
+#ifdef OPBL
+	#define USBD_SERIALNUMBER_STRING "0x800C000"
+#endif
+
 #define LED0_GPIO   GPIOB
 #define LED0_PIN    Pin_4  // Blue (Rev 1 & 2) - PB4
 #define LED0_PERIPHERAL RCC_AHBPeriph_GPIOB

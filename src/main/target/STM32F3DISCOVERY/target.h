@@ -19,6 +19,8 @@
 
 #define TARGET_BOARD_IDENTIFIER "VRCR" // STM Discovery F3
 
+#define USBD_PRODUCT_STRING "STM32 F3 Discovery"
+
 #define LED0_GPIO   GPIOE
 #define LED0_PIN    Pin_8|Pin_12 // Blue LEDs - PE8/PE12
 #define LED0_PERIPHERAL RCC_AHBPeriph_GPIOE
