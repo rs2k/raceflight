@@ -956,7 +956,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize16((uint16_t)targetLooptime);
         break;
     case MSP_RC_TUNING:
-        headSerialReply(12);
+        headSerialReply(16);
         serialize8(currentControlRateProfile->rcRate8);
         serialize8(currentControlRateProfile->rcExpo8);
         for (i = 0 ; i < 3; i++) {
@@ -968,9 +968,13 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize16(currentControlRateProfile->tpa_breakpoint);
         serialize8(currentControlRateProfile->rcYawExpo8);
         serialize8(currentControlRateProfile->AcroPlusFactor);
+        serialize8(masterConfig.profile[0].rcControlsConfig.deadband);
+        serialize8(masterConfig.profile[0].rcControlsConfig.yaw_deadband);
+        serialize8(currentProfile->pidProfile.gyro_lpf_hz);
+        serialize8(currentProfile->pidProfile.dterm_lpf_hz);
         break;
     case MSP_PID:
-        headSerialReply( (3 * PID_ITEM_COUNT) + 3 );
+        headSerialReply( (3 * PID_ITEM_COUNT) );
         if (IS_PID_CONTROLLER_FP_BASED(currentProfile->pidProfile.pidController)) { // convert float stuff into uint8_t to keep backwards compatability with all 8-bit crap with new pid
             for (i = 0; i < 3; i++) {
                 serialize8(constrain(lrintf(currentProfile->pidProfile.P_f[i] * 10.0f), 0, 255));
@@ -995,9 +999,6 @@ static bool processOutCommand(uint8_t cmdMSP)
                 serialize8(currentProfile->pidProfile.D8[i]);
             }
         }
-        serialize8(currentProfile->pidProfile.gyro_lpf_hz);
-        serialize8(currentProfile->pidProfile.dterm_lpf_hz);
-        serialize8(masterConfig.rf_loop_ctrl);
         break;
     case MSP_PID_FLOAT:
         headSerialReply(3 * PID_ITEM_COUNT * 2);
@@ -1071,7 +1072,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         }
         break;
     case MSP_MISC:
-        headSerialReply(2 * 5 + 3 + 3 + 2 + 4 + 3);
+        headSerialReply(2 * 5 + 3 + 3 + 2 + 4 + 3 + 3);
         serialize16(masterConfig.rxConfig.midrc);
 
         serialize16(masterConfig.escAndServoConfig.minthrottle);
@@ -1102,6 +1103,10 @@ static bool processOutCommand(uint8_t cmdMSP)
 
         serialize8(masterConfig.rf_loop_ctrl);
         serialize16(masterConfig.motor_pwm_rate);
+        
+        serialize8(masterConfig.acc_hardware);
+        serialize8(masterConfig.baro_hardware);
+        serialize8(masterConfig.mag_hardware);
         break;
 
     case MSP_MOTOR_PINS:
@@ -1409,21 +1414,11 @@ static bool processInCommand(void)
                     currentProfile->pidProfile.D8[i] = read8();
                 }
             }
-            if (currentPort->dataSize >= PID_ITEM_COUNT+4) {
-    			currentProfile->pidProfile.gyro_lpf_hz = read8();
-    			currentProfile->pidProfile.dterm_lpf_hz = read8();
-    			masterConfig.rf_loop_ctrl = read8();
-            }
         } else {
             for (i = 0; i < PID_ITEM_COUNT; i++) {
                 currentProfile->pidProfile.P8[i] = read8();
                 currentProfile->pidProfile.I8[i] = read8();
                 currentProfile->pidProfile.D8[i] = read8();
-            }
-            if (currentPort->dataSize >= PID_ITEM_COUNT+1) {
-    			currentProfile->pidProfile.gyro_lpf_hz = read8();
-    			currentProfile->pidProfile.dterm_lpf_hz = read8();
-    			masterConfig.rf_loop_ctrl = read8();
             }
         }
         break;
@@ -1504,6 +1499,10 @@ static bool processInCommand(void)
             }
             if (currentPort->dataSize >= 12) {
                 currentControlRateProfile->AcroPlusFactor = read8();
+                masterConfig.profile[0].rcControlsConfig.deadband = read8();
+                masterConfig.profile[0].rcControlsConfig.yaw_deadband = read8();
+                currentProfile->pidProfile.gyro_lpf_hz = read8();
+    			currentProfile->pidProfile.dterm_lpf_hz = read8();
             }
         } else {
             headSerialError(0);
@@ -1539,8 +1538,13 @@ static bool processInCommand(void)
         masterConfig.batteryConfig.vbatmincellvoltage = read8();  // vbatlevel_warn1 in MWC2.3 GUI
         masterConfig.batteryConfig.vbatmaxcellvoltage = read8();  // vbatlevel_warn2 in MWC2.3 GUI
         masterConfig.batteryConfig.vbatwarningcellvoltage = read8();  // vbatlevel when buzzer starts to alert
-        masterConfig.rf_loop_ctrl = read8();
-        masterConfig.motor_pwm_rate = read16();
+        if (currentPort->dataSize >= 24) {
+            masterConfig.rf_loop_ctrl = read8();
+            masterConfig.motor_pwm_rate = read16();
+            masterConfig.acc_hardware = read8();
+            masterConfig.baro_hardware = read8();
+            masterConfig.mag_hardware = read8();
+        }
         break;
     case MSP_SET_MOTOR:
         for (i = 0; i < 8; i++) // FIXME should this use MAX_MOTORS or MAX_SUPPORTED_MOTORS instead of 8
