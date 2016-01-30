@@ -1104,7 +1104,7 @@ static bool processOutCommand(uint8_t cmdMSP)
 
         serialize8(masterConfig.rf_loop_ctrl);
         serialize16(masterConfig.motor_pwm_rate);
-        serialize8(masterConfig.acc_hadrware);
+        serialize8(masterConfig.acc_hardware);
         serialize8(masterConfig.baro_hardware);
         serialize8(masterConfig.mag_hardware);
         break;
