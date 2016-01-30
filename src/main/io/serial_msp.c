@@ -956,7 +956,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize16((uint16_t)targetLooptime);
         break;
     case MSP_RC_TUNING:
-        headSerialReply(12);
+        headSerialReply(14);
         serialize8(currentControlRateProfile->rcRate8);
         serialize8(currentControlRateProfile->rcExpo8);
         for (i = 0 ; i < 3; i++) {
@@ -1073,7 +1073,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         }
         break;
     case MSP_MISC:
-        headSerialReply(2 * 5 + 3 + 3 + 2 + 4 + 3);
+        headSerialReply(2 * 5 + 3 + 3 + 2 + 4 + 3 + 3);
         serialize16(masterConfig.rxConfig.midrc);
 
         serialize16(masterConfig.escAndServoConfig.minthrottle);
@@ -1104,6 +1104,7 @@ static bool processOutCommand(uint8_t cmdMSP)
 
         serialize8(masterConfig.rf_loop_ctrl);
         serialize16(masterConfig.motor_pwm_rate);
+        
         serialize8(masterConfig.acc_hardware);
         serialize8(masterConfig.baro_hardware);
         serialize8(masterConfig.mag_hardware);
