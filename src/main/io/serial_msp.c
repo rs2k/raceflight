@@ -956,7 +956,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize16((uint16_t)targetLooptime);
         break;
     case MSP_RC_TUNING:
-        headSerialReply(14);
+        headSerialReply(16);
         serialize8(currentControlRateProfile->rcRate8);
         serialize8(currentControlRateProfile->rcExpo8);
         for (i = 0 ; i < 3; i++) {
@@ -970,9 +970,11 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize8(currentControlRateProfile->AcroPlusFactor);
         serialize8(masterConfig.profile[0].rcControlsConfig.deadband);
         serialize8(masterConfig.profile[0].rcControlsConfig.yaw_deadband);
+        serialize8(currentProfile->pidProfile.gyro_lpf_hz);
+        serialize8(currentProfile->pidProfile.dterm_lpf_hz);
         break;
     case MSP_PID:
-        headSerialReply( (3 * PID_ITEM_COUNT) + 3 );
+        headSerialReply( (3 * PID_ITEM_COUNT) );
         if (IS_PID_CONTROLLER_FP_BASED(currentProfile->pidProfile.pidController)) { // convert float stuff into uint8_t to keep backwards compatability with all 8-bit crap with new pid
             for (i = 0; i < 3; i++) {
                 serialize8(constrain(lrintf(currentProfile->pidProfile.P_f[i] * 10.0f), 0, 255));
@@ -997,9 +999,6 @@ static bool processOutCommand(uint8_t cmdMSP)
                 serialize8(currentProfile->pidProfile.D8[i]);
             }
         }
-        serialize8(currentProfile->pidProfile.gyro_lpf_hz);
-        serialize8(currentProfile->pidProfile.dterm_lpf_hz);
-        serialize8(masterConfig.rf_loop_ctrl);
         break;
     case MSP_PID_FLOAT:
         headSerialReply(3 * PID_ITEM_COUNT * 2);
@@ -1415,19 +1414,11 @@ static bool processInCommand(void)
                     currentProfile->pidProfile.D8[i] = read8();
                 }
             }
-            if (currentPort->dataSize >= PID_ITEM_COUNT+4) {
-    			currentProfile->pidProfile.gyro_lpf_hz = read8();
-    			currentProfile->pidProfile.dterm_lpf_hz = read8();
-            }
         } else {
             for (i = 0; i < PID_ITEM_COUNT; i++) {
                 currentProfile->pidProfile.P8[i] = read8();
                 currentProfile->pidProfile.I8[i] = read8();
                 currentProfile->pidProfile.D8[i] = read8();
-            }
-            if (currentPort->dataSize >= PID_ITEM_COUNT+1) {
-    			currentProfile->pidProfile.gyro_lpf_hz = read8();
-    			currentProfile->pidProfile.dterm_lpf_hz = read8();
             }
         }
         break;
@@ -1510,6 +1501,8 @@ static bool processInCommand(void)
                 currentControlRateProfile->AcroPlusFactor = read8();
                 masterConfig.profile[0].rcControlsConfig.deadband = read8();
                 masterConfig.profile[0].rcControlsConfig.yaw_deadband = read8();
+                currentProfile->pidProfile.gyro_lpf_hz = read8();
+    			currentProfile->pidProfile.dterm_lpf_hz = read8();
             }
         } else {
             headSerialError(0);
