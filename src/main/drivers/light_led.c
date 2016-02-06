@@ -15,27 +15,76 @@
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-initLeds(void)
-{
-    struct {
-        GPIO_TypeDef *gpio;
-        gpio_config_t cfg;
-    } gpio_setup[] = {
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+#include "platform.h"
+
+#include "common/utils.h"
+
+#include "io.h"
+#include "io_impl.h"
+
+#include "light_led.h"
+
+static const IO_t leds[] = {
 #ifdef LED0
-        {
-            .gpio = LED0_GPIO,
-            .cfg = { LED0_PIN, Mode_Out_PP, Speed_2MHz }
-        },
-#endif
+    DEFIO_IO(LED0),
+#else
+    DEFIO_IO(NONE),				  
+#endif 
 #ifdef LED1
+    DEFIO_IO(LED1),
+#else
+    DEFIO_IO(NONE),				  
+#endif 
+#ifdef LED2
+    DEFIO_IO(LED2),
+#else
+    DEFIO_IO(NONE),				  
+#endif 
+};
 
-        {
-            .gpio = LED1_GPIO,
-            .cfg = { LED1_PIN, Mode_Out_PP, Speed_2MHz }
-        },
+uint8_t ledPolarity = 0
+#ifdef LED0_INVERTED
+    | BIT(0)
 #endif
-    }
+#ifdef LED1_INVERTED
+    | BIT(1)
+#endif
+#ifdef LED2_INVERTED
+    | BIT(2)
+#endif
+    ;
 
-    uint8_t gpio_count = sizeof(gpio_setup) / sizeof(gpio_setup[0]);
+void ledInit(void)
+{
+	uint32_t i;
 
+	LED0_OFF;
+	LED1_OFF;
+	LED2_OFF;
+
+	for (i = 0; i < ARRAYLEN(leds); i++) {
+		if (leds[i]) {
+			IOInit(leds[i], OWNER_SYSTEM, RESOURCE_OUTPUT);
+			IOConfigGPIO(leds[i], IOCFG_OUT_PP);
+		}
+	}
+
+    LED0_OFF;
+    LED1_OFF;
+    LED2_OFF;
+}
+
+void ledToggle(int led)
+{
+	IOToggle(leds[led]);
+}
+
+void ledSet(int led, bool on)
+{
+	bool inverted = (1 << led) & ledPolarity;
+	IOWrite(leds[led], on ? inverted : !inverted);
 }

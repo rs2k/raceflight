@@ -17,30 +17,13 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "CLBR"
-#define BST_DEVICE_NAME "COLIBRI RACE"
-#define BST_DEVICE_NAME_LENGTH 12
+#define TARGET_BOARD_IDENTIFIER "LUX"
 
-#define USBD_PRODUCT_STRING "TBS Colibri Race"
+#define LED0 PC15
+#define LED1 PC14
+#define LED2 PC13
 
-#define USE_EXTI
-#define MPU_INT_EXTI PA5
-
-#define LED0_GPIO   GPIOC
-#define LED0_PIN    Pin_15
-#define LED0_PERIPHERAL RCC_AHBPeriph_GPIOC
-
-#define LED1_GPIO   GPIOC
-#define LED1_PIN    Pin_14
-#define LED1_PERIPHERAL RCC_AHBPeriph_GPIOC
-
-#define LED2_GPIO   GPIOC
-#define LED2_PIN    Pin_13
-#define LED2_PERIPHERAL RCC_AHBPeriph_GPIOC
-
-#define BEEP_GPIO   GPIOB
-#define BEEP_PIN    Pin_13
-#define BEEP_PERIPHERAL RCC_AHBPeriph_GPIOB
+#define BEEPER PB13
 #define BEEPER_INVERTED
 
 #define MPU6500_CS_GPIO_CLK_PERIPHERAL   RCC_AHBPeriph_GPIOA
@@ -48,9 +31,16 @@
 #define MPU6500_CS_PIN                   GPIO_Pin_4
 #define MPU6500_SPI_INSTANCE             SPI1
 
+#define USE_EXTI
+#define MPU_INT_EXTI PA5
+ 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 
+#define SPI1_NSS_GPIO           GPIOA
+#define SPI1_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOA
+#define SPI1_NSS_PIN            GPIO_Pin_4
+#define SPI1_NSS_PIN_SOURCE     GPIO_PinSource4
 #define SPI1_GPIO               GPIOB
 #define SPI1_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOB
 #define SPI1_SCK_PIN            GPIO_Pin_3
@@ -78,26 +68,18 @@
 #define ENSURE_MPU_DATA_READY_IS_LOW
 
 // External I2C BARO
-#define BARO
-#define USE_BARO_MS5611
+//#define BARO
+//#define USE_BARO_MS5611
 
 // External I2C MAG
-#define MAG
-#define USE_MAG_HMC5883
-#define USE_MAG_AK8975
+//#define MAG
+//#define USE_MAG_HMC5883
+//#define USE_MAG_AK8975
 //#define MAG_AK8975_ALIGN CW0_DEG_FLIP
 
-#define BEEPER
-#define LED0
-#define LED1
-#define LED2
-
 #define USE_VCP
-#define USE_USART1
-#define USE_USART2
-#define USE_USART3
-#define SERIAL_PORT_COUNT 4
 
+#define USE_USART1
 #define UART1_TX_PIN        GPIO_Pin_4
 #define UART1_RX_PIN        GPIO_Pin_5
 #define UART1_GPIO          GPIOC
@@ -105,13 +87,15 @@
 #define UART1_TX_PINSOURCE  GPIO_PinSource4
 #define UART1_RX_PINSOURCE  GPIO_PinSource5
 
-#define UART2_TX_PIN        GPIO_Pin_14
-#define UART2_RX_PIN        GPIO_Pin_15
+#define USE_USART2
+#define UART2_TX_PIN        GPIO_Pin_14 //PA14
+#define UART2_RX_PIN        GPIO_Pin_15 //PA15
 #define UART2_GPIO          GPIOA
 #define UART2_GPIO_AF       GPIO_AF_7
 #define UART2_TX_PINSOURCE  GPIO_PinSource14
 #define UART2_RX_PINSOURCE  GPIO_PinSource15
 
+#define USE_USART3
 #define UART3_TX_PIN        GPIO_Pin_10
 #define UART3_RX_PIN        GPIO_Pin_11
 #define UART3_GPIO          GPIOB
@@ -119,27 +103,16 @@
 #define UART3_TX_PINSOURCE  GPIO_PinSource10
 #define UART3_RX_PINSOURCE  GPIO_PinSource11
 
+#define SERIAL_PORT_COUNT 4
+
 #define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
 
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_2)
 
-#define I2C2_SCL_GPIO        GPIOA
-#define I2C2_SCL_GPIO_AF     GPIO_AF_4
-#define I2C2_SCL_PIN         GPIO_Pin_9
-#define I2C2_SCL_PIN_SOURCE  GPIO_PinSource9
-#define I2C2_SCL_CLK_SOURCE  RCC_AHBPeriph_GPIOA
-#define I2C2_SDA_GPIO        GPIOA
-#define I2C2_SDA_GPIO_AF     GPIO_AF_4
-#define I2C2_SDA_PIN         GPIO_Pin_10
-#define I2C2_SDA_PIN_SOURCE  GPIO_PinSource10
-#define I2C2_SDA_CLK_SOURCE  RCC_AHBPeriph_GPIOA
-
-#define USE_BST
-#define BST_DEVICE (BSTDEV_1)
-/* Configure the CRC peripheral to use the polynomial x8 + x7 + x6 + x4 + x2 + 1 */
-#define BST_CRC_POLYNOM			 0xD5
+#define I2C2_SCL         PA9
+#define I2C2_SDA         PA10
 
 #define USE_ADC
 
@@ -166,6 +139,8 @@
 #define BLACKBOX
 #define GPS
 #define GTUNE
+
+
 #define LED_STRIP
 
 #define LED_STRIP_TIMER TIM16
@@ -185,3 +160,19 @@
 #define SERIAL_RX
 #define USE_SERVOS
 #define USE_CLI
+
+#define SPEKTRUM_BIND
+// USART1
+#define BIND_PORT  GPIOC
+#define BIND_PIN   Pin_5
+
+#define USE_SERIAL_1WIRE
+// USART2, RX is on USART1
+#define S1W_TX_GPIO         GPIOB
+#define S1W_TX_PIN          GPIO_Pin_10
+#define S1W_RX_GPIO         GPIOB
+#define S1W_RX_PIN          GPIO_Pin_11
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff

@@ -22,20 +22,14 @@
 	#define USBD_SERIALNUMBER_STRING "0x8003000"
 #endif
 
-#define LED0_GPIO   GPIOB
-#define LED0_PIN    Pin_3 // PB3 (LED)
-#define LED0_PERIPHERAL RCC_APB2Periph_GPIOB
-#define LED0
-
-#define INVERTER_PIN Pin_2 // PB2 (BOOT1) used as inverter select GPIO
-#define INVERTER_GPIO GPIOB
-#define INVERTER_PERIPHERAL RCC_APB2Periph_GPIOB
+#define LED0 PB3
+#define INVERTER PB2
 #define INVERTER_USART USART1
 
+#define USE_EXTI
+#define MPU_INT_EXTI PA3
 
-#define BEEP_GPIO GPIOA
-#define BEEP_PIN Pin_15 // PA15 (Beeper)
-#define BEEP_PERIPHERAL RCC_APB2Periph_GPIOA
+#define BEEPER PA15
 
 #define MPU6000_CS_GPIO       GPIOA
 #define MPU6000_CS_PIN        GPIO_Pin_4
@@ -75,10 +69,6 @@
 //// External I2C MAG
 //#define MAG
 //#define USE_MAG_HMC5883
-
-#define INVERTER
-//#define BEEPER
-//#define DISPLAY
 
 #define USE_VCP
 #define USE_USART1
@@ -156,3 +146,9 @@
 #define BIND_PIN   Pin_11
 
 #define USE_QUATERNION
+
+#define USE_EXTI
+// IO - from schematics
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC (BIT(14))

@@ -25,7 +25,7 @@
 #include "usbd_conf.h"
 #include "stm32f4xx_conf.h"
 #include "../drivers/nvic.h"
-
+#include "../drivers/io.h"
 
 void USB_OTG_BSP_ConfigVBUS(USB_OTG_CORE_HANDLE *pdev) {
 	(void)pdev;
@@ -81,12 +81,7 @@ void USB_OTG_BSP_Init(USB_OTG_CORE_HANDLE *pdev)
     GPIO_PinAFConfig(GPIOA,GPIO_PinSource12,GPIO_AF_OTG1_FS) ;
 
 #ifdef VBUS_SENSING_ENABLED
-    GPIO_InitStructure.GPIO_Pin = VBUS_SENSING_PIN;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(VBUS_SENSING_GPIO, &GPIO_InitStructure);
+    IOConfigGPIO(IOGetByTag(IO_TAG(VBUS_SENSING_PIN)), IOCFG_IN_FLOATING);
 #endif
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
@@ -140,6 +135,8 @@ void USB_OTG_BSP_EnableInterrupt(USB_OTG_CORE_HANDLE *pdev)
 * @param  usec : Value of delay required in micro sec
 * @retval None
 */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunsafe-loop-optimizations"
 void USB_OTG_BSP_uDelay (const uint32_t usec)
 {
   uint32_t count = 0;
@@ -153,7 +150,7 @@ void USB_OTG_BSP_uDelay (const uint32_t usec)
   }
   while (1);
 }
-
+#pragma GCC diagnostic pop
 
 /**
 * @brief  USB_OTG_BSP_mDelay

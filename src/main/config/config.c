@@ -462,13 +462,12 @@ static void resetConf(void)
 
     resetTelemetryConfig(&masterConfig.telemetryConfig);
 
-#if defined(REVO) || defined(SPARKY2) || defined(REVONANO) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
-    masterConfig.rxConfig.serialrx_provider = 2;
-    masterConfig.rf_loop_ctrl = 4;                 // Low DLPF, 1KHz
+#ifdef CONFIG_SERIALRX_PROVIDER
+	masterConfig.rxConfig.serialrx_provider = CONFIG_SERIALRX_PROVIDER;
 #else
     masterConfig.rxConfig.serialrx_provider = 0;
-    masterConfig.rf_loop_ctrl = 4;                 // Low DLPF, 1KHz
 #endif
+	masterConfig.rf_loop_ctrl = 4;                 // Low DLPF, 1KHz
 
 #if defined(CC3D)
     masterConfig.acc_hardware = 0;     // default/autodetect
@@ -604,12 +603,9 @@ static void resetConf(void)
 #endif
 
 #ifdef BLACKBOX
-#if defined(SPRACINGF3)
-    featureSet(FEATURE_BLACKBOX);
-    masterConfig.blackbox_device = 1;
-#elif defined(REVO) || defined(SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
-    featureSet(FEATURE_BLACKBOX);
-    masterConfig.blackbox_device = 1;
+	featureSet(FEATURE_BLACKBOX);
+#ifdef CONFIG_BLACKBOX_DEVICE
+	masterConfig.blackbox_device = CONFIG_BLACKBOX_DEVICE;
 #else
     masterConfig.blackbox_device = 0;
 #endif
@@ -618,29 +614,18 @@ static void resetConf(void)
 #endif
 
 
-#if defined(REVO) || defined(SPARKY2) || defined (REVONANO) || defined(BLUEJAYF4) || defined(VRCORE)
+#ifdef CONFIG_FEATURE_RX_SERIAL
     featureSet(FEATURE_RX_SERIAL);
+#endif
+#ifdef CONFIG_FEATURE_ONESHOT125
     featureSet(FEATURE_ONESHOT125);
 #endif
-#if defined(REVONANO)
-    masterConfig.serialConfig.portConfigs[1].functionMask = FUNCTION_MSP; //default config Fleix port for MSP at 9600 for use with 1wire.
-    masterConfig.serialConfig.portConfigs[1].msp_baudrateIndex = BAUD_9600;
-    masterConfig.serialConfig.portConfigs[2].functionMask = FUNCTION_RX_SERIAL;
+#ifdef CONFIG_MSP_PORT
+    masterConfig.serialConfig.portConfigs[CONFIG_MSP_PORT].functionMask = FUNCTION_MSP; 
+    masterConfig.serialConfig.portConfigs[CONFIG_MSP_PORT].msp_baudrateIndex = BAUD_9600;
 #endif
-#if defined(REVO)
-    masterConfig.serialConfig.portConfigs[1].functionMask = FUNCTION_RX_SERIAL;
-    masterConfig.serialConfig.portConfigs[2].functionMask = FUNCTION_MSP; //default config Fleix port for MSP at 9600 for use with 1wire.
-    masterConfig.serialConfig.portConfigs[2].msp_baudrateIndex = BAUD_9600;
-#endif
-#if defined(SPARKY2)
-    masterConfig.serialConfig.portConfigs[4].functionMask = FUNCTION_RX_SERIAL;
-    masterConfig.serialConfig.portConfigs[3].functionMask = FUNCTION_MSP; //default config Fleix port for MSP at 9600 for use with 1wire.
-    masterConfig.serialConfig.portConfigs[3].msp_baudrateIndex = BAUD_9600;
-#endif
-#if defined(VRCORE)
-    masterConfig.serialConfig.portConfigs[4].functionMask = FUNCTION_RX_SERIAL;
-    masterConfig.serialConfig.portConfigs[1].functionMask = FUNCTION_MSP; //default config Fleix port for MSP at 9600 for use with 1wire.
-    masterConfig.serialConfig.portConfigs[1].msp_baudrateIndex = BAUD_9600;
+#ifdef CONFIG_RX_SERIAL_PORT
+    masterConfig.serialConfig.portConfigs[CONFIG_RX_SERIAL_PORT].functionMask = FUNCTION_RX_SERIAL;
 #endif
 
     // alternative defaults settings for COLIBRI RACE targets
@@ -983,7 +968,7 @@ void validateAndFixConfig(void)
     }
 #endif
 
-#if defined(COLIBRI_RACE)
+#if defined(COLIBRI_RACE) || defined(LUX_RACE)
     masterConfig.serialConfig.portConfigs[0].functionMask = FUNCTION_MSP;
     if(featureConfigured(FEATURE_RX_PARALLEL_PWM) || featureConfigured(FEATURE_RX_MSP)) {
         featureClear(FEATURE_RX_PARALLEL_PWM);

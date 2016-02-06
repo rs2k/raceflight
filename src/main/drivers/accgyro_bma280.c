@@ -26,6 +26,10 @@
 #include "accgyro.h"
 #include "accgyro_bma280.h"
 
+#ifndef BMA280_I2C_INSTANCE
+#define BMA280_I2C_INSTANCE I2C_DEVICE
+#endif
+
 // BMA280, default I2C address mode 0x18
 #define BMA280_ADDRESS     0x18
 #define BMA280_ACC_X_LSB   0x02
@@ -40,7 +44,7 @@ bool bma280Detect(acc_t *acc)
     bool ack = false;
     uint8_t sig = 0;
 
-    ack = i2cRead(BMA280_ADDRESS, 0x00, 1, &sig);
+    ack = i2cRead(BMA280_I2C_INSTANCE, BMA280_ADDRESS, 0x00, 1, &sig);
     if (!ack || sig != 0xFB)
         return false;
 
@@ -51,8 +55,8 @@ bool bma280Detect(acc_t *acc)
 
 static void bma280Init(void)
 {
-    i2cWrite(BMA280_ADDRESS, BMA280_PMU_RANGE, 0x08); // +-8g range
-    i2cWrite(BMA280_ADDRESS, BMA280_PMU_BW, 0x0E); // 500Hz BW
+    i2cWrite(BMA280_I2C_INSTANCE, BMA280_ADDRESS, BMA280_PMU_RANGE, 0x08); // +-8g range
+    i2cWrite(BMA280_I2C_INSTANCE, BMA280_ADDRESS, BMA280_PMU_BW, 0x0E); // 500Hz BW
 
     acc_1G = 512 * 8;
 }
@@ -61,7 +65,7 @@ static bool bma280Read(int16_t *accelData)
 {
     uint8_t buf[6];
 
-    if (!i2cRead(BMA280_ADDRESS, BMA280_ACC_X_LSB, 6, buf)) {
+    if (!i2cRead(BMA280_I2C_INSTANCE, BMA280_ADDRESS, BMA280_ACC_X_LSB, 6, buf)) {
         return false;
     }
 

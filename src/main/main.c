@@ -51,6 +51,8 @@
 #include "drivers/flash_m25p16.h"
 #include "drivers/sonar_hcsr04.h"
 #include "drivers/gyro_sync.h"
+#include "drivers/exti.h"
+#include "drivers/io.h"
 
 #include "rx/rx.h"
 
@@ -193,8 +195,15 @@ void init(void)
     // Latch active features to be used for feature() in the remainder of init().
     latchActiveFeatures();
 
+    // initialize IO (needed for all IO operations)
+    IOInitGlobal();
+	
     ledInit();
-
+    
+#ifdef USE_EXTI
+    EXTIInit();
+#endif
+    
 #ifdef SPEKTRUM_BIND
     if (feature(FEATURE_RX_SERIAL)) {
         switch (masterConfig.rxConfig.serialrx_provider) {
@@ -222,7 +231,6 @@ void init(void)
 #endif
 
     memset(&pwm_params, 0, sizeof(pwm_params));
-
 
 #ifdef SONAR
     const sonarHardware_t *sonarHardware = NULL;
@@ -311,31 +319,29 @@ void init(void)
 
 #ifdef BEEPER
     beeperConfig_t beeperConfig = {
-        .gpioPeripheral = BEEP_PERIPHERAL,
-        .gpioPin = BEEP_PIN,
-        .gpioPort = BEEP_GPIO,
+        .ioTag = IO_TAG(BEEPER),
 #ifdef BEEPER_INVERTED
-        .gpioMode = Mode_Out_PP,
+        .isOD = false,
         .isInverted = true
 #else
-        .gpioMode = Mode_Out_OD,
+        .isOD = true,
         .isInverted = false
 #endif
     };
 #ifdef AFROMINI
-    beeperConfig.gpioMode = Mode_Out_PP;   // AFROMINI override
+    beeperConfig.isOD = false;   // AFROMINI override
     beeperConfig.isInverted = true;
 #endif
 #ifdef NAZE
-    if (hardwareRevision >= NAZE32_REV5) {
+    if (hardwareRevision < NAZE32_REV5) {
         // naze rev4 and below used opendrain to PNP for buzzer. Rev5 and above use PP to NPN.
-        beeperConfig.gpioMode = Mode_Out_PP;
+        beeperConfig.isOD = true;
         beeperConfig.isInverted = true;
     }
 #endif
 #ifdef CC3D
     if (masterConfig.use_buzzer_p6 == 1)
-        beeperConfig.gpioPin = Pin_2;
+        beeperConfig.ioTag = IO_TAG(PA2);
 #endif
 
     beeperInit(&beeperConfig);
@@ -390,11 +396,9 @@ void init(void)
     }
 #else
     i2cInit(I2C_DEVICE);
-#if defined(REVO) || defined(SPARKY2) || defined(BLUEJAYF4)
+#if defined(I2C_DEVICE_EXT)
     if (!doesConfigurationUsePort(SERIAL_PORT_USART3)) {
-#ifdef I2C_DEVICE_EXT
         i2cInit(I2C_DEVICE_EXT);
-#endif
     }
 #endif
 #endif

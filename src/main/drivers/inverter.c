@@ -20,29 +20,24 @@
 
 #include "platform.h"
 
-#ifdef INVERTER
+#ifdef INVERTER  
 
-#include "gpio.h"
+#include "drivers/io.h"
+#include "drivers/io_impl.h"
 
 #include "inverter.h"
 
+static const IO_t pin = DEFIO_IO(INVERTER);
+
 void initInverter(void)
 {
-    struct {
-        GPIO_TypeDef *gpio;
-        gpio_config_t cfg;
-    } gpio_setup = {
-        .gpio = INVERTER_GPIO,
-        // configure for Push-Pull
-        .cfg = { INVERTER_PIN, Mode_Out_PP, Speed_2MHz } 
-    };
+	IOInit(pin, OWNER_SYSTEM, RESOURCE_OUTPUT);
+	IOConfigGPIO(pin, IOCFG_OUT_PP);
+}
 
-#if defined(REVO) || defined(REVONANO) || defined(SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
-    RCC_AHB1PeriphClockCmd(INVERTER_PERIPHERAL, ENABLE);
-#else
-    RCC_APB2PeriphClockCmd(INVERTER_PERIPHERAL, ENABLE);
-#endif
-    gpioInit(gpio_setup.gpio, &gpio_setup.cfg);
+void inverterSet(bool on)
+{
+	IOWrite(pin, on);
 }
 
 #endif
