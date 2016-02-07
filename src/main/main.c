@@ -358,9 +358,9 @@ void init(void)
 #endif
 
 #ifdef USE_SPI
-    spiInit(SPI1);
-    spiInit(SPI2);
-    spiInit(SPI3);
+    spiInit(SPIDEV_1);
+    spiInit(SPIDEV_2);
+    spiInit(SPIDEV_3);
 #endif
 
 #ifdef USE_HARDWARE_REVISION_DETECTION

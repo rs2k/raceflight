@@ -36,8 +36,7 @@
 #define INVERTER PC0 // PC0 used as inverter select GPIO
 #define INVERTER_USART USART1
 
-#define MPU6000_CS_GPIO       GPIOA
-#define MPU6000_CS_PIN        GPIO_Pin_4
+#define MPU6000_CS_PIN        PA4
 #define MPU6000_SPI_INSTANCE  SPI1
 
 #define ACC
@@ -68,8 +67,7 @@
 //#define USE_PITOT_MS4525
 //#define MS4525_BUS I2C_DEVICE_EXT
 
-#define M25P16_CS_GPIO        GPIOB
-#define M25P16_CS_PIN         GPIO_Pin_3
+#define M25P16_CS_PIN         PB3
 #define M25P16_SPI_INSTANCE   SPI3
 
 #define USE_FLASHFS
@@ -106,35 +104,23 @@
 #define USE_SPI_DEVICE_1
 
 #define USE_SPI_DEVICE_3
-#define SPI3_NSS_GPIO           GPIOB
-#define SPI3_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOB
-#define SPI3_NSS_PIN            GPIO_Pin_3
-#define SPI3_NSS_PIN_SOURCE     GPIO_PinSource3
-#define SPI3_GPIO               GPIOC
-#define SPI3_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOC
-#define SPI3_SCK_PIN            GPIO_Pin_10
-#define SPI3_SCK_PIN_SOURCE     GPIO_PinSource10
-#define SPI3_MISO_PIN           GPIO_Pin_11
-#define SPI3_MISO_PIN_SOURCE    GPIO_PinSource11
-#define SPI3_MOSI_PIN           GPIO_Pin_12
-#define SPI3_MOSI_PIN_SOURCE    GPIO_PinSource12
+#define SPI3_NSS_PIN            PB3
+#define SPI3_SCK_PIN            PC10
+#define SPI3_MISO_PIN           PC11
+#define SPI3_MOSI_PIN           PC12
 
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_1)
 
 #define USE_ADC
-
-#define CURRENT_METER_ADC_GPIO      GPIOC
-#define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_1
+#define CURRENT_METER_ADC_PIN       PC1
 #define CURRENT_METER_ADC_CHANNEL   ADC_Channel_11
 
-#define VBAT_ADC_GPIO               GPIOC
-#define VBAT_ADC_GPIO_PIN           GPIO_Pin_2
-#define VBAT_ADC_CHANNEL            ADC_Channel_12
+#define VBAT_ADC_PIN           PC2
+#define VBAT_ADC_CHANNEL       ADC_Channel_12
 
-#define RSSI_ADC_GPIO               GPIOA
-#define RSSI_ADC_GPIO_PIN           GPIO_Pin_0
-#define RSSI_ADC_CHANNEL            ADC_Channel_0
+#define RSSI_ADC_GPIO_PIN      PA0
+#define RSSI_ADC_CHANNEL       ADC_Channel_0
 
 #define SENSORS_SET (SENSOR_ACC)
 

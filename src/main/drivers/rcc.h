@@ -20,5 +20,5 @@ enum rcc_reg {
 typedef uint8_t rccPeriphTag_t;
 
 void RCC_ClockCmd(rccPeriphTag_t periphTag, FunctionalState NewState);
-
+void RCC_ResetCmd(rccPeriphTag_t periphTag, FunctionalState NewState);
 

@@ -26,8 +26,8 @@
 
 #include "bus_i2c.h"
 #include "nvic.h"
-#include "drivers/io_impl.h"
-#include "drivers/rcc.h"
+#include "io_impl.h"
+#include "rcc.h"
 
 #ifndef SOFT_I2C
 
@@ -346,8 +346,8 @@ void i2cInit(I2CDevice device)
 	IO_t scl = IOGetByTag(i2c->scl);
 	IO_t sda = IOGetByTag(i2c->sda);
     
-    IOInit(scl, OWNER_SYSTEM, RESOURCE_IO);
-    IOInit(sda, OWNER_SYSTEM, RESOURCE_IO);
+    IOInit(scl, OWNER_SYSTEM, RESOURCE_I2C);
+    IOInit(sda, OWNER_SYSTEM, RESOURCE_I2C);
 
     // Enable RCC
 	RCC_ClockCmd(i2c->rcc, ENABLE);

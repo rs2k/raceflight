@@ -36,9 +36,7 @@
 #define INVERTER PC15
 #define INVERTER_USART USART2
 
-#define MPU9250_CS_GPIO       GPIOA
-#define MPU9250_CS_PIN        GPIO_Pin_4
-#define MPU9250_CS_GPIO_CLK_PERIPHERAL RCC_AHB1Periph_GPIOA
+#define MPU9250_CS_PIN        PA4
 #define MPU9250_SPI_INSTANCE  SPI1
 
 #define ACC
@@ -61,8 +59,7 @@
 #define USE_BARO_MS5611
 #define USE_BARO_BMP280
 
-#define M25P16_CS_GPIO        GPIOB
-#define M25P16_CS_PIN         GPIO_Pin_12
+#define M25P16_CS_PIN         PB12
 #define M25P16_SPI_INSTANCE   SPI2
 
 #define USE_FLASHFS
@@ -75,7 +72,7 @@
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
 #define EXTI_CALLBACK_HANDLER_COUNT 1 // MPU data ready
-#define MPU_INT_EXTI_CONFIG { RCC_AHB1Periph_GPIOC, Pin_14, GPIOC, IO_TAG(PC14) }
+#define MPU_INT_EXTI    PC14
 #define USE_EXTI
 
 #define USE_VCP
@@ -111,46 +108,32 @@
 #define USE_SPI_DEVICE_1
 
 #define USE_SPI_DEVICE_2
-#define SPI2_NSS_GPIO           GPIOB
-#define SPI2_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOB
-#define SPI2_NSS_PIN            GPIO_Pin_12
-#define SPI2_NSS_PIN_SOURCE     GPIO_PinSource12
-#define SPI2_SCK_GPIO           GPIOB
-#define SPI2_SCK_PERIPHERAL     RCC_AHBPeriph_GPIOB
-#define SPI2_SCK_PIN            GPIO_Pin_13
-#define SPI2_SCK_PIN_SOURCE     GPIO_PinSource13
-#define SPI2_GPIO               GPIOC
-#define SPI2_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOC
-#define SPI2_MISO_PIN           GPIO_Pin_2
-#define SPI2_MISO_PIN_SOURCE    GPIO_PinSource2
-#define SPI2_MOSI_PIN           GPIO_Pin_3
-#define SPI2_MOSI_PIN_SOURCE    GPIO_PinSource3
+#define SPI2_NSS_PIN            PB12
+#define SPI2_SCK_PIN            PB13
+#define SPI2_MISO_PIN           PC2
+#define SPI2_MOSI_PIN           PC3
 
 #define USE_SPI_DEVICE_3
 
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_1)
 //#define I2C_DEVICE_EXT (I2CDEV_2)
-#define I2C1_SCL PB6
-#define I2C1_SDA PB7
+#define I2C1_SCL    PB6
+#define I2C1_SDA    PB7
 
 #define USE_ADC
 //#define BOARD_HAS_VOLTAGE_DIVIDER
 
-#define VBAT_ADC_GPIO               GPIOC
-#define VBAT_ADC_GPIO_PIN           GPIO_Pin_0
+#define VBAT_ADC_PIN                PC0
 #define VBAT_ADC_CHANNEL            ADC_Channel_1
 
-#define CURRENT_METER_ADC_GPIO      GPIOC
-#define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_1
+#define CURRENT_METER_ADC_PIN       PC1
 #define CURRENT_METER_ADC_CHANNEL   ADC_Channel_0
 
-#define RSSI_ADC_GPIO               GPIOC
-#define RSSI_ADC_GPIO_PIN           GPIO_Pin_4
+#define RSSI_ADC_PIN                PC4
 #define RSSI_ADC_CHANNEL            ADC_Channel_4
 
-#define EXTERNAL1_ADC_GPIO          GPIOC
-#define EXTERNAL1_ADC_GPIO_PIN      GPIO_Pin_5
+#define EXTERNAL1_ADC_GPIO_PIN      PC5
 #define EXTERNAL1_ADC_CHANNEL       ADC_Channel_5
 
 // LED strip configuration using RC5 pin.

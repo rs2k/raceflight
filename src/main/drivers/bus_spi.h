@@ -17,6 +17,13 @@
 
 #pragma once
 
+#include <stdint.h>
+#include "io.h"
+#include "rcc.h"
+
+#define SPI_IO_AF_CFG IO_CONFIG(GPIO_Mode_AF, GPIO_Speed_50MHz, GPIO_OType_PP, GPIO_PuPd_NOPULL)
+#define SPI_IO_CS_CFG IO_CONFIG(GPIO_Mode_OUT, GPIO_Speed_50MHz, GPIO_OType_PP, GPIO_PuPd_NOPULL)
+
 #if defined(STM32F40_41xxx) || defined (STM32F411xE)
 
 #define SPI_SLOW_CLOCK      128 //00.65625 MHz
@@ -33,7 +40,26 @@
 
 #endif
 
-bool spiInit(SPI_TypeDef *instance);
+typedef enum SPIDevice {
+    SPIINVALID = -1,
+    SPIDEV_1 = 0,
+    SPIDEV_2,
+    SPIDEV_3,
+    SPIDEV_MAX = SPIDEV_3,
+} SPIDevice;
+
+typedef struct SPIDevice_s {
+    SPI_TypeDef *dev;
+    ioTag_t nss;
+    ioTag_t sck;
+    ioTag_t mosi;
+    ioTag_t miso;
+    rccPeriphTag_t rcc;
+    uint8_t af;
+    volatile uint16_t errorCount;
+} spiDevice_t;
+
+bool spiInit(SPIDevice device);
 void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor);
 uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t in);
 

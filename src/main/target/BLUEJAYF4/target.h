@@ -41,9 +41,7 @@
 #define LED1 PB4
 #define LED2 PB5
 
-#define MPU9250_CS_GPIO_CLK_PERIPHERAL   RCC_AHB1Periph_GPIOC
-#define MPU9250_CS_GPIO       GPIOC
-#define MPU9250_CS_PIN        GPIO_Pin_4
+#define MPU9250_CS_PIN        PC4
 #define MPU9250_SPI_INSTANCE  SPI1
 
 #define ACC
@@ -63,8 +61,7 @@
 #define USE_BARO_MS5611
 #define MS5611_I2C_INSTANCE I2CDEV_1
 
-#define M25P16_CS_GPIO        GPIOB
-#define M25P16_CS_PIN         GPIO_Pin_3
+#define M25P16_CS_PIN         PB3
 #define M25P16_SPI_INSTANCE   SPI3
 
 #define USE_FLASHFS
@@ -104,40 +101,23 @@
 #define USE_SPI
 
 #define USE_SPI_DEVICE_1
-#define SPI1_NSS_GPIO           GPIOC
-#define SPI1_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOC
-#define SPI1_NSS_PIN            GPIO_Pin_4
-#define SPI1_NSS_PIN_SOURCE     GPIO_PinSource4
-#define SPI1_GPIO               GPIOA
-#define SPI1_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOA
-#define SPI1_SCK_PIN            GPIO_Pin_5
-#define SPI1_SCK_PIN_SOURCE     GPIO_PinSource5
-#define SPI1_MISO_PIN           GPIO_Pin_6
-#define SPI1_MISO_PIN_SOURCE    GPIO_PinSource6
-#define SPI1_MOSI_PIN           GPIO_Pin_7
-#define SPI1_MOSI_PIN_SOURCE    GPIO_PinSource7
+#define SPI1_NSS_PIN            PC4
+#define SPI1_SCK_PIN            PA5
+#define SPI1_MISO_PIN           PA6
+#define SPI1_MOSI_PIN           PA7
 
 #define USE_SPI_DEVICE_3
-#define SPI3_NSS_GPIO           GPIOB
-#define SPI3_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOB
-#define SPI3_NSS_PIN            GPIO_Pin_3
-#define SPI3_NSS_PIN_SOURCE     GPIO_PinSource3
-#define SPI3_GPIO               GPIOC
-#define SPI3_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOC
-#define SPI3_SCK_PIN            GPIO_Pin_10
-#define SPI3_SCK_PIN_SOURCE     GPIO_PinSource10
-#define SPI3_MISO_PIN           GPIO_Pin_11
-#define SPI3_MISO_PIN_SOURCE    GPIO_PinSource11
-#define SPI3_MOSI_PIN           GPIO_Pin_12
-#define SPI3_MOSI_PIN_SOURCE    GPIO_PinSource12
+#define SPI3_NSS_PIN            PB3
+#define SPI3_SCK_PIN            PC10
+#define SPI3_MISO_PIN           PC11
+#define SPI3_MOSI_PIN           PC12
 
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_1)
 
 #define USE_ADC
-#define VBAT_ADC_GPIO               GPIOC
-#define VBAT_ADC_GPIO_PIN           GPIO_Pin_3
-#define VBAT_ADC_CHANNEL            ADC_Channel_13
+#define VBAT_ADC_PIN           PC3
+#define VBAT_ADC_CHANNEL       ADC_Channel_13
 
 #define GPS
 #define BLACKBOX

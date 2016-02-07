@@ -37,9 +37,7 @@
 #define INVERTER PC15
 #define INVERTER_USART USART2 //Sbus on USART 2 of nano.
 
-#define MPU9250_CS_GPIO_CLK_PERIPHERAL   RCC_AHB1Periph_GPIOB
-#define MPU9250_CS_GPIO       GPIOB
-#define MPU9250_CS_PIN        GPIO_Pin_12
+#define MPU9250_CS_PIN        PB12
 #define MPU9250_SPI_INSTANCE  SPI2
 
 #define ACC
@@ -62,7 +60,7 @@
 #define USE_MPU_DATA_READY_SIGNAL
 //#define ENSURE_MPU_DATA_READY_IS_LOW
 #define EXTI_CALLBACK_HANDLER_COUNT 1 // MPU data ready (mag disabled)
-#define MPU_INT_EXTI_CONFIG { RCC_AHB1Periph_GPIOA, Pin_15, GPIOA, IO_TAG(PA15) }
+#define MPU_INT_EXTI    PA15
 #define USE_EXTI
 
 #define USABLE_TIMER_CHANNEL_COUNT 13
@@ -91,18 +89,15 @@
 #define USE_ADC
 
 //FLEXI-IO	6
-#define CURRENT_METER_ADC_GPIO      GPIOA
-#define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_7
+#define CURRENT_METER_ADC_PIN       PA7
 #define CURRENT_METER_ADC_CHANNEL   ADC_Channel_7
 
 //FLEXI-IO	7
-#define VBAT_ADC_GPIO               GPIOA
-#define VBAT_ADC_GPIO_PIN           GPIO_Pin_6
+#define VBAT_ADC_PIN                PA6
 #define VBAT_ADC_CHANNEL            ADC_Channel_6
 
 //FLEXI-IO	8
-#define RSSI_ADC_GPIO               GPIOA
-#define RSSI_ADC_GPIO_PIN           GPIO_Pin_5
+#define RSSI_ADC_PIN                PA5
 #define RSSI_ADC_CHANNEL            ADC_Channel_5
 
 

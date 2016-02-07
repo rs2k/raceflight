@@ -22,423 +22,149 @@
 
 #include "build_config.h"
 
-#include "gpio.h"
-
 #include "bus_spi.h"
+#include "io.h"
+#include "io_impl.h"
+#include "rcc.h"
 
-static volatile uint16_t spi1ErrorCount = 0;
-static volatile uint16_t spi2ErrorCount = 0;
-#if defined(STM32F303xC) || defined(STM32F40_41xxx) || defined(STM32F411xE)
-static volatile uint16_t spi3ErrorCount = 0;
-#endif
-
-#ifdef USE_SPI_DEVICE_1
-
-#ifndef SPI1_GPIO
-#define SPI1_NSS_GPIO           GPIOA
-#define SPI1_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOA
-#define SPI1_NSS_PIN            GPIO_Pin_4
-#define SPI1_NSS_PIN_SOURCE     GPIO_PinSource4
-#define SPI1_GPIO               GPIOA
-#define SPI1_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOA
-#define SPI1_SCK_PIN            GPIO_Pin_5
-#define SPI1_SCK_PIN_SOURCE     GPIO_PinSource5
-#define SPI1_MISO_PIN           GPIO_Pin_6
-#define SPI1_MISO_PIN_SOURCE    GPIO_PinSource6
-#define SPI1_MOSI_PIN           GPIO_Pin_7
-#define SPI1_MOSI_PIN_SOURCE    GPIO_PinSource7
-#endif
+/* for F30x processors */
 #ifndef GPIO_AF_SPI1
-#define GPIO_AF_SPI1			GPIO_AF_5
-#endif
-
-void initSpi1(void)
-{
-    // SPI1 Driver
-    // PA4    SPI1_NSS
-    // PA5    SPI1_SCK
-    // PA6    SPI1_MISO
-    // PA7    SPI1_MOSI
-
-    SPI_InitTypeDef spi;
-
-    // Enable SPI1 clock
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
-    RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI1, ENABLE);
-
-#ifdef STM32F303xC
-    GPIO_InitTypeDef GPIO_InitStructure;
-
-    RCC_AHBPeriphClockCmd(SPI1_GPIO_PERIPHERAL, ENABLE);
-
-    GPIO_PinAFConfig(SPI1_GPIO, SPI1_SCK_PIN_SOURCE, GPIO_AF_SPI1);
-    GPIO_PinAFConfig(SPI1_GPIO, SPI1_MISO_PIN_SOURCE, GPIO_AF_SPI1);
-    GPIO_PinAFConfig(SPI1_GPIO, SPI1_MOSI_PIN_SOURCE, GPIO_AF_SPI1);
-
-    // Init pins
-    GPIO_InitStructure.GPIO_Pin = SPI1_SCK_PIN | SPI1_MISO_PIN | SPI1_MOSI_PIN;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(SPI1_GPIO, &GPIO_InitStructure);
-
-#ifdef SPI1_NSS_PIN
-    RCC_AHBPeriphClockCmd(SPI1_NSS_PERIPHERAL, ENABLE);
-
-    GPIO_PinAFConfig(SPI1_GPIO, SPI1_NSS_PIN_SOURCE, GPIO_AF_SPI1);
-
-    GPIO_InitStructure.GPIO_Pin = SPI1_NSS_PIN;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-
-    GPIO_Init(SPI1_NSS_GPIO, &GPIO_InitStructure);
-#endif
-
-#else
-    gpio_config_t gpio;
-    // SCK + MISO + MOSI as alternate function
-    gpio.mode = Mode_AF_PP;
-    gpio.speed = Speed_50MHz;
-    gpio.pin = SPI1_SCK_PIN | SPI1_MISO_PIN | SPI1_MOSI_PIN;
-    gpioInit(SPI1_GPIO, &gpio);
-
-#if defined(STM32F303xC) || defined(STM32F40_41xxx) || defined(STM32F411xE)
-    GPIO_PinAFConfig(SPI1_GPIO, SPI1_SCK_PIN_SOURCE, GPIO_AF_SPI1);
-    GPIO_PinAFConfig(SPI1_GPIO, SPI1_MISO_PIN_SOURCE, GPIO_AF_SPI1);
-    GPIO_PinAFConfig(SPI1_GPIO, SPI1_MOSI_PIN_SOURCE, GPIO_AF_SPI1);
-#endif
-#ifdef SPI1_NSS_PIN
-    // NSS as gpio slave select
-    gpio.mode = Mode_Out_PP;
-    gpio.pin = SPI1_NSS_PIN;
-    gpioInit(SPI1_NSS_GPIO, &gpio);
-
-#if defined(STM32F303xC) || defined(STM32F40_41xxx) || defined(STM32F411xE)
-    GPIO_PinAFConfig(SPI1_NSS_GPIO, SPI1_NSS_PIN_SOURCE, GPIO_AF_SPI1);
-#endif
-#endif
-#endif
-
-    // Init SPI1 hardware
-    SPI_I2S_DeInit(SPI1);
-
-    spi.SPI_Mode = SPI_Mode_Master;
-    spi.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
-    spi.SPI_DataSize = SPI_DataSize_8b;
-    spi.SPI_NSS = SPI_NSS_Soft;
-    spi.SPI_FirstBit = SPI_FirstBit_MSB;
-    spi.SPI_CRCPolynomial = 7;
-    spi.SPI_CPOL = SPI_CPOL_High;
-    spi.SPI_CPHA = SPI_CPHA_2Edge;
-    spi.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8;
-
-#ifdef STM32F303xC
-    // Configure for 8-bit reads.
-    SPI_RxFIFOThresholdConfig(SPI1, SPI_RxFIFOThreshold_QF);
-#endif
-
-    SPI_Init(SPI1, &spi);
-    SPI_Cmd(SPI1, ENABLE);
-
-#ifdef SPI1_NSS_PIN
-    // Drive NSS high to disable connected SPI device.
-    GPIO_SetBits(SPI1_NSS_GPIO, SPI1_NSS_PIN);
-#endif
-}
-#endif
-
-#ifdef USE_SPI_DEVICE_2
-
-#ifndef SPI2_GPIO
-#define SPI2_NSS_GPIO           GPIOB
-#define SPI2_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOB
-#define SPI2_NSS_PIN            GPIO_Pin_12
-#define SPI2_NSS_PIN_SOURCE     GPIO_PinSource12
-#define SPI2_SCK_GPIO           GPIOB
-#define SPI2_SCK_PERIPHERAL     RCC_AHBPeriph_GPIOB
-#define SPI2_SCK_PIN            GPIO_Pin_13
-#define SPI2_SCK_PIN_SOURCE     GPIO_PinSource13
-#define SPI2_GPIO               GPIOB
-#define SPI2_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOB
-#define SPI2_MISO_PIN           GPIO_Pin_14
-#define SPI2_MISO_PIN_SOURCE    GPIO_PinSource14
-#define SPI2_MOSI_PIN           GPIO_Pin_15
-#define SPI2_MOSI_PIN_SOURCE    GPIO_PinSource15
+#define GPIO_AF_SPI1    GPIO_AF_5
 #endif
 #ifndef GPIO_AF_SPI2
-#define GPIO_AF_SPI2			GPIO_AF_5
+#define GPIO_AF_SPI2    GPIO_AF_5
+#endif
+#ifndef GPIO_AF_SPI3
+#define GPIO_AF_SPI3	GPIO_AF_5
 #endif
 
-void initSpi2(void)
+#ifndef SPI1_SCK_PIN
+#define SPI1_NSS_PIN    PA4
+#define SPI1_SCK_PIN    PA5
+#define SPI1_MISO_PIN   PA6
+#define SPI1_MOSI_PIN   PA7
+#endif
+
+#ifndef SPI2_SCK_PIN
+#define SPI2_NSS_PIN    PB12
+#define SPI2_SCK_PIN    PB13
+#define SPI2_MISO_PIN   PB14
+#define SPI2_MOSI_PIN   PB15
+#endif
+
+#ifndef SPI3_SCK_PIN
+#define SPI3_NSS_PIN    PA15
+#define SPI3_SCK_PIN    PB3
+#define SPI3_MISO_PIN   PB4
+#define SPI3_MOSI_PIN   PB5
+#endif
+
+static spiDevice_t spiHardwareMap[] = {
+    { .dev = SPI1, .nss = IO_TAG(SPI1_NSS_PIN), .sck = IO_TAG(SPI1_SCK_PIN), .miso = IO_TAG(SPI1_MISO_PIN), .mosi = IO_TAG(SPI1_MOSI_PIN), .rcc = RCC_APB2(SPI1), .af = GPIO_AF_SPI1 },
+    { .dev = SPI2, .nss = IO_TAG(SPI2_NSS_PIN), .sck = IO_TAG(SPI2_SCK_PIN), .miso = IO_TAG(SPI2_MISO_PIN), .mosi = IO_TAG(SPI2_MOSI_PIN), .rcc = RCC_APB1(SPI2), .af = GPIO_AF_SPI2 },
+#if defined(STM32F40_41xxx) || defined(STM32F411xE)
+    { .dev = SPI3, .nss = IO_TAG(SPI3_NSS_PIN), .sck = IO_TAG(SPI3_SCK_PIN), .miso = IO_TAG(SPI3_MISO_PIN), .mosi = IO_TAG(SPI3_MOSI_PIN), .rcc = RCC_APB1(SPI3), .af = GPIO_AF_SPI3 }
+#endif
+};
+
+SPIDevice spiDeviceByInstance(SPI_TypeDef *instance)
 {
-    // SPI2 Driver
-    // PB12     SPI2_NSS
-    // PB13     SPI2_SCK
-    // PB14     SPI2_MISO
-    // PB15     SPI2_MOSI
+    if (instance == SPI1) 
+        return SPIDEV_1;
+    
+    if (instance == SPI2)
+        return SPIDEV_2;
+    
+    if (instance == SPI3)
+        return SPIDEV_3;
+    
+    return SPIINVALID;
+}
 
-    SPI_InitTypeDef spi;
+void spiInitDevice(SPIDevice device)
+{
+    SPI_InitTypeDef spiInit;
 
-    // Enable SPI2 clock
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
-    RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI2, ENABLE);
+    spiDevice_t *spi = &(spiHardwareMap[device]);
+    
+    // Enable SPI1 clock 
+    RCC_ClockCmd(spi->rcc, ENABLE);
+    RCC_ResetCmd(spi->rcc, ENABLE);
+    
+    IOInit(IOGetByTag(spi->sck), OWNER_SYSTEM, RESOURCE_SPI);
+    IOInit(IOGetByTag(spi->miso), OWNER_SYSTEM, RESOURCE_SPI);
+    IOInit(IOGetByTag(spi->mosi), OWNER_SYSTEM, RESOURCE_SPI);
+    
+    IOConfigGPIOAF(IOGetByTag(spi->sck), SPI_IO_AF_CFG, spi->af);
+    IOConfigGPIOAF(IOGetByTag(spi->miso), SPI_IO_AF_CFG, spi->af);
+    IOConfigGPIOAF(IOGetByTag(spi->mosi), SPI_IO_AF_CFG, spi->af);
+    
+    if (spi->nss)
+        IOConfigGPIOAF(IOGetByTag(spi->nss), SPI_IO_CS_CFG, spi->af);
 
-#ifdef STM32F303xC
-    GPIO_InitTypeDef GPIO_InitStructure;
+    // Init SPI1 hardware
+    SPI_I2S_DeInit(spi->dev);
 
-    RCC_AHBPeriphClockCmd(SPI2_GPIO_PERIPHERAL, ENABLE);
-    RCC_AHBPeriphClockCmd(SPI2_SCK_PERIPHERAL, ENABLE);
-
-    GPIO_PinAFConfig(SPI2_SCK_GPIO, SPI2_SCK_PIN_SOURCE, GPIO_AF_SPI2);
-    GPIO_PinAFConfig(SPI2_GPIO, SPI2_MISO_PIN_SOURCE, GPIO_AF_SPI2);
-    GPIO_PinAFConfig(SPI2_GPIO, SPI2_MOSI_PIN_SOURCE, GPIO_AF_SPI2);
-
-    // Init pins
-    GPIO_InitStructure.GPIO_Pin = SPI2_MISO_PIN | SPI2_MOSI_PIN;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(SPI2_GPIO, &GPIO_InitStructure);
-
-    GPIO_InitStructure.GPIO_Pin = SPI2_SCK_PIN;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(SPI2_SCK_GPIO, &GPIO_InitStructure);
-
-#ifdef SPI2_NSS_PIN
-    RCC_AHBPeriphClockCmd(SPI2_NSS_PERIPHERAL, ENABLE);
-
-    GPIO_PinAFConfig(SPI2_GPIO, SPI2_NSS_PIN_SOURCE, GPIO_AF_SPI2);
-
-    GPIO_InitStructure.GPIO_Pin = SPI2_NSS_PIN;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-
-    GPIO_Init(SPI2_NSS_GPIO, &GPIO_InitStructure);
-#endif
-
-#else
-    gpio_config_t gpio;
-    // SCK as alternative function
-    gpio.mode = Mode_AF_PP;
-    gpio.speed = Speed_50MHz;
-    gpio.pin = SPI2_SCK_PIN;
-    gpioInit(SPI2_SCK_GPIO, &gpio);
-    // MISO + MOSI as alternative function
-    gpio.pin = SPI2_MISO_PIN | SPI2_MOSI_PIN;
-    gpioInit(SPI2_GPIO, &gpio);
-
-#if defined(STM32F303xC) || defined(STM32F40_41xxx) || defined(STM32F411xE)
-    GPIO_PinAFConfig(SPI2_SCK_GPIO, SPI2_SCK_PIN_SOURCE, GPIO_AF_SPI2);
-    GPIO_PinAFConfig(SPI2_GPIO, SPI2_MISO_PIN_SOURCE, GPIO_AF_SPI2);
-    GPIO_PinAFConfig(SPI2_GPIO, SPI2_MOSI_PIN_SOURCE, GPIO_AF_SPI2);
-#endif
-#ifdef SPI2_NSS_PIN
-    // NSS as gpio slave select
-    gpio.mode = Mode_Out_PP;
-    gpio.pin = SPI2_NSS_PIN;
-    gpioInit(SPI2_NSS_GPIO, &gpio);
-
-#if defined(STM32F303xC) || defined(STM32F40_41xxx) || defined(STM32F411xE)
-    GPIO_PinAFConfig(SPI2_NSS_GPIO, SPI2_NSS_PIN_SOURCE, GPIO_AF_SPI2);
-#endif
-#endif
-#endif
-
-    // Init SPI2 hardware
-    SPI_I2S_DeInit(SPI2);
-
-    spi.SPI_Mode = SPI_Mode_Master;
-    spi.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
-    spi.SPI_DataSize = SPI_DataSize_8b;
-    spi.SPI_NSS = SPI_NSS_Soft;
-    spi.SPI_FirstBit = SPI_FirstBit_MSB;
-    spi.SPI_CRCPolynomial = 7;
-    spi.SPI_CPOL = SPI_CPOL_High;
-    spi.SPI_CPHA = SPI_CPHA_2Edge;
-    spi.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8;
+    spiInit.SPI_Mode = SPI_Mode_Master;
+    spiInit.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
+    spiInit.SPI_DataSize = SPI_DataSize_8b;
+    spiInit.SPI_NSS = SPI_NSS_Soft;
+    spiInit.SPI_FirstBit = SPI_FirstBit_MSB;
+    spiInit.SPI_CRCPolynomial = 7;
+    spiInit.SPI_CPOL = SPI_CPOL_High;
+    spiInit.SPI_CPHA = SPI_CPHA_2Edge;
+    spiInit.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8;
 
 #ifdef STM32F303xC
     // Configure for 8-bit reads.
-    SPI_RxFIFOThresholdConfig(SPI2, SPI_RxFIFOThreshold_QF);
+    SPI_RxFIFOThresholdConfig(spi->dev, SPI_RxFIFOThreshold_QF);
 #endif
 
-    SPI_Init(SPI2, &spi);
-    SPI_Cmd(SPI2, ENABLE);
+    SPI_Init(spi->dev, &spiInit);
+    SPI_Cmd(spi->dev, ENABLE);
 
-#ifdef SPI2_NSS_PIN
-    // Drive NSS high to disable connected SPI device.
-    GPIO_SetBits(SPI2_NSS_GPIO, SPI2_NSS_PIN);
-#endif
+    if (spi->nss)
+        IOHi(IOGetByTag(spi->nss));
 }
-#endif
 
-#if defined(USE_SPI_DEVICE_3) && (defined(STM32F303xC) || defined(STM32F40_41xxx) || defined(STM32F411xE))
-
-#ifndef SPI3_GPIO
-#define SPI3_NSS_GPIO           GPIOA
-#define SPI3_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOA
-#define SPI3_NSS_PIN            GPIO_Pin_15
-#define SPI3_NSS_PIN_SOURCE     GPIO_PinSource15
-#define SPI3_GPIO               GPIOB
-#define SPI3_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOB
-#define SPI3_SCK_PIN            GPIO_Pin_3
-#define SPI3_SCK_PIN_SOURCE     GPIO_PinSource3
-#define SPI3_MISO_PIN           GPIO_Pin_4
-#define SPI3_MISO_PIN_SOURCE    GPIO_PinSource4
-#define SPI3_MOSI_PIN           GPIO_Pin_5
-#define SPI3_MOSI_PIN_SOURCE    GPIO_PinSource5
-#endif
-
-void initSpi3(void)
+bool spiInit(SPIDevice device)
 {
-    // SPI3 Driver
-    // PA15   SPI3_NSS
-    // PC10   SPI3_SCK
-    // PC11   SPI3_MISO
-    // PC12   SPI3_MOSI
-
-    SPI_InitTypeDef spi;
-
-    // Enable SPI3 clock
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI3, ENABLE);
-    RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI3, ENABLE);
-
-#ifdef STM32F303xC
-    GPIO_InitTypeDef GPIO_InitStructure;
-
-    RCC_AHBPeriphClockCmd(SPI3_GPIO_PERIPHERAL, ENABLE);
-
-    GPIO_PinAFConfig(SPI3_GPIO, SPI3_SCK_PIN_SOURCE, GPIO_AF_SPI3);
-    GPIO_PinAFConfig(SPI3_GPIO, SPI3_MISO_PIN_SOURCE, GPIO_AF_SPI3);
-    GPIO_PinAFConfig(SPI3_GPIO, SPI3_MOSI_PIN_SOURCE, GPIO_AF_SPI3);
-
-    // Init pins
-    GPIO_InitStructure.GPIO_Pin = SPI3_SCK_PIN | SPI3_MISO_PIN | SPI3_MOSI_PIN;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(SPI3_GPIO, &GPIO_InitStructure);
-
-#ifdef SPI3_NSS_PIN
-    RCC_AHBPeriphClockCmd(SPI3_NSS_PERIPHERAL, ENABLE);
-
-    GPIO_PinAFConfig(SPI3_NSS_GPIO, SPI3_NSS_PIN_SOURCE, GPIO_AF_SPI3);
-
-    GPIO_InitStructure.GPIO_Pin = SPI3_NSS_PIN;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-
-    GPIO_Init(SPI3_NSS_GPIO, &GPIO_InitStructure);
-#endif
-
-#else
-    gpio_config_t gpio;
-    // SCK + MISO + MOSI as alternative function
-    gpio.mode = Mode_AF_PP;
-    gpio.speed = Speed_50MHz;
-    gpio.pin = SPI3_SCK_PIN | SPI3_MISO_PIN | SPI3_MOSI_PIN;
-    gpioInit(SPI3_GPIO, &gpio);
-
-#if defined(STM32F303xC) || defined(STM32F40_41xxx) || defined(STM32F411xE)
-    GPIO_PinAFConfig(SPI3_GPIO, SPI3_SCK_PIN_SOURCE, GPIO_AF_SPI3);
-    GPIO_PinAFConfig(SPI3_GPIO, SPI3_MISO_PIN_SOURCE, GPIO_AF_SPI3);
-    GPIO_PinAFConfig(SPI3_GPIO, SPI3_MOSI_PIN_SOURCE, GPIO_AF_SPI3);
-#endif
-#ifdef SPI3_NSS_PIN
-    // NSS as gpio slave select
-    gpio.mode = Mode_Out_PP;
-    gpio.pin = SPI3_NSS_PIN;
-    gpioInit(SPI3_NSS_GPIO, &gpio);
-
-#if defined(STM32F303xC) || defined(STM32F40_41xxx) || defined(STM32F411xE)
-    GPIO_PinAFConfig(SPI3_NSS_GPIO, SPI3_NSS_PIN_SOURCE, GPIO_AF_SPI3);
-#endif
-#endif
-#endif
-
-    // Init SPI hardware
-    SPI_I2S_DeInit(SPI3);
-
-    spi.SPI_Mode = SPI_Mode_Master;
-    spi.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
-    spi.SPI_DataSize = SPI_DataSize_8b;
-    spi.SPI_NSS = SPI_NSS_Soft;
-    spi.SPI_FirstBit = SPI_FirstBit_MSB;
-    spi.SPI_CRCPolynomial = 7;
-    spi.SPI_CPOL = SPI_CPOL_High;
-    spi.SPI_CPHA = SPI_CPHA_2Edge;
-    spi.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8;
-
-#ifdef STM32F303xC
-    // Configure for 8-bit reads.
-    SPI_RxFIFOThresholdConfig(SPI3, SPI_RxFIFOThreshold_QF);
-#endif
-
-    SPI_Init(SPI3, &spi);
-    SPI_Cmd(SPI3, ENABLE);
-
-#ifdef SPI3_NSS_PIN
-    // Drive NSS high to disable connected SPI device.
-    GPIO_SetBits(SPI3_NSS_GPIO, SPI3_NSS_PIN);
-#endif
-}
-#endif
-
-bool spiInit(SPI_TypeDef *instance)
-{
-#if (!(defined(USE_SPI_DEVICE_1) && defined(USE_SPI_DEVICE_2) && defined(USE_SPI_DEVICE_3)))
-    UNUSED(instance);
-#endif
-
+    switch (device)
+    {
+    case SPIINVALID:
+        return false;
+    case SPIDEV_1:
 #ifdef USE_SPI_DEVICE_1
-    if (instance == SPI1) {
-        initSpi1();
+	    spiInitDevice(device);
         return true;
-    }
+#else
+        break;
 #endif
+    case SPIDEV_2:
 #ifdef USE_SPI_DEVICE_2
-    if (instance == SPI2) {
-        initSpi2();
+	    spiInitDevice(device);
         return true;
-    }
+#else
+        break;
 #endif
+    case SPIDEV_3:
 #if defined(USE_SPI_DEVICE_3) && (defined(STM32F303xC) || defined(STM32F40_41xxx) || defined(STM32F411xE))
-
-    if (instance == SPI3) {
-        initSpi3();
+	    spiInitDevice(device);
         return true;
-    }
+#else
+        break;
 #endif
+    }
     return false;
 }
 
 uint32_t spiTimeoutUserCallback(SPI_TypeDef *instance)
 {
-    if (instance == SPI1) {
-        spi1ErrorCount++;
-        return spi1ErrorCount;
-    } else if (instance == SPI2) {
-        spi2ErrorCount++;
-        return spi2ErrorCount;
-#if defined(STM32F303xC) || defined(STM32F40_41xxx) || defined(STM32F411xE)
-    } else if (instance == SPI3) {
-        spi3ErrorCount++;
-        return spi3ErrorCount;
-#endif
-    }
-    return -1;
+    SPIDevice device = spiDeviceByInstance(instance);
+    if (device == SPIINVALID)
+        return -1;
+    spiHardwareMap[device].errorCount++;
+    return spiHardwareMap[device].errorCount;
 }
 
 // return uint8_t value or -1 when failure
@@ -562,28 +288,16 @@ void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor)
 
 uint16_t spiGetErrorCounter(SPI_TypeDef *instance)
 {
-    if (instance == SPI1) {
-        return spi1ErrorCount;
-    } else if (instance == SPI2) {
-        return spi2ErrorCount;
-#if defined(STM32F303xC) || defined(STM32F40_41xxx) || defined(STM32F411xE)
-    } else if (instance == SPI3) {
-        return spi3ErrorCount;
-#endif
-    }
-    return 0;
+    SPIDevice device = spiDeviceByInstance(instance);
+    if (device == SPIINVALID)
+        return 0;
+    return spiHardwareMap[device].errorCount;
 }
 
 void spiResetErrorCounter(SPI_TypeDef *instance)
 {
-    if (instance == SPI1) {
-        spi1ErrorCount = 0;
-    } else if (instance == SPI2) {
-        spi2ErrorCount = 0;
-#if defined(STM32F303xC) || defined(STM32F40_41xxx) || defined(STM32F411xE)
-    } else if (instance == SPI3) {
-        spi3ErrorCount = 0;
-#endif
-    }
+    SPIDevice device = spiDeviceByInstance(instance);
+    if (device != SPIINVALID)
+        spiHardwareMap[device].errorCount = 0;
 }
 
