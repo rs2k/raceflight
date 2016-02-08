@@ -25,6 +25,7 @@
 #include "usbd_req.h"
 #include "usbd_conf.h"
 #include "usb_regs.h"
+#include "platform.h"
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
   * @{
@@ -56,13 +57,24 @@
   * @{
   */ 
 #define USBD_LANGID_STRING              0x409
-#define USBD_MANUFACTURER_STRING        "Mystic Engineering"
+#define USBD_MANUFACTURER_STRING        "RaceFlight"
 
-#define USBD_PRODUCT_HS_STRING          "STM32 Virtual ComPort in HS mode"
-#define USBD_SERIALNUMBER_HS_STRING     "00000000050B"
+#ifdef USBD_PRODUCT_STRING
+  #define USBD_PRODUCT_HS_STRING          USBD_PRODUCT_STRING
+  #define USBD_PRODUCT_FS_STRING          USBD_PRODUCT_STRING
+#else
+  #define USBD_PRODUCT_HS_STRING          "STM32 Virtual ComPort in HS mode"
+  #define USBD_PRODUCT_FS_STRING          "STM32 Virtual ComPort in FS Mode"
+#endif /* USBD_PRODUCT_STRING */
 
-#define USBD_PRODUCT_FS_STRING          "STM32 Virtual ComPort in FS Mode"
-#define USBD_SERIALNUMBER_FS_STRING     "00000000050C"
+#ifdef USBD_SERIALNUMBER_STRING
+  #define USBD_SERIALNUMBER_HS_STRING          USBD_SERIALNUMBER_STRING
+  #define USBD_SERIALNUMBER_FS_STRING          USBD_SERIALNUMBER_STRING
+#else
+  // start of STM32 flash
+  #define USBD_SERIALNUMBER_HS_STRING     "0x8000000"
+  #define USBD_SERIALNUMBER_FS_STRING     "0x8000000"
+#endif /* USBD_SERIALNUMBER_STRING */
 
 #define USBD_CONFIGURATION_HS_STRING    "VCP Config"
 #define USBD_INTERFACE_HS_STRING        "VCP Interface"

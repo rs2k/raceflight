@@ -19,6 +19,8 @@
 
 #define TARGET_BOARD_IDENTIFIER "AWF3" // AlienWii32 F3.
 
+#define USBD_PRODUCT_STRING "AlienWii32 F3"
+
 #define LED0_GPIO   GPIOB
 #define LED0_PIN    Pin_4 // Blue LEDs - PB4
 #define LED0_PERIPHERAL RCC_AHBPeriph_GPIOB

@@ -17,6 +17,11 @@
 
 #define TARGET_BOARD_IDENTIFIER "AFF3" // AFro F3
 
+#define USBD_PRODUCT_STRING "Naze32 Pro"
+#ifdef OPBL
+	#define USBD_SERIALNUMBER_STRING "0x800C000"
+#endif
+
 #pragma once
 
 #define LED0_GPIO   GPIOB

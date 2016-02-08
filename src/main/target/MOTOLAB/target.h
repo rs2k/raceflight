@@ -18,6 +18,9 @@
 #pragma once
 
 #define TARGET_BOARD_IDENTIFIER "MOTO" // MotoLab
+
+#define USBD_PRODUCT_STRING "Motolab"
+
 #define USE_CLI
 
 #define LED0_GPIO   GPIOB
