@@ -18,30 +18,25 @@
 #pragma once
 #define TARGET_BOARD_IDENTIFIER "REVO"
 #define CONFIG_START_FLASH_ADDRESS (0x08080000) //0x08080000 to 0x080A0000 (FLASH_Sector_8)
+#define CONFIG_SERIALRX_PROVIDER 2
+#define CONFIG_BLACKBOX_DEVICE 1
+#define CONFIG_FEATURE_RX_SERIAL
+#define CONFIG_FEATURE_ONESHOT125
+#define CONFIG_MSP_PORT 2
+#define CONFIG_RX_SERIAL_PORT 1
 
 #define USBD_PRODUCT_STRING "Revolution"
 #ifdef OPBL
 	#define USBD_SERIALNUMBER_STRING "0x8020000"
 #endif
 
-#define LED0_GPIO   GPIOB
-#define LED0_PIN    Pin_5 // Blue LEDs - PB5
-#define LED0_PERIPHERAL RCC_AHB1Periph_GPIOB
-#define LED1_GPIO   GPIOB
-#define LED1_PIN    Pin_4  // Orange LEDs - PB4
-#define LED1_PERIPHERAL RCC_AHB1Periph_GPIOB
-
-#define BEEP_GPIO GPIOB
-#define BEEP_PIN Pin_4 // PA2 (Beeper)
-#define BEEP_PERIPHERAL RCC_AHB1Periph_GPIOB
-
-#define INVERTER_PIN Pin_0 // PC0 used as inverter select GPIO
-#define INVERTER_GPIO GPIOC
-#define INVERTER_PERIPHERAL RCC_AHB1Periph_GPIOC
+#define LED0 PB5
+#define LED1 PB4
+#define BEEPER PB4
+#define INVERTER PC0 // PC0 used as inverter select GPIO
 #define INVERTER_USART USART1
 
-#define MPU6000_CS_GPIO       GPIOA
-#define MPU6000_CS_PIN        GPIO_Pin_4
+#define MPU6000_CS_PIN        PA4
 #define MPU6000_SPI_INSTANCE  SPI1
 
 #define ACC
@@ -55,7 +50,8 @@
 // MPU6000 interrupts
 #define USE_MPU_DATA_READY_SIGNAL
 #define EXTI_CALLBACK_HANDLER_COUNT 2 // MPU data ready (mag disabled)
-#define MPU_INT_EXTI_CONFIG { RCC_AHB1Periph_GPIOC, Pin_4, GPIOC, EXTI_PortSourceGPIOC, EXTI_Line4, EXTI_PinSource4, EXTI4_IRQn }
+#define MPU_INT_EXTI PC4
+#define USE_EXTI
 
 #define MAG
 #define USE_MAG_HMC5883
@@ -71,13 +67,7 @@
 //#define USE_PITOT_MS4525
 //#define MS4525_BUS I2C_DEVICE_EXT
 
-#define INVERTER
-#define BEEPER
-#define LED0
-#define LED1
-
-#define M25P16_CS_GPIO        GPIOB
-#define M25P16_CS_PIN         GPIO_Pin_3
+#define M25P16_CS_PIN         PB3
 #define M25P16_SPI_INSTANCE   SPI3
 
 #define USE_FLASHFS
@@ -86,29 +76,20 @@
 #define USABLE_TIMER_CHANNEL_COUNT 12
 
 #define USE_VCP
-#define VBUS_SENSING_PIN GPIO_Pin_5
-#define VBUS_SENSING_GPIO GPIOC
+#define VBUS_SENSING_PIN PC5
 
 #define USE_USART1
-#define USART1_RX_PIN Pin_10
-#define USART1_TX_PIN Pin_9
-#define USART1_GPIO GPIOA
-#define USART1_APB2_PERIPHERALS RCC_APB2Periph_USART1
-#define USART1_AHB1_PERIPHERALS RCC_AHB1Periph_GPIOA|RCC_AHB1Periph_DMA2
+#define USART1_RX_PIN PA10
+#define USART1_TX_PIN PA9
+#define USART1_AHB1_PERIPHERALS RCC_AHB1Periph_DMA2
 
 #define USE_USART3
-#define USART3_RX_PIN Pin_11
-#define USART3_TX_PIN Pin_10
-#define USART3_GPIO GPIOB
-#define USART3_APB1_PERIPHERALS RCC_APB1Periph_USART3
-#define USART3_AHB1_PERIPHERALS RCC_AHB1Periph_GPIOB
+#define USART3_RX_PIN PB11
+#define USART3_TX_PIN PB10
 
 #define USE_USART6
-#define USART6_RX_PIN Pin_7
-#define USART6_TX_PIN Pin_6
-#define USART6_GPIO GPIOC
-#define USART6_APB2_PERIPHERALS RCC_APB2Periph_USART6
-#define USART6_AHB1_PERIPHERALS RCC_AHB1Periph_GPIOC
+#define USART6_RX_PIN PC7
+#define USART6_TX_PIN PC6
 
 #define SERIAL_PORT_COUNT 4 //VCP, USART1, USART3, USART6
 
@@ -123,35 +104,23 @@
 #define USE_SPI_DEVICE_1
 
 #define USE_SPI_DEVICE_3
-#define SPI3_NSS_GPIO           GPIOB
-#define SPI3_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOB
-#define SPI3_NSS_PIN            GPIO_Pin_3
-#define SPI3_NSS_PIN_SOURCE     GPIO_PinSource3
-#define SPI3_GPIO               GPIOC
-#define SPI3_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOC
-#define SPI3_SCK_PIN            GPIO_Pin_10
-#define SPI3_SCK_PIN_SOURCE     GPIO_PinSource10
-#define SPI3_MISO_PIN           GPIO_Pin_11
-#define SPI3_MISO_PIN_SOURCE    GPIO_PinSource11
-#define SPI3_MOSI_PIN           GPIO_Pin_12
-#define SPI3_MOSI_PIN_SOURCE    GPIO_PinSource12
+#define SPI3_NSS_PIN            PB3
+#define SPI3_SCK_PIN            PC10
+#define SPI3_MISO_PIN           PC11
+#define SPI3_MOSI_PIN           PC12
 
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_1)
 
 #define USE_ADC
-
-#define CURRENT_METER_ADC_GPIO      GPIOC
-#define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_1
+#define CURRENT_METER_ADC_PIN       PC1
 #define CURRENT_METER_ADC_CHANNEL   ADC_Channel_11
 
-#define VBAT_ADC_GPIO               GPIOC
-#define VBAT_ADC_GPIO_PIN           GPIO_Pin_2
-#define VBAT_ADC_CHANNEL            ADC_Channel_12
+#define VBAT_ADC_PIN           PC2
+#define VBAT_ADC_CHANNEL       ADC_Channel_12
 
-#define RSSI_ADC_GPIO               GPIOA
-#define RSSI_ADC_GPIO_PIN           GPIO_Pin_0
-#define RSSI_ADC_CHANNEL            ADC_Channel_0
+#define RSSI_ADC_GPIO_PIN      PA0
+#define RSSI_ADC_CHANNEL       ADC_Channel_0
 
 #define SENSORS_SET (SENSOR_ACC)
 
@@ -167,3 +136,8 @@
 #define USE_CLI
 
 #define USE_QUATERNION
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTD 0xffff

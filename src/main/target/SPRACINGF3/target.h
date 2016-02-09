@@ -19,25 +19,20 @@
 
 #define TARGET_BOARD_IDENTIFIER "SRF3"
 
-#define LED0_GPIO   GPIOB
-#define LED0_PIN    Pin_3
-#define LED0_PERIPHERAL RCC_AHBPeriph_GPIOB
-
-#define BEEP_GPIO   GPIOC
-#define BEEP_PIN    Pin_15
-#define BEEP_PERIPHERAL RCC_AHBPeriph_GPIOC
+#define LED0 PB3
+#define BEEPER PC15
 #define BEEPER_INVERTED
 
 #define USABLE_TIMER_CHANNEL_COUNT 17
 
+#define USE_EXTI
+#define MPU_INT_EXTI PC13
 #define EXTI_CALLBACK_HANDLER_COUNT 2 // MPU data ready and MAG data ready
-
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
 
 #define USE_MAG_DATA_READY_SIGNAL
 #define ENSURE_MAG_DATA_READY_IS_HIGH
-
 
 #define GYRO
 #define USE_GYRO_MPU6050
@@ -61,8 +56,6 @@
 #define USE_FLASH_M25P16
 
 #define SONAR
-#define BEEPER
-#define LED0
 
 #define USE_USART1
 #define USE_USART2
@@ -184,3 +177,9 @@
 #define S1W_TX_PIN          GPIO_Pin_9
 #define S1W_RX_GPIO         GPIOA
 #define S1W_RX_PIN          GPIO_Pin_10
+
+// IO - stm32f303cc in 48pin package
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC (BIT(13)|BIT(14)|BIT(15))
+#define TARGET_IO_PORTF (BIT(0)|BIT(1)|BIT(3)|BIT(4))

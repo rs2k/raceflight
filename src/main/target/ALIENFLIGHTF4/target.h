@@ -19,29 +19,24 @@
 #define TARGET_BOARD_IDENTIFIER "AFF4"
 
 #define CONFIG_START_FLASH_ADDRESS (0x08080000) //0x08080000 to 0x080A0000 (FLASH_Sector_8)
+#define CONFIG_SERIALRX_PROVIDER 2
+#define CONFIG_BLACKBOX_DEVICE 1
+#define CONFIG_FEATURE_RX_SERIAL
+#define CONFIG_FEATURE_ONESHOT125
+#define CONFIG_MSP_PORT 1
+//#define CONFIG_RX_SERIAL_PORT 2
 
 #define USBD_PRODUCT_STRING "AlienFlightF4"
 
-#define LED0_GPIO   GPIOC
-#define LED0_PIN    Pin_12 // Blue LED0
-#define LED0_PERIPHERAL RCC_AHB1Periph_GPIOC
-#define LED1_GPIO   GPIOD
-#define LED1_PIN    Pin_2  // Blue LED1
-#define LED1_PERIPHERAL RCC_AHB1Periph_GPIOD
+#define LED0 PC12
+#define LED1 PD2
 
-#define BEEP_GPIO   GPIOC
-#define BEEP_PIN    Pin_13 // Buzzer port
-#define BEEP_PERIPHERAL RCC_AHB1Periph_GPIOC
-//#define BEEPER_INVERTED
+#define BEEPER PC13
 
-#define INVERTER_GPIO GPIOC
-#define INVERTER_PIN Pin_15 // PC15 used as inverter select GPIO
-#define INVERTER_PERIPHERAL RCC_AHB1Periph_GPIOC
+#define INVERTER PC15
 #define INVERTER_USART USART2
 
-#define MPU9250_CS_GPIO       GPIOA
-#define MPU9250_CS_PIN        GPIO_Pin_4
-#define MPU9250_CS_GPIO_CLK_PERIPHERAL RCC_AHB1Periph_GPIOA
+#define MPU9250_CS_PIN        PA4
 #define MPU9250_SPI_INSTANCE  SPI1
 
 #define ACC
@@ -64,13 +59,7 @@
 #define USE_BARO_MS5611
 #define USE_BARO_BMP280
 
-#define INVERTER
-#define BEEPER
-#define LED0
-#define LED1
-
-#define M25P16_CS_GPIO        GPIOB
-#define M25P16_CS_PIN         GPIO_Pin_12
+#define M25P16_CS_PIN         PB12
 #define M25P16_SPI_INSTANCE   SPI2
 
 #define USE_FLASHFS
@@ -83,45 +72,31 @@
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
 #define EXTI_CALLBACK_HANDLER_COUNT 1 // MPU data ready
-#define MPU_INT_EXTI_CONFIG { RCC_AHB1Periph_GPIOC, Pin_14, GPIOC, EXTI_PortSourceGPIOC, EXTI_Line14, EXTI_PinSource14, EXTI15_10_IRQn }
+#define MPU_INT_EXTI    PC14
+#define USE_EXTI
 
 #define USE_VCP
 
 #define USE_USART1
-#define USART1_RX_PIN Pin_10
-#define USART1_TX_PIN Pin_9
-#define USART1_GPIO GPIOA
-#define USART1_APB2_PERIPHERALS RCC_APB2Periph_USART1
-#define USART1_AHB1_PERIPHERALS RCC_AHB1Periph_GPIOA|RCC_AHB1Periph_DMA2
+#define USART1_RX_PIN PA10
+#define USART1_TX_PIN PA9
+#define USART1_AHB1_PERIPHERALS RCC_AHB1Periph_DMA2
 
 #define USE_USART2
-#define USART2_RX_PIN Pin_3
-#define USART2_TX_PIN Pin_2 //inverter
-#define USART2_GPIO GPIOA
-#define USART2_APB1_PERIPHERALS RCC_APB1Periph_USART2
-#define USART2_AHB1_PERIPHERALS RCC_AHB1Periph_GPIOA
+#define USART2_RX_PIN PA3
+#define USART2_TX_PIN PA2 //inverter
 
 #define USE_USART3
-#define USART3_RX_PIN Pin_11
-#define USART3_TX_PIN Pin_10
-#define USART3_GPIO GPIOB
-#define USART3_APB1_PERIPHERALS RCC_APB1Periph_USART3
-#define USART3_AHB1_PERIPHERALS RCC_AHB1Periph_GPIOB
+#define USART3_RX_PIN PB11
+#define USART3_TX_PIN PB10
 
 #define USE_USART4
-#define USART4_RX_PIN Pin_10
-#define USART4_TX_PIN Pin_11
-#define USART4_GPIO GPIOC
-#define USART4_APB1_PERIPHERALS RCC_APB1Periph_UART4
-#define USART4_AHB1_PERIPHERALS RCC_AHB1Periph_GPIOC
+#define USART4_RX_PIN PC10
+#define USART4_TX_PIN PC11
 
 //#define USE_USART5
-//#define USART5_RX_PIN Pin_2
-//#define USART5_RXGPIO GPIOD
-//#define USART5_TX_PIN Pin_12
-//#define USART5_TXGPIO GPIOC
-//#define USART5_APB1_PERIPHERALS RCC_APB1Periph_UART5
-//#define USART5_AHB1_PERIPHERALS RCC_AHB1Periph_GPIOC
+//#define USART5_RX_PIN PD2
+//#define USART5_TX_PIN PC12
 
 #define SERIAL_PORT_COUNT 5
 
@@ -133,52 +108,32 @@
 #define USE_SPI_DEVICE_1
 
 #define USE_SPI_DEVICE_2
-#define SPI2_NSS_GPIO           GPIOB
-#define SPI2_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOB
-#define SPI2_NSS_PIN            GPIO_Pin_12
-#define SPI2_NSS_PIN_SOURCE     GPIO_PinSource12
-#define SPI2_SCK_GPIO           GPIOB
-#define SPI2_SCK_PERIPHERAL     RCC_AHBPeriph_GPIOB
-#define SPI2_SCK_PIN            GPIO_Pin_13
-#define SPI2_SCK_PIN_SOURCE     GPIO_PinSource13
-#define SPI2_GPIO               GPIOC
-#define SPI2_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOC
-#define SPI2_MISO_PIN           GPIO_Pin_2
-#define SPI2_MISO_PIN_SOURCE    GPIO_PinSource2
-#define SPI2_MOSI_PIN           GPIO_Pin_3
-#define SPI2_MOSI_PIN_SOURCE    GPIO_PinSource3
+#define SPI2_NSS_PIN            PB12
+#define SPI2_SCK_PIN            PB13
+#define SPI2_MISO_PIN           PC2
+#define SPI2_MOSI_PIN           PC3
 
 #define USE_SPI_DEVICE_3
 
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_1)
 //#define I2C_DEVICE_EXT (I2CDEV_2)
-#define I2C1_SCL_GPIO        GPIOB
-#define I2C1_SCL_PIN         GPIO_Pin_6
-#define I2C1_SCL_PIN_SOURCE  GPIO_PinSource6
-#define I2C1_SCL_CLK_SOURCE  RCC_AHB1Periph_GPIOB
-#define I2C1_SDA_GPIO        GPIOB
-#define I2C1_SDA_PIN         GPIO_Pin_7
-#define I2C1_SDA_PIN_SOURCE  GPIO_PinSource7
-#define I2C1_SDA_CLK_SOURCE  RCC_AHB1Periph_GPIOB
+#define I2C1_SCL    PB6
+#define I2C1_SDA    PB7
 
 #define USE_ADC
 //#define BOARD_HAS_VOLTAGE_DIVIDER
 
-#define VBAT_ADC_GPIO               GPIOC
-#define VBAT_ADC_GPIO_PIN           GPIO_Pin_0
+#define VBAT_ADC_PIN                PC0
 #define VBAT_ADC_CHANNEL            ADC_Channel_1
 
-#define CURRENT_METER_ADC_GPIO      GPIOC
-#define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_1
+#define CURRENT_METER_ADC_PIN       PC1
 #define CURRENT_METER_ADC_CHANNEL   ADC_Channel_0
 
-#define RSSI_ADC_GPIO               GPIOC
-#define RSSI_ADC_GPIO_PIN           GPIO_Pin_4
+#define RSSI_ADC_PIN                PC4
 #define RSSI_ADC_CHANNEL            ADC_Channel_4
 
-#define EXTERNAL1_ADC_GPIO          GPIOC
-#define EXTERNAL1_ADC_GPIO_PIN      GPIO_Pin_5
+#define EXTERNAL1_ADC_GPIO_PIN      PC5
 #define EXTERNAL1_ADC_CHANNEL       ADC_Channel_5
 
 // LED strip configuration using RC5 pin.
@@ -226,3 +181,8 @@
 #define S1W_RX_PIN          GPIO_Pin_10
 
 #define USE_QUATERNION
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTD 0xffff

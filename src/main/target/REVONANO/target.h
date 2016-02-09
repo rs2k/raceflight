@@ -19,31 +19,25 @@
 #define TARGET_BOARD_IDENTIFIER "REVN"
 
 #define CONFIG_START_FLASH_ADDRESS (0x08060000) //0x08060000 to 0x08080000 (FLASH_Sector_7)
+#define CONFIG_SERIALRX_PROVIDER 2
+#define CONFIG_BLACKBOX_DEVICE 1
+#define CONFIG_FEATURE_RX_SERIAL
+#define CONFIG_FEATURE_ONESHOT125
+#define CONFIG_MSP_PORT 1
+#define CONFIG_RX_SERIAL_PORT 2
 
 #define USBD_PRODUCT_STRING "Revo Nano"
 #ifdef OPBL
 	#define USBD_SERIALNUMBER_STRING "0x8010000"
 #endif
 
-#define LED0_GPIO   GPIOC
-#define LED0_PIN    Pin_14 // Blue LEDs - PC14
-#define LED0_PERIPHERAL RCC_AHB1Periph_GPIOC
-#define LED1_GPIO   GPIOC
-#define LED1_PIN    Pin_13  // Orange LEDs - PC13
-#define LED1_PERIPHERAL RCC_AHB1Periph_GPIOC
-
-#define BEEP_GPIO GPIOC
-#define BEEP_PIN Pin_13 // Orange LEDs - PC13
-#define BEEP_PERIPHERAL RCC_AHB1Periph_GPIOC
-
-#define INVERTER_PIN Pin_15 // PC15 used as inverter select GPIO
-#define INVERTER_GPIO GPIOC
-#define INVERTER_PERIPHERAL RCC_AHB1Periph_GPIOC
+#define LED0 PC14
+#define LED1 PC13
+#define BEEPER PC13
+#define INVERTER PC15
 #define INVERTER_USART USART2 //Sbus on USART 2 of nano.
 
-#define MPU9250_CS_GPIO_CLK_PERIPHERAL   RCC_AHB1Periph_GPIOB
-#define MPU9250_CS_GPIO       GPIOB
-#define MPU9250_CS_PIN        GPIO_Pin_12
+#define MPU9250_CS_PIN        PB12
 #define MPU9250_SPI_INSTANCE  SPI2
 
 #define ACC
@@ -62,36 +56,25 @@
 #define BARO
 #define USE_BARO_MS5611
 
-#define INVERTER
-#define BEEPER
-#define LED0
-#define LED1
-
 // MPU9250 interrupts
 #define USE_MPU_DATA_READY_SIGNAL
 //#define ENSURE_MPU_DATA_READY_IS_LOW
 #define EXTI_CALLBACK_HANDLER_COUNT 1 // MPU data ready (mag disabled)
-#define MPU_INT_EXTI_CONFIG { RCC_AHB1Periph_GPIOA, Pin_15, GPIOA, EXTI_PortSourceGPIOA, EXTI_Line15, EXTI_PinSource15, EXTI15_10_IRQn }
+#define MPU_INT_EXTI    PA15
+#define USE_EXTI
 
 #define USABLE_TIMER_CHANNEL_COUNT 13
 
 #define USE_VCP
-#define VBUS_SENSING_PIN GPIO_Pin_9
-#define VBUS_SENSING_GPIO GPIOA
+#define VBUS_SENSING_PIN PA9
 
 #define USE_USART1
-#define USART1_RX_PIN Pin_7
-#define USART1_TX_PIN Pin_6
-#define USART1_GPIO GPIOB
-#define USART1_APB2_PERIPHERALS RCC_APB2Periph_USART1
-#define USART1_AHB1_PERIPHERALS RCC_AHB1Periph_GPIOB
+#define USART1_RX_PIN PB7
+#define USART1_TX_PIN PB6
 
 #define USE_USART2
-#define USART2_RX_PIN Pin_3
-#define USART2_TX_PIN Pin_2
-#define USART2_GPIO GPIOA
-#define USART2_APB1_PERIPHERALS RCC_APB1Periph_USART2
-#define USART2_AHB1_PERIPHERALS RCC_AHB1Periph_GPIOA
+#define USART2_RX_PIN PA3
+#define USART2_TX_PIN PA2
 
 #define SERIAL_PORT_COUNT 3 //VCP, USART1, USART2
 
@@ -106,18 +89,15 @@
 #define USE_ADC
 
 //FLEXI-IO	6
-#define CURRENT_METER_ADC_GPIO      GPIOA
-#define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_7
+#define CURRENT_METER_ADC_PIN       PA7
 #define CURRENT_METER_ADC_CHANNEL   ADC_Channel_7
 
 //FLEXI-IO	7
-#define VBAT_ADC_GPIO               GPIOA
-#define VBAT_ADC_GPIO_PIN           GPIO_Pin_6
+#define VBAT_ADC_PIN                PA6
 #define VBAT_ADC_CHANNEL            ADC_Channel_6
 
 //FLEXI-IO	8
-#define RSSI_ADC_GPIO               GPIOA
-#define RSSI_ADC_GPIO_PIN           GPIO_Pin_5
+#define RSSI_ADC_PIN                PA5
 #define RSSI_ADC_CHANNEL            ADC_Channel_5
 
 
@@ -143,3 +123,7 @@
 #define S1W_RX_PIN          GPIO_Pin_7
 
 #define USE_QUATERNION
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff

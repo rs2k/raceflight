@@ -23,6 +23,9 @@
 
 #define USBD_PRODUCT_STRING "TBS Colibri Race"
 
+#define USE_EXTI
+#define MPU_INT_EXTI PA5
+
 #define LED0_GPIO   GPIOC
 #define LED0_PIN    Pin_15
 #define LED0_PERIPHERAL RCC_AHBPeriph_GPIOC

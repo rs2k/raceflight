@@ -30,7 +30,8 @@
 
 #include "system.h"
 #include "gpio.h"
-#include "exti.h"
+#include "drivers/io.h"
+#include "drivers/exti.h"
 #include "bus_i2c.h"
 #include "gyro_sync.h"
 
@@ -60,6 +61,9 @@ static volatile bool mpuDataReady;
 static bool detectSPISensorsAndUpdateDetectionResult(void);
 #endif
 
+#ifndef MPU_I2C_INSTANCE
+#define MPU_I2C_INSTANCE I2C_DEVICE
+#endif
 mpuDetectionResult_t mpuDetectionResult;
 
 mpuConfiguration_t mpuConfiguration;
@@ -94,10 +98,10 @@ mpuDetectionResult_t *detectMpu(const extiConfig_t *configToUse)
     ack = mpuReadRegisterI2C(MPU_RA_WHO_AM_I, 1, &sig);
 #endif
     if (ack) {
-    	mpuConfiguration.read = mpuReadRegisterI2C;
-		mpuConfiguration.write = mpuWriteRegisterI2C;
-		mpuConfiguration.slowread = mpuReadRegisterI2C;
-		mpuConfiguration.verifywrite = mpuWriteRegisterI2C;
+        mpuConfiguration.read = mpuReadRegisterI2C;
+        mpuConfiguration.write = mpuWriteRegisterI2C;
+        mpuConfiguration.slowread = mpuReadRegisterI2C;
+        mpuConfiguration.verifywrite = mpuWriteRegisterI2C;
     } else {
 #ifdef USE_SPI
         bool detectedSpiSensor = detectSPISensorsAndUpdateDetectionResult();
@@ -160,15 +164,15 @@ static bool detectSPISensorsAndUpdateDetectionResult(void)
 #endif
 
 #ifdef USE_GYRO_SPI_MPU9250
-	if (mpu9250SpiDetect()) {
-		mpuDetectionResult.sensor = MPU_9250_SPI;
-		mpuConfiguration.gyroReadXRegister = MPU_RA_GYRO_XOUT_H;
-		mpuConfiguration.read = mpu9250ReadRegister;
+    if (mpu9250SpiDetect()) {
+        mpuDetectionResult.sensor = MPU_9250_SPI;
+        mpuConfiguration.gyroReadXRegister = MPU_RA_GYRO_XOUT_H;
+        mpuConfiguration.read = mpu9250ReadRegister;
         mpuConfiguration.slowread = mpu9250SlowReadRegister;
         mpuConfiguration.verifywrite = verifympu9250WriteRegister;
-		mpuConfiguration.write = mpu9250WriteRegister;
-		return true;
-	}
+        mpuConfiguration.write = mpu9250WriteRegister;
+        return true;
+    }
 #endif
 
     return false;
@@ -212,130 +216,61 @@ static void mpu6050FindRevision(void)
     }
 }
 
-void MPU_DATA_READY_EXTI_Handler(void)
+extiCallbackRec_t mpuIntCallbackRec;
+
+void mpuIntExtiHandler(extiCallbackRec_t *cb)
 {
-    if (EXTI_GetITStatus(mpuIntExtiConfig->exti_line) != RESET) {
-        EXTI_ClearITPendingBit(mpuIntExtiConfig->exti_line);
+    UNUSED(cb);
+    mpuDataReady = true;
 
 #ifdef DEBUG_MPU_DATA_READY_INTERRUPT
-		static uint32_t lastCalledAt = 0;
-		uint32_t now = micros();
+        static uint32_t lastCalledAt = 0;
+        uint32_t now = micros();
         uint32_t callDelta = now - lastCalledAt;
-		debug[0] = callDelta;
-		lastCalledAt = now;
+        debug[0] = callDelta;
+        lastCalledAt = now;
 #endif
-
-		mpuDataReady = true;
-    }
-}
-
-void configureMPUDataReadyInterruptHandling(void)
-{
-#if defined(USE_MPU_DATA_READY_SIGNAL) 
-
-#ifdef STM32F10X
-    // enable AFIO for EXTI support
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
-#endif
-
-#ifdef STM32F303xC
-    /* Enable SYSCFG clock otherwise the EXTI irq handlers are not called */
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-#endif
-
-#if defined(STM32F40_41xxx) || defined (STM32F411xE)
-    RCC_APB2PeriphClockCmd(mpuIntExtiConfig->gpioAHB1Peripherals, ENABLE);
-
-    /* Enable SYSCFG clock otherwise the EXTI irq handlers are not called */
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-#endif
-
-#ifdef STM32F10X
-    gpioExtiLineConfig(mpuIntExtiConfig->exti_port_source, mpuIntExtiConfig->exti_pin_source);
-#endif
-
-#ifdef STM32F303xC
-    gpioExtiLineConfig(mpuIntExtiConfig->exti_port_source, mpuIntExtiConfig->exti_pin_source);
-#endif
-
-#if defined(STM32F40_41xxx) || defined (STM32F411xE)
-    gpioExtiLineConfig(mpuIntExtiConfig->exti_port_source, mpuIntExtiConfig->exti_pin_source);
-#endif
-
-#ifdef ENSURE_MPU_DATA_READY_IS_LOW
-    uint8_t status = GPIO_ReadInputDataBit(mpuIntExtiConfig->gpioPort, mpuIntExtiConfig->gpioPin);
-    if (status) {
-        return;
-    }
-#endif
-
-#endif
-
-    registerExtiCallbackHandler(mpuIntExtiConfig->exti_irqn, MPU_DATA_READY_EXTI_Handler);
-
-    EXTI_ClearITPendingBit(mpuIntExtiConfig->exti_line);
-
-    EXTI_InitTypeDef EXTIInit;
-    EXTIInit.EXTI_Line = mpuIntExtiConfig->exti_line;
-    EXTIInit.EXTI_Mode = EXTI_Mode_Interrupt;
-    EXTIInit.EXTI_Trigger = EXTI_Trigger_Rising;
-    EXTIInit.EXTI_LineCmd = ENABLE;
-    EXTI_Init(&EXTIInit);
-
-    NVIC_InitTypeDef NVIC_InitStructure;
-
-    NVIC_InitStructure.NVIC_IRQChannel = mpuIntExtiConfig->exti_irqn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MPU_DATA_READY);
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_SUB(NVIC_PRIO_MPU_DATA_READY);
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
 }
 
 void mpuIntExtiInit(void)
 {
-    gpio_config_t gpio;
-
     static bool mpuExtiInitDone = false;
 
     if (mpuExtiInitDone || !mpuIntExtiConfig) {
         return;
     }
 
-#if defined(STM32F40_41xxx) || defined (STM32F411xE)
-        if (mpuIntExtiConfig->gpioAHB1Peripherals) {
-            RCC_AHB1PeriphClockCmd(mpuIntExtiConfig->gpioAHB1Peripherals, ENABLE);
-        }
-#endif
-#ifdef STM32F303
-        if (mpuIntExtiConfig->gpioAHBPeripherals) {
-            RCC_AHBPeriphClockCmd(mpuIntExtiConfig->gpioAHBPeripherals, ENABLE);
-        }
-#endif
-#ifdef STM32F10X
-        if (mpuIntExtiConfig->gpioAPB2Peripherals) {
-            RCC_APB2PeriphClockCmd(mpuIntExtiConfig->gpioAPB2Peripherals, ENABLE);
-        }
+#ifdef USE_MPU_DATA_READY_SIGNAL 
+
+	IO_t mpuIntIO = IOGetByTag(mpuIntExtiConfig->io);
+	
+#ifdef ENSURE_MPU_DATA_READY_IS_LOW
+	uint8_t status = IORead(mpuIntIO);
+	if (status) {
+		return;
+	}
 #endif
 
-    gpio.pin = mpuIntExtiConfig->gpioPin;
-    gpio.speed = Speed_2MHz;
-    gpio.mode = Mode_IN_FLOATING;
-    gpioInit(mpuIntExtiConfig->gpioPort, &gpio);
+    IOInit(mpuIntIO, OWNER_SYSTEM, RESOURCE_INPUT | RESOURCE_EXTI);
+	IOConfigGPIO(mpuIntIO, IOCFG_IN_FLOATING);   // TODO - maybe pullup / pulldown ?
 
-    configureMPUDataReadyInterruptHandling();
-
+	EXTIHandlerInit(&mpuIntCallbackRec, mpuIntExtiHandler);
+	EXTIConfig(mpuIntIO, &mpuIntCallbackRec, NVIC_PRIO_MPU_INT_EXTI, EXTI_Trigger_Rising);
+	EXTIEnable(mpuIntIO, true);
+#endif
+    
     mpuExtiInitDone = true;
 }
 
 static bool mpuReadRegisterI2C(uint8_t reg, uint8_t length, uint8_t* data)
 {
-    bool ack = i2cRead(MPU_ADDRESS, reg, length, data);
+    bool ack = i2cRead(MPU_I2C_INSTANCE, MPU_ADDRESS, reg, length, data);
     return ack;
 }
 
 static bool mpuWriteRegisterI2C(uint8_t reg, uint8_t data)
 {
-    bool ack = i2cWrite(MPU_ADDRESS, reg, data);
+    bool ack = i2cWrite(MPU_I2C_INSTANCE, MPU_ADDRESS, reg, data);
     return ack;
 }
 
@@ -357,16 +292,16 @@ bool mpuAccRead(int16_t *accData)
 
 bool mpuGyroRead(int16_t *gyroADC)
 {
-	uint8_t data[6];
+    uint8_t data[6];
 
-	bool ack = mpuConfiguration.read(mpuConfiguration.gyroReadXRegister, 6, data);
-	if (!ack) {
-		return false;
-	}
+    bool ack = mpuConfiguration.read(mpuConfiguration.gyroReadXRegister, 6, data);
+    if (!ack) {
+        return false;
+    }
 
-	gyroADC[0] = (int16_t)((data[0] << 8) | data[1]);
-	gyroADC[1] = (int16_t)((data[2] << 8) | data[3]);
-	gyroADC[2] = (int16_t)((data[4] << 8) | data[5]);
+    gyroADC[0] = (int16_t)((data[0] << 8) | data[1]);
+    gyroADC[1] = (int16_t)((data[2] << 8) | data[3]);
+    gyroADC[2] = (int16_t)((data[4] << 8) | data[5]);
 
     return true;
 }

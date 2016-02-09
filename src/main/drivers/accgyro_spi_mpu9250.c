@@ -33,8 +33,9 @@
 #include "common/axis.h"
 #include "common/maths.h"
 
+#include "io.h"
+
 #include "system.h"
-#include "gpio.h"
 #include "exti.h"
 #include "bus_spi.h"
 #include "gyro_sync.h"
@@ -49,8 +50,10 @@ static void mpu9250AccAndGyroInit(uint8_t lpf);
 
 static bool mpuSpi9250InitDone = false;
 
-#define DISABLE_MPU9250       GPIO_SetBits(MPU9250_CS_GPIO,   MPU9250_CS_PIN)
-#define ENABLE_MPU9250        GPIO_ResetBits(MPU9250_CS_GPIO, MPU9250_CS_PIN)
+static IO_t mpuSpi9250CsPin;
+
+#define DISABLE_MPU9250       IOHi(mpuSpi9250CsPin)
+#define ENABLE_MPU9250        IOLo(mpuSpi9250CsPin)
 
 void resetGyro (void) {
     // Device Reset
@@ -197,6 +200,11 @@ bool mpu9250SpiDetect(void)
     uint8_t in;
     uint8_t attemptsRemaining = 20;
 
+    /* not the best place for this - should really have an init method */
+	mpuSpi9250CsPin = IOGetByTag(IO_TAG(MPU9250_CS_PIN));
+	IOInit(mpuSpi9250CsPin, OWNER_SYSTEM, RESOURCE_SPI);
+	IOConfigGPIO(mpuSpi9250CsPin, SPI_IO_CS_CFG);
+        
     spiSetDivisor(MPU9250_SPI_INSTANCE, SPI_SLOW_CLOCK); //low speed
     mpu9250WriteRegister(MPU_RA_PWR_MGMT_1, MPU9250_BIT_RESET);
 

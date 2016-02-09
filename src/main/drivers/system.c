@@ -32,76 +32,6 @@
 #include "system.h"
 #include "debug.h"
 
-#ifndef EXTI_CALLBACK_HANDLER_COUNT
-#define EXTI_CALLBACK_HANDLER_COUNT 1
-#endif
-
-typedef struct extiCallbackHandlerConfig_s {
-    IRQn_Type irqn;
-    extiCallbackHandlerFunc* fn;
-} extiCallbackHandlerConfig_t;
-
-static extiCallbackHandlerConfig_t extiHandlerConfigs[EXTI_CALLBACK_HANDLER_COUNT];
-
-void registerExtiCallbackHandler(IRQn_Type irqn, extiCallbackHandlerFunc *fn)
-{
-    for (int index = 0; index < EXTI_CALLBACK_HANDLER_COUNT; index++) {
-        extiCallbackHandlerConfig_t *candidate = &extiHandlerConfigs[index];
-        if (!candidate->fn) {
-            candidate->fn = fn;
-            candidate->irqn = irqn;
-            return;
-        }
-    }
-    failureMode(FAILURE_DEVELOPER); // EXTI_CALLBACK_HANDLER_COUNT is too low for the amount of handlers required.
-}
-
-void unregisterExtiCallbackHandler(IRQn_Type irqn, extiCallbackHandlerFunc *fn)
-{
-    for (int index = 0; index < EXTI_CALLBACK_HANDLER_COUNT; index++) {
-        extiCallbackHandlerConfig_t *candidate = &extiHandlerConfigs[index];
-        if (candidate->fn == fn && candidate->irqn == irqn) {
-            candidate->fn = NULL;
-            candidate->irqn = 0;
-            return;
-        }
-    }
-}
-
-static void extiHandler(IRQn_Type irqn)
-{
-    for (int index = 0; index < EXTI_CALLBACK_HANDLER_COUNT; index++) {
-        extiCallbackHandlerConfig_t *candidate = &extiHandlerConfigs[index];
-        if (candidate->fn && candidate->irqn == irqn) {
-            candidate->fn();
-        }
-    }
-
-}
-
-void EXTI15_10_IRQHandler(void)
-{
-    extiHandler(EXTI15_10_IRQn);
-}
-#if defined(CC3D)
-void EXTI3_IRQHandler(void)
-{
-    extiHandler(EXTI3_IRQn);
-}
-#endif
-#if defined (COLIBRI_RACE) || defined (SPARKY2) || defined(BLUEJAYF4)
-void EXTI9_5_IRQHandler(void)
-{
-    extiHandler(EXTI9_5_IRQn);
-}
-#endif
-#if defined (REVO)
-void EXTI4_IRQHandler(void) {
-
-    extiHandler(EXTI4_IRQn);
-
-}
-#endif
 
 // cycles per microsecond
 static uint32_t usTicks = 0;
@@ -192,8 +122,6 @@ void systemInit(void)
     // Init cycle counter
     cycleCounterInit();
 
-
-    memset(extiHandlerConfigs, 0x00, sizeof(extiHandlerConfigs));
     // SysTick
     SysTick_Config(SystemCoreClock / 1000);
 }

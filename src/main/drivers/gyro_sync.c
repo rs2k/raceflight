@@ -109,7 +109,7 @@ void gyroUpdateSampleRate(uint8_t lpf) {
     		mpuDividerDropsOverride = false; // do not override mpuDividerDrops
            break;
     }
-#elif defined(REVONANO) || defined(SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
+#elif defined(REVONANO) || defined(SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE) || defined(QUANTON)
     switch (lpf) {
 		case 0:
 		case 1:

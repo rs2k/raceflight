@@ -23,9 +23,9 @@
 
 #ifdef USE_FLASH_M25P16
 
-#include "drivers/flash_m25p16.h"
-#include "drivers/bus_spi.h"
-#include "drivers/system.h"
+#include "flash_m25p16.h"
+#include "bus_spi.h"
+#include "system.h"
 
 #define M25P16_INSTRUCTION_RDID             0x9F
 #define M25P16_INSTRUCTION_READ_BYTES       0x03
@@ -47,8 +47,8 @@
 #define JEDEC_ID_MICRON_N25Q128        0x20ba18
 #define JEDEC_ID_WINBOND_W25Q128       0xEF4018
 
-#define DISABLE_M25P16       GPIO_SetBits(M25P16_CS_GPIO,   M25P16_CS_PIN)
-#define ENABLE_M25P16        GPIO_ResetBits(M25P16_CS_GPIO, M25P16_CS_PIN)
+#define DISABLE_M25P16       IOHi(flashSpim25p16CsPin)
+#define ENABLE_M25P16        IOLo(flashSpim25p16CsPin)
 
 // The timeout we expect between being able to issue page program instructions
 #define DEFAULT_TIMEOUT_MILLIS       6
@@ -58,7 +58,7 @@
 #define BULK_ERASE_TIMEOUT_MILLIS    21000
 
 static flashGeometry_t geometry = {.pageSize = M25P16_PAGESIZE};
-
+static IO_t flashSpim25p16CsPin;
 /*
  * Whether we've performed an action that could have made the device busy for writes.
  *
@@ -195,6 +195,10 @@ static bool m25p16_readIdentification()
  */
 bool m25p16_init()
 {
+	flashSpim25p16CsPin = IOGetByTag(IO_TAG(M25P16_CS_PIN));
+	IOInit(flashSpim25p16CsPin, OWNER_SYSTEM, RESOURCE_SPI);
+	IOConfigGPIO(flashSpim25p16CsPin, SPI_IO_CS_CFG);
+        
     //Maximum speed for standard READ command is 20mHz, other commands tolerate 25mHz
     spiSetDivisor(M25P16_SPI_INSTANCE, SPI_ULTRAFAST_CLOCK);
 

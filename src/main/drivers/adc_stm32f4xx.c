@@ -22,7 +22,7 @@
 #include "platform.h"
 #include "system.h"
 
-#include "gpio.h"
+#include "io.h"
 
 #include "sensors/sensors.h" // FIXME dependency into the main code
 
@@ -36,22 +36,16 @@ void adcInit(drv_adc_config_t *init)
 {
     ADC_InitTypeDef ADC_InitStructure;
     DMA_InitTypeDef DMA_InitStructure;
-    GPIO_InitTypeDef GPIO_InitStructure;
 
     uint8_t i;
     uint8_t configuredAdcChannels = 0;
 
     memset(&adcConfig, 0, sizeof(adcConfig));
 
-    GPIO_StructInit(&GPIO_InitStructure);
-    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AN;
-    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
-
-
-#ifdef VBAT_ADC_GPIO
+#ifdef VBAT_ADC_PIN
     if (init->enableVBat) {
-        GPIO_InitStructure.GPIO_Pin = VBAT_ADC_GPIO_PIN;
-        GPIO_Init(VBAT_ADC_GPIO, &GPIO_InitStructure);
+        IOInit(IOGetByTag(IO_TAG(VBAT_ADC_PIN)), OWNER_SYSTEM, RESOURCE_ADC);
+        IOConfigGPIO(IOGetByTag(IO_TAG(VBAT_ADC_PIN)), IO_CONFIG(GPIO_Mode_AN, 0, GPIO_OType_OD, GPIO_PuPd_NOPULL));
         adcConfig[ADC_BATTERY].adcChannel = VBAT_ADC_CHANNEL;
         adcConfig[ADC_BATTERY].dmaIndex = configuredAdcChannels++;
         adcConfig[ADC_BATTERY].enabled = true;
@@ -59,10 +53,10 @@ void adcInit(drv_adc_config_t *init)
     }
 #endif
 
-#ifdef EXTERNAL1_ADC_GPIO
+#ifdef EXTERNAL1_ADC_PIN
     if (init->enableExternal1) {
-        GPIO_InitStructure.GPIO_Pin = EXTERNAL1_ADC_GPIO_PIN;
-        GPIO_Init(EXTERNAL1_ADC_GPIO, &GPIO_InitStructure);
+        IOInit(IOGetByTag(IO_TAG(EXTERNAL1_ADC_PIN)), OWNER_SYSTEM, RESOURCE_ADC);
+	    IOConfigGPIO(IOGetByTag(IO_TAG(EXTERNAL1_ADC_PIN)), IO_CONFIG(GPIO_Mode_AN, 0, GPIO_OType_OD, GPIO_PuPd_NOPULL));
         adcConfig[ADC_EXTERNAL1].adcChannel = EXTERNAL1_ADC_CHANNEL;
         adcConfig[ADC_EXTERNAL1].dmaIndex = configuredAdcChannels++;
         adcConfig[ADC_EXTERNAL1].enabled = true;
@@ -70,10 +64,10 @@ void adcInit(drv_adc_config_t *init)
     }
 #endif
 
-#ifdef RSSI_ADC_GPIO
+#ifdef RSSI_ADC_PIN
     if (init->enableRSSI) {
-        GPIO_InitStructure.GPIO_Pin = RSSI_ADC_GPIO_PIN;
-        GPIO_Init(RSSI_ADC_GPIO, &GPIO_InitStructure);
+        IOInit(IOGetByTag(IO_TAG(RSSI_ADC_PIN)), OWNER_SYSTEM, RESOURCE_ADC);
+	    IOConfigGPIO(IOGetByTag(IO_TAG(RSSI_ADC_PIN)), IO_CONFIG(GPIO_Mode_AN, 0, GPIO_OType_OD, GPIO_PuPd_NOPULL));
         adcConfig[ADC_RSSI].adcChannel = RSSI_ADC_CHANNEL;
         adcConfig[ADC_RSSI].dmaIndex = configuredAdcChannels++;
         adcConfig[ADC_RSSI].enabled = true;
@@ -81,10 +75,10 @@ void adcInit(drv_adc_config_t *init)
     }
 #endif
 
-#ifdef CURRENT_METER_ADC_GPIO
+#ifdef CURRENT_METER_ADC_PIN
     if (init->enableCurrentMeter) {
-        GPIO_InitStructure.GPIO_Pin   = CURRENT_METER_ADC_GPIO_PIN;
-        GPIO_Init(CURRENT_METER_ADC_GPIO, &GPIO_InitStructure);
+        IOInit(IOGetByTag(IO_TAG(CURRENT_METER_ADC_PIN)), OWNER_SYSTEM, RESOURCE_ADC);
+	    IOConfigGPIO(IOGetByTag(IO_TAG(CURRENT_METER_ADC_PIN)), IO_CONFIG(GPIO_Mode_AN, 0, GPIO_OType_OD, GPIO_PuPd_NOPULL));
         adcConfig[ADC_CURRENT].adcChannel = CURRENT_METER_ADC_CHANNEL;
         adcConfig[ADC_CURRENT].dmaIndex = configuredAdcChannels++;
         adcConfig[ADC_CURRENT].enabled = true;
@@ -93,6 +87,7 @@ void adcInit(drv_adc_config_t *init)
 #endif
 
     //RCC_ADCCLKConfig(RCC_ADC12PLLCLK_Div256);  // 72 MHz divided by 256 = 281.25 kHz
+    
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
