@@ -60,11 +60,13 @@ float wow_factor;
 int32_t axisPID_P[3], axisPID_I[3], axisPID_D[3];
 #endif
 
+#define DELTA_TOTAL_SAMPLES 3
+
 // PIDweight is a scale factor for PIDs which is derived from the throttle and TPA setting, and 100 = 100% scale means no PID reduction
 uint8_t PIDweight[3];
 
-static int32_t errorGyroI[3] = { 0, 0, 0 };
-static float errorGyroIf[3] = { 0.0f, 0.0f, 0.0f };
+static int32_t errorGyroI[3], errorGyroILimit[3];
+static float errorGyroIf[3], errorGyroIfLimit[3];
 
 static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRateConfig,
         uint16_t max_angle_inclination, rollAndPitchTrims_t *angleTrim, rxConfig_t *rxConfig);
@@ -83,6 +85,28 @@ void pidResetErrorGyro(void)
     errorGyroIf[ROLL] = 0.0f;
     errorGyroIf[PITCH] = 0.0f;
     errorGyroIf[YAW] = 0.0f;
+}
+
+float scaleItermToRcInput(int axis) {
+    float rcCommandReflection = (float)rcCommand[axis] / 500.0f;
+    static float iTermScaler[3] = {1.0f, 1.0f, 1.0f};
+    static float antiWindUpIncrement = 0;
+
+    if (!antiWindUpIncrement) antiWindUpIncrement = (0.001 / 500) * targetLooptime;  // Calculate increment for 500ms period
+
+    if (ABS(rcCommandReflection) > 0.7f && (!flightModeFlags)) {   /* scaling should not happen in level modes */
+        /* Reset Iterm on high stick inputs. No scaling necessary here */
+        iTermScaler[axis] = 0.0f;
+    } else {
+        /* Prevent rapid windup during acro recoveries. Slowly enable Iterm for period of 500ms  */
+        if (iTermScaler[axis] < 1) {
+            iTermScaler[axis] = constrainf(iTermScaler[axis] + antiWindUpIncrement, 0.0f, 1.0f);
+        } else {
+            iTermScaler[axis] = 1;
+        }
+    }
+
+    return iTermScaler[axis];
 }
 
 void airModePlus(airModePlus_t *axisState, int axis, controlRateConfig_t *controlRateConfig) {
@@ -122,14 +146,14 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
 {
     float RateError, AngleRate, gyroRate;
     float ITerm,PTerm,DTerm;
-    static float lastError[3];
-    float delta;
-    int axis;
+    static float lastErrorForDelta[3];
+    static float previousDelta[3][DELTA_TOTAL_SAMPLES];
+    float delta, deltaSum;
+    int axis, deltaCount;
     float horizonLevelStrength = 1;
-    static float previousErrorGyroIf[3] = { 0.0f, 0.0f, 0.0f };
 
     if (!deltaStateIsSet && pidProfile->dterm_lpf_hz) {
-    	for (axis = 0; axis < 3; axis++) BiQuadNewLpf(pidProfile->dterm_lpf_hz, &deltaBiQuadState[axis], 0);
+        for (axis = 0; axis < 3; axis++) BiQuadNewLpf(pidProfile->dterm_lpf_hz, &deltaBiQuadState[axis], targetLooptime);
         deltaStateIsSet = true;
     }
 
@@ -213,16 +237,14 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
             errorGyroIf[axis] *= airModePlusAxisState[axis].iTermScaler;
         }
 
-        if ( (IS_RC_MODE_ACTIVE(BOXAIRMODE)) && (allowITermShrinkOnly || motorLimitReached) ) { //only in airmode do we affect Ki.
-            if (ABS(errorGyroIf[axis]) < ABS(previousErrorGyroIf[axis])) {
-                previousErrorGyroIf[axis] = errorGyroIf[axis];
-            } else {
-                errorGyroIf[axis] = constrain(errorGyroIf[axis], -ABS(previousErrorGyroIf[axis]), ABS(previousErrorGyroIf[axis]));
-            }
-        } else {
-            previousErrorGyroIf[axis] = errorGyroIf[axis];
+        if (IS_RC_MODE_ACTIVE(BOXAIRMODE) || (IS_RC_MODE_ACTIVE(BOXAIRMODE) && IS_RC_MODE_ACTIVE(BOXACROPLUS))) {
+            errorGyroIf[axis] *= scaleItermToRcInput(axis);
+            //if (antiWindupProtection || motorLimitReached) {
+            //    errorGyroIf[axis] = constrainf(errorGyroIf[axis], -errorGyroIfLimit[axis], errorGyroIfLimit[axis]);
+            //} else {
+                errorGyroIfLimit[axis] = ABS(errorGyroIf[axis]);
+            //}
         }
-
 
         // limit maximum integrator value to prevent WindUp - accumulating extreme values when system is saturated.
         // I coefficient (I8) moved before integration to make limiting independent from PID settings
@@ -230,21 +252,27 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
         ITerm = errorGyroIf[axis];
 
         //-----calculate D-term
-        delta = RateError - lastError[axis];
-        lastError[axis] = RateError;
-
-        if (deltaStateIsSet) {
-        	delta = applyBiQuadFilter(delta, &deltaBiQuadState[axis]);
-        }
+        delta = -(gyroRate - lastErrorForDelta[axis]);  // 16 bits is ok here, the dif between 2 consecutive gyro reads is limited to 800
+        lastErrorForDelta[axis] = gyroRate;
 
         // Correct difference by cycle time. Cycle time is jittery (can be different 2 times), so calculated difference
         // would be scaled by different dt each time. Division by dT fixes that.
         delta *= (1.0f / dT);
 
+        if (deltaStateIsSet) {
+            delta = applyBiQuadFilter(delta, &deltaBiQuadState[axis]);
+        } else {
+            // Apply moving average
+            deltaSum = 0;
+            for (deltaCount = DELTA_TOTAL_SAMPLES-1; deltaCount > 0; deltaCount--) previousDelta[axis][deltaCount] = previousDelta[axis][deltaCount-1];
+            previousDelta[axis][0] = delta;
+            for (deltaCount = 0; deltaCount < DELTA_TOTAL_SAMPLES; deltaCount++) deltaSum += previousDelta[axis][deltaCount];
+            delta = (deltaSum / DELTA_TOTAL_SAMPLES);
+        }
 #if defined(STM32F40_41xxx) || defined (STM32F411xE)
         DTerm = constrainf(delta * (pidProfile->D_f[axis]/4) * PIDweight[axis] / 100, -300.0f, 300.0f);
 #else
-        DTerm = constrainf(delta * (pidProfile->D_f[axis]) * PIDweight[axis] / 100, -300.0f, 300.0f);
+        DTerm = constrainf(delta * pidProfile->D_f[axis] * PIDweight[axis] / 100, -300.0f, 300.0f);
 #endif
 
         // -----calculate total PID output
@@ -273,16 +301,16 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
 {
     UNUSED(rxConfig);
 
-    int axis;
-    int32_t PTerm, ITerm, DTerm, delta;
-    static int32_t lastError[3] = { 0, 0, 0 };
-    static int32_t previousErrorGyroI[3] = { 0, 0, 0 };
+    int axis, deltaCount;
+    int32_t PTerm, ITerm, DTerm, delta, deltaSum;
+    static int32_t lastErrorForDelta[3] = { 0, 0, 0 };
+    static int32_t previousDelta[3][DELTA_TOTAL_SAMPLES];
     int32_t AngleRateTmp, RateError, gyroRate;
 
     int8_t horizonLevelStrength = 100;
 
     if (!deltaStateIsSet && pidProfile->dterm_lpf_hz) {
-    	for (axis = 0; axis < 3; axis++) BiQuadNewLpf(pidProfile->dterm_lpf_hz, &deltaBiQuadState[axis], 0);
+        for (axis = 0; axis < 3; axis++) BiQuadNewLpf(pidProfile->dterm_lpf_hz, &deltaBiQuadState[axis], targetLooptime);
         deltaStateIsSet = true;
     }
 
@@ -356,36 +384,43 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
         // I coefficient (I8) moved before integration to make limiting independent from PID settings
         errorGyroI[axis] = constrain(errorGyroI[axis], (int32_t) - GYRO_I_MAX << 13, (int32_t) + GYRO_I_MAX << 13);
 
-        ITerm = errorGyroI[axis] >> 13;
-
         if (IS_RC_MODE_ACTIVE(BOXAIRMODE)) {
             airModePlus(&airModePlusAxisState[axis], axis, controlRateConfig);
             errorGyroI[axis] *= airModePlusAxisState[axis].iTermScaler;
         }
 
-        if ( (IS_RC_MODE_ACTIVE(BOXAIRMODE)) && (allowITermShrinkOnly || motorLimitReached) ) {
-            if (ABS(errorGyroI[axis]) < ABS(previousErrorGyroI[axis])) {
-                previousErrorGyroI[axis] = errorGyroI[axis];
-            } else {
-                errorGyroI[axis] = constrain(errorGyroI[axis], -ABS(previousErrorGyroI[axis]), ABS(previousErrorGyroI[axis]));
-            }
-        } else {
-            previousErrorGyroI[axis] = errorGyroI[axis];
+        if (IS_RC_MODE_ACTIVE(BOXAIRMODE) || (IS_RC_MODE_ACTIVE(BOXAIRMODE) && IS_RC_MODE_ACTIVE(BOXACROPLUS))) {
+            errorGyroI[axis] = (int32_t) (errorGyroI[axis] * scaleItermToRcInput(axis));
+            //if (antiWindupProtection || motorLimitReached) {
+            //    errorGyroI[axis] = constrain(errorGyroI[axis], -errorGyroILimit[axis], errorGyroILimit[axis]);
+            //} else {
+                errorGyroILimit[axis] = ABS(errorGyroI[axis]);
+            //}
         }
+
+
+        ITerm = errorGyroI[axis] >> 13;
 
         //-----calculate D-term
-        delta = RateError - lastError[axis]; // 16 bits is ok here, the dif between 2 consecutive gyro reads is limited to 800
-        lastError[axis] = RateError;
-
-        if (deltaStateIsSet) {
-        	delta = lrintf(applyBiQuadFilter((float) delta, &deltaBiQuadState[axis]));
-        }
+		delta = -(gyroRate - lastErrorForDelta[axis]);  // 16 bits is ok here, the dif between 2 consecutive gyro reads is limited to 800
+		lastErrorForDelta[axis] = gyroRate;
 
         // Correct difference by cycle time. Cycle time is jittery (can be different 2 times), so calculated difference
         // would be scaled by different dt each time. Division by dT fixes that.
-        delta = (delta * ((uint16_t) 0xFFFF / ((uint16_t)targetESCwritetime >> 4))) >> 6;
+        delta = (delta * ((uint16_t) 0xFFFF / ((uint16_t)targetLooptime >> 4))) >> 6;
 
-        DTerm = (delta * 3 * pidProfile->D8[axis] * PIDweight[axis] / 100) >> 8;
+        if (deltaStateIsSet) {
+            delta = lrintf(applyBiQuadFilter((float) delta, &deltaBiQuadState[axis])) * 3;  // Keep same scaling as unfiltered delta
+        } else {
+            // Apply moving average
+            deltaSum = 0;
+            for (deltaCount = DELTA_TOTAL_SAMPLES -1; deltaCount > 0; deltaCount--) previousDelta[axis][deltaCount] = previousDelta[axis][deltaCount-1];
+            previousDelta[axis][0] = delta;
+            for (deltaCount = 0; deltaCount < DELTA_TOTAL_SAMPLES; deltaCount++) deltaSum += previousDelta[axis][deltaCount];
+            delta = deltaSum;
+        }
+
+        DTerm = (delta * pidProfile->D8[axis] * PIDweight[axis] / 100) >> 8;
 
         // -----calculate total PID output
         axisPID[axis] = PTerm + ITerm + DTerm;

@@ -31,18 +31,22 @@
 #include "drivers/accgyro.h"
 #include "drivers/gyro_sync.h"
 #include "sensors/sensors.h"
+#include "io/rc_controls.h"
 #include "io/beeper.h"
 #include "io/statusindicator.h"
 #include "sensors/boardalignment.h"
 
 #include "sensors/gyro.h"
 
+#include "config/runtime_config.h"
+
 uint16_t calibratingG = 0;
 int16_t gyroADC[XYZ_AXIS_COUNT];
 int16_t gyroZero[FLIGHT_DYNAMICS_INDEX_COUNT] = { 0, 0, 0 };
 
 static gyroConfig_t *gyroConfig;
-static biquad_t gyroBiQuadState[3];
+static biquad_t gyroFilterState[3];
+static maverage_t gyroMAFilterState[3];
 static bool gyroFilterStateIsSet;
 static uint8_t gyroLpfCutFreq;
 int axis;
@@ -58,7 +62,7 @@ void useGyroConfig(gyroConfig_t *gyroConfigToUse, uint8_t gyro_lpf_hz)
 
 void initGyroFilterCoefficients(void) {
     if (gyroLpfCutFreq && targetLooptime) {  /* Initialisation needs to happen once samplingrate is known */
-    	for (axis = 0; axis < 3; axis++) BiQuadNewLpf(gyroLpfCutFreq, &gyroBiQuadState[axis], 0);
+    	for (axis = 0; axis < 3; axis++) BiQuadNewLpf(gyroLpfCutFreq, &gyroFilterState[axis], targetLooptime);
         gyroFilterStateIsSet = true;
     }
 }
@@ -145,7 +149,11 @@ void gyroUpdate(void)
         if (!gyroFilterStateIsSet) {
             initGyroFilterCoefficients();
         } else {
-        	for (axis = 0; axis < XYZ_AXIS_COUNT; axis++) gyroADC[axis] = lrintf(applyBiQuadFilter((float) gyroADC[axis], &gyroBiQuadState[axis]));
+        	if (FLIGHT_MODE(BOXTEST1)) {
+            	for (axis = 0; axis < XYZ_AXIS_COUNT; axis++) gyroADC[axis] = lrintf(applyMovingAverageFilter((float) gyroADC[axis], &gyroMAFilterState[axis]));
+        	} else {
+            	for (axis = 0; axis < XYZ_AXIS_COUNT; axis++) gyroADC[axis] = lrintf(applyBiQuadFilter((float) gyroADC[axis], &gyroFilterState[axis]));
+        	}
         }
     }
 
