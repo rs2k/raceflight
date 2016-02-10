@@ -32,7 +32,7 @@
 #include "accgyro.h"
 #include "accgyro_l3gd20.h"
 
-static IO_t mpuSpil3gd20CsPin;
+static IO_t mpuSpil3gd20CsPin = IO_NONE;
 
 #define DISABLE_MPUL3GD20       IOHi(mpuSpil3gd20CsPin)
 #define ENABLE_MPUL3GD20        IOLo(mpuSpil3gd20CsPin)
@@ -75,8 +75,9 @@ static void l3gd20SpiInit(SPI_TypeDef *SPIx)
 {
     UNUSED(SPIx); // FIXME
 
+#ifdef L3GD20_CS_PIN
     mpuSpil3gd20CsPin = IOGetByTag(IO_TAG(L3GD20_CS_PIN));
-    IOInit(mpuSpil3gd20CsPin, OWNER_SYSTEM, RESOURCE_SPI);
+#endif    IOInit(mpuSpil3gd20CsPin, OWNER_SYSTEM, RESOURCE_SPI);
     IOConfigGPIO(mpuSpil3gd20CsPin, SPI_IO_CS_CFG);
 
     spiSetDivisor(L3GD20_SPI, SPI_STANDARD_CLOCK);
