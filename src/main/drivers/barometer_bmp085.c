@@ -27,9 +27,9 @@
 #include "gpio.h"
 #include "system.h"
 #include "bus_i2c.h"
-#include "drivers/io.h"
-#include "drivers/exti.h"
-#include "drivers/nvic.h"
+#include "io.h"
+#include "exti.h"
+#include "nvic.h"
 
 #include "barometer_bmp085.h"
 
@@ -39,7 +39,7 @@
 #define BMP085_I2C_INSTANCE I2C_DEVICE
 #endif
 
-#if defined(BARO_EOC_GPIO)
+#if defined(BARO_EOC_GPIO) 
 
 static IO_t eocIO;
 
@@ -172,7 +172,7 @@ bool bmp085Detect(const bmp085Config_t *config, baro_t *baro)
     bmp085InitXclrIO(config);
     BMP085_ON;   // enable baro
 
-#if defined(BARO_EOC_GPIO)
+#if defined(BARO_EOC_GPIO) && defined(USE_EXTI)
     if (config && config->eocIO) {
         eocIO = IOGetByTag(config->eocIO);
         // EXTI interrupt for barometer EOC

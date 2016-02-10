@@ -91,10 +91,11 @@ void hcsr04_init(const sonarHardware_t *initialSonarHardware, sonarRange_t *sona
     gpioInit(sonarHardware->echo_gpio, &gpio);
 
     echoIO = IOGetByTag(sonarHardware->echoIO);
+#ifdef USE_EXTI
     EXTIHandlerInit(&hcsr04_extiCallbackRec, hcsr04_extiHandler);
     EXTIConfig(echoIO, &hcsr04_extiCallbackRec, NVIC_PRIO_SONAR_EXTI, EXTI_Trigger_Rising_Falling); // TODO - priority!
     EXTIEnable(echoIO, true);
-
+#endif
     lastMeasurementAt = millis() - 60; // force 1st measurement in hcsr04_get_distance()
 #else
     UNUSED(lastMeasurementAt); // to avoid "unused" compiler warning
