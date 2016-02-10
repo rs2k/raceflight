@@ -58,7 +58,7 @@
 #define BULK_ERASE_TIMEOUT_MILLIS    21000
 
 static flashGeometry_t geometry = {.pageSize = M25P16_PAGESIZE};
-static IO_t flashSpim25p16CsPin;
+static IO_t flashSpim25p16CsPin = IO_NONE;
 /*
  * Whether we've performed an action that could have made the device busy for writes.
  *
@@ -195,8 +195,10 @@ static bool m25p16_readIdentification()
  */
 bool m25p16_init()
 {
+#ifdef M25P16_CS_PIN
 	flashSpim25p16CsPin = IOGetByTag(IO_TAG(M25P16_CS_PIN));
-	IOInit(flashSpim25p16CsPin, OWNER_SYSTEM, RESOURCE_SPI);
+#endif
+    IOInit(flashSpim25p16CsPin, OWNER_SYSTEM, RESOURCE_SPI);
 	IOConfigGPIO(flashSpim25p16CsPin, SPI_IO_CS_CFG);
         
     //Maximum speed for standard READ command is 20mHz, other commands tolerate 25mHz

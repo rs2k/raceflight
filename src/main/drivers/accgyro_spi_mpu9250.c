@@ -50,7 +50,7 @@ static void mpu9250AccAndGyroInit(uint8_t lpf);
 
 static bool mpuSpi9250InitDone = false;
 
-static IO_t mpuSpi9250CsPin;
+static IO_t mpuSpi9250CsPin = IO_NONE;
 
 #define DISABLE_MPU9250       IOHi(mpuSpi9250CsPin)
 #define ENABLE_MPU9250        IOLo(mpuSpi9250CsPin)
@@ -201,7 +201,9 @@ bool mpu9250SpiDetect(void)
     uint8_t attemptsRemaining = 20;
 
     /* not the best place for this - should really have an init method */
-	mpuSpi9250CsPin = IOGetByTag(IO_TAG(MPU9250_CS_PIN));
+#ifdef MPU9250_CS_PIN
+    mpuSpi9250CsPin = IOGetByTag(IO_TAG(MPU9250_CS_PIN));
+#endif
 	IOInit(mpuSpi9250CsPin, OWNER_SYSTEM, RESOURCE_SPI);
 	IOConfigGPIO(mpuSpi9250CsPin, SPI_IO_CS_CFG);
         

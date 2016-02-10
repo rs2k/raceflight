@@ -116,15 +116,19 @@ void spiInitDevice(SPIDevice device)
     IOConfigGPIOAF(IOGetByTag(spi->sck), SPI_IO_AF_CFG, spi->af);
     IOConfigGPIOAF(IOGetByTag(spi->miso), SPI_IO_AF_CFG, spi->af);
     IOConfigGPIOAF(IOGetByTag(spi->mosi), SPI_IO_AF_CFG, spi->af);
-    if (spi->nss)
-        IOConfigGPIOAF(IOGetByTag(spi->nss), SPI_IO_CS_CFG, spi->af);#endif#if defined(STM32F10X)
+
+    if (spi->nss)
+        IOConfigGPIOAF(IOGetByTag(spi->nss), SPI_IO_CS_CFG, spi->af);
+#endif
+#if defined(STM32F10X)
     IOConfigGPIO(IOGetByTag(spi->sck), SPI_IO_AF_CFG);
     IOConfigGPIO(IOGetByTag(spi->miso), SPI_IO_AF_CFG);
     IOConfigGPIO(IOGetByTag(spi->mosi), SPI_IO_AF_CFG);
     
     if (spi->nss)
         IOConfigGPIO(IOGetByTag(spi->nss), SPI_IO_CS_CFG);
-#endif    
+#endif
+    
     // Init SPI1 hardware
     SPI_I2S_DeInit(spi->dev);
 
