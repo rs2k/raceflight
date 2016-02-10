@@ -21,6 +21,9 @@
 
 #define USBD_PRODUCT_STRING "STM32 F3 Discovery"
 
+#define LED0    PE8
+#define LED1    PE10
+#define LED2    PE14
 #define LED0_GPIO   GPIOE
 #define LED0_PIN    Pin_8|Pin_12 // Blue LEDs - PE8/PE12
 #define LED0_PERIPHERAL RCC_AHBPeriph_GPIOE
@@ -30,12 +33,11 @@
 #define LED1_PERIPHERAL RCC_AHBPeriph_GPIOE
 #define LED1_INVERTED
 
+#define BEEPER  PE9
+
 #define BEEP_GPIO   GPIOE
 #define BEEP_PIN    Pin_9|Pin_13 // Red LEDs - PE9/PE13
 #define BEEP_PERIPHERAL RCC_AHBPeriph_GPIOE
-#define BEEPER_INVERTED
-
-
 #define BEEPER_INVERTED
 
 #define USE_SPI
@@ -47,7 +49,7 @@
 #define L3GD20_SPI                      SPI1
 #define L3GD20_CS_GPIO_CLK_PERIPHERAL   RCC_AHBPeriph_GPIOE
 #define L3GD20_CS_GPIO                  GPIOE
-#define L3GD20_CS_PIN                   GPIO_Pin_3
+#define L3GD20_CS_PIN                   PE3
 
 #define GYRO_L3GD20_ALIGN CW270_DEG
 
@@ -57,9 +59,6 @@
 #define MAG
 #define USE_MAG_HMC5883
 
-#define BEEPER
-#define LED0
-#define LED1
 
 #define USE_VCP
 #define USE_USART1
@@ -109,3 +108,9 @@
 // STM32F3DISCOVERY RX - PD6 connects to UART TX
 #define S1W_RX_GPIO         GPIOD
 #define S1W_RX_PIN          GPIO_Pin_6
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTE 0xffff
+#define TARGET_IO_PORTF 0xffff

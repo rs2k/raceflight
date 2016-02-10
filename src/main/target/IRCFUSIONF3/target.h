@@ -19,6 +19,9 @@
 
 #define TARGET_BOARD_IDENTIFIER "IFF3"
 
+#define LED0 PB3
+#define BEEPER PC15
+
 #define LED0_GPIO   GPIOB
 #define LED0_PIN    Pin_3
 #define LED0_PERIPHERAL RCC_AHBPeriph_GPIOB
@@ -34,6 +37,7 @@
 
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
+#define USE_EXTI
 
 #define USE_MAG_DATA_READY_SIGNAL
 #define ENSURE_MAG_DATA_READY_IS_HIGH
@@ -60,8 +64,6 @@
 #define USE_FLASH_M25P16
 
 #define SONAR
-#define BEEPER
-#define LED0
 
 #define USE_USART1
 #define USE_USART2
@@ -110,21 +112,21 @@
 
 #define SPI2_NSS_GPIO           GPIOB
 #define SPI2_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOB
-#define SPI2_NSS_PIN            Pin_12
+#define SPI2_NSS_PIN            PB12
 #define SPI2_NSS_PIN_SOURCE     GPIO_PinSource12
 #define SPI2_GPIO               GPIOB
 #define SPI2_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOB
-#define SPI2_SCK_PIN            Pin_13
+#define SPI2_SCK_PIN            PB13
 #define SPI2_SCK_PIN_SOURCE     GPIO_PinSource13
 #define SPI2_SCK_GPIO    		GPIOB
 #define SPI2_SCK_PERIPHERAL     RCC_AHBPeriph_GPIOB
-#define SPI2_MISO_PIN           Pin_14
+#define SPI2_MISO_PIN           PB14
 #define SPI2_MISO_PIN_SOURCE    GPIO_PinSource14
-#define SPI2_MOSI_PIN           Pin_15
+#define SPI2_MOSI_PIN           PB15
 #define SPI2_MOSI_PIN_SOURCE    GPIO_PinSource15
 
 #define M25P16_CS_GPIO          GPIOB
-#define M25P16_CS_PIN           GPIO_Pin_12
+#define M25P16_CS_PIN           PB12
 #define M25P16_SPI_INSTANCE     SPI2
 
 #define USE_ADC
@@ -180,3 +182,8 @@
 #define S1W_TX_PIN          GPIO_Pin_9
 #define S1W_RX_GPIO         GPIOA
 #define S1W_RX_PIN          GPIO_Pin_10
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTF 0xffff

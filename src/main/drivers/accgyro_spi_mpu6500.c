@@ -38,7 +38,7 @@
 #define DISABLE_MPU6500       IOHi(mpuSpi6500CsPin)
 #define ENABLE_MPU6500        IOLo(mpuSpi6500CsPin)
 
-static IO_t mpuSpi6500CsPin;
+static IO_t mpuSpi6500CsPin = IO_NONE;
 extern uint16_t acc_1G;
 
 bool mpu6500WriteRegister(uint8_t reg, uint8_t data)
@@ -103,7 +103,7 @@ static void mpu6500SpiInit(void)
     }
 
 	mpuSpi6500CsPin = IOGetByTag(IO_TAG(MPU6500_CS_PIN));
-	IOInit(mpuSpi6500CsPin, OWNER_SYSTEM, RESOURCE_SPI);
+    IOInit(mpuSpi6500CsPin, OWNER_SYSTEM, RESOURCE_SPI);
 	IOConfigGPIO(mpuSpi6500CsPin, SPI_IO_CS_CFG);
 
 #if defined(STM32F40_41xxx) || defined (STM32F411xE)

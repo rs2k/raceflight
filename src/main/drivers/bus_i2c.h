@@ -20,8 +20,13 @@
 #include "drivers/io.h"
 #include "drivers/rcc.h"
 
+#ifndef I2C_DEVICE
+#define I2C_DEVICE I2CINVALID
+#endif 
+
 typedef enum I2CDevice {
-    I2CDEV_1,
+    I2CINVALID = -1,
+    I2CDEV_1 = 0,
     I2CDEV_2,
     I2CDEV_3,
     I2CDEV_MAX = I2CDEV_3,

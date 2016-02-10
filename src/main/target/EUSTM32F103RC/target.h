@@ -19,6 +19,10 @@
 
 #define TARGET_BOARD_IDENTIFIER "EUF1"
 
+#define LED0 PB3
+#define LED1 PB4
+#define INVERTER PB2
+
 #define LED0_GPIO   GPIOB
 #define LED0_PIN    Pin_3 // PB3 (LED)
 #define LED0_PERIPHERAL RCC_APB2Periph_GPIOB
@@ -32,12 +36,12 @@
 #define INVERTER_USART USART2
 
 #define MPU6000_CS_GPIO       GPIOB
-#define MPU6000_CS_PIN        GPIO_Pin_12
+#define MPU6000_CS_PIN        PB12
 #define MPU6000_SPI_INSTANCE  SPI2
 
 #define MPU6500_CS_GPIO_CLK_PERIPHERAL   RCC_APB2Periph_GPIOB
 #define MPU6500_CS_GPIO       GPIOB
-#define MPU6500_CS_PIN        GPIO_Pin_12
+#define MPU6500_CS_PIN        PB12
 #define MPU6500_SPI_INSTANCE  SPI2
 
 #define GYRO
@@ -73,12 +77,8 @@
 
 #define MAG_AK8975_ALIGN CW180_DEG_FLIP
 
-
 #define SONAR
-#define LED0
-#define LED1
 #define DISPLAY
-#define INVERTER
 
 #define USE_USART1
 #define USE_USART2
@@ -133,3 +133,7 @@
 // USART2, PA3
 #define BIND_PORT  GPIOA
 #define BIND_PIN   Pin_3
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff

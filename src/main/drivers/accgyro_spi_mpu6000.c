@@ -48,6 +48,9 @@ static void mpu6000AccAndGyroInit(uint8_t lpf);
 
 static bool mpuSpi6000InitDone = false;
 
+#ifndef MPU6000_CS_PIN
+#define MPU6000_CS_PIN NONE
+#endif
 
 // Bits
 #define BIT_SLEEP				    0x40

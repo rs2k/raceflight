@@ -264,15 +264,27 @@ void mpuIntExtiInit(void)
 
 static bool mpuReadRegisterI2C(uint8_t reg, uint8_t length, uint8_t* data)
 {
+#ifndef USE_I2C
+    UNUSED(reg);
+    UNUSED(data);
+    UNUSED(length);
+    return false;
+#else
     bool ack = i2cRead(MPU_I2C_INSTANCE, MPU_ADDRESS, reg, length, data);
     return ack;
+#endif
 }
 
 static bool mpuWriteRegisterI2C(uint8_t reg, uint8_t data)
 {
+#ifndef USE_I2C
+    UNUSED(reg);
+    UNUSED(data);
+    return false;
+#else
     bool ack = i2cWrite(MPU_I2C_INSTANCE, MPU_ADDRESS, reg, data);
     return ack;
-}
+#endif}
 
 bool mpuAccRead(int16_t *accData)
 {
