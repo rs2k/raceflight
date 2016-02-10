@@ -25,12 +25,17 @@
 #include "common/maths.h"
 
 #include "system.h"
-#include "gpio.h"
+#include "io.h"
 #include "bus_spi.h"
 
 #include "sensor.h"
 #include "accgyro.h"
 #include "accgyro_l3gd20.h"
+
+static IO_t mpuSpil3gd20CsPin = IO_NONE;
+
+#define DISABLE_MPUL3GD20       IOHi(mpuSpil3gd20CsPin)
+#define ENABLE_MPUL3GD20        IOLo(mpuSpil3gd20CsPin)
 
 #define READ_CMD               ((uint8_t)0x80)
 #define MULTIPLEBYTE_CMD       ((uint8_t)0x40)
@@ -69,19 +74,11 @@
 static void l3gd20SpiInit(SPI_TypeDef *SPIx)
 {
     UNUSED(SPIx); // FIXME
-    GPIO_InitTypeDef GPIO_InitStructure;
 
-    RCC_AHBPeriphClockCmd(L3GD20_CS_GPIO_CLK_PERIPHERAL, ENABLE);
-
-    GPIO_InitStructure.GPIO_Pin = L3GD20_CS_PIN;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-
-    GPIO_Init(L3GD20_CS_GPIO, &GPIO_InitStructure);
-
-    GPIO_SetBits(L3GD20_CS_GPIO, L3GD20_CS_PIN);
+#ifdef L3GD20_CS_PIN
+    mpuSpil3gd20CsPin = IOGetByTag(IO_TAG(L3GD20_CS_PIN));
+#endif    IOInit(mpuSpil3gd20CsPin, OWNER_SYSTEM, RESOURCE_SPI);
+    IOConfigGPIO(mpuSpil3gd20CsPin, SPI_IO_CS_CFG);
 
     spiSetDivisor(L3GD20_SPI, SPI_STANDARD_CLOCK);
 }
@@ -92,32 +89,32 @@ void l3gd20GyroInit(uint8_t lpf)
 
     l3gd20SpiInit(L3GD20_SPI);
 
-    GPIO_ResetBits(L3GD20_CS_GPIO, L3GD20_CS_PIN);
+    ENABLE_MPUL3GD20;
 
     spiTransferByte(L3GD20_SPI, CTRL_REG5_ADDR);
     spiTransferByte(L3GD20_SPI, BOOT);
 
-    GPIO_SetBits(L3GD20_CS_GPIO, L3GD20_CS_PIN);
+    DISABLE_MPUL3GD20;
 
     delayMicroseconds(100);
 
-    GPIO_ResetBits(L3GD20_CS_GPIO, L3GD20_CS_PIN);
+    ENABLE_MPUL3GD20;
 
     spiTransferByte(L3GD20_SPI, CTRL_REG1_ADDR);
 
     spiTransferByte(L3GD20_SPI, MODE_ACTIVE | OUTPUT_DATARATE_3 | AXES_ENABLE | BANDWIDTH_3);
     //spiTransferByte(L3GD20_SPI, MODE_ACTIVE | OUTPUT_DATARATE_4 | AXES_ENABLE | BANDWIDTH_4);
 
-    GPIO_SetBits(L3GD20_CS_GPIO, L3GD20_CS_PIN);
+    DISABLE_MPUL3GD20;
 
     delayMicroseconds(1);
 
-    GPIO_ResetBits(L3GD20_CS_GPIO, L3GD20_CS_PIN);
+    ENABLE_MPUL3GD20;
 
     spiTransferByte(L3GD20_SPI, CTRL_REG4_ADDR);
     spiTransferByte(L3GD20_SPI, BLOCK_DATA_UPDATE_CONTINUOUS | BLE_MSB | FULLSCALE_2000);
 
-    GPIO_SetBits(L3GD20_CS_GPIO, L3GD20_CS_PIN);
+    DISABLE_MPUL3GD20;
 
     delay(100);
 }
@@ -126,7 +123,7 @@ static bool l3gd20GyroRead(int16_t *gyroADC)
 {
     uint8_t buf[6];
 
-    GPIO_ResetBits(L3GD20_CS_GPIO, L3GD20_CS_PIN);
+    ENABLE_MPUL3GD20;
     spiTransferByte(L3GD20_SPI, OUT_X_L_ADDR | READ_CMD | MULTIPLEBYTE_CMD);
 
     uint8_t index;
@@ -134,7 +131,7 @@ static bool l3gd20GyroRead(int16_t *gyroADC)
         buf[index] = spiTransferByte(L3GD20_SPI, DUMMY_BYTE);
     }
 
-    GPIO_SetBits(L3GD20_CS_GPIO, L3GD20_CS_PIN);
+    DISABLE_MPUL3GD20;
 
     gyroADC[0] = (int16_t)((buf[0] << 8) | buf[1]);
     gyroADC[1] = (int16_t)((buf[2] << 8) | buf[3]);

@@ -31,12 +31,10 @@
 
 #define BEEPER PA15
 
-#define MPU6000_CS_GPIO       GPIOA
-#define MPU6000_CS_PIN        GPIO_Pin_4
+#define MPU6000_CS_PIN        PA4
 #define MPU6000_SPI_INSTANCE  SPI1
 
-#define M25P16_CS_GPIO        GPIOB
-#define M25P16_CS_PIN         GPIO_Pin_12
+#define M25P16_CS_PIN         PB12
 #define M25P16_SPI_INSTANCE   SPI2
 
 #define USE_FLASHFS
@@ -94,6 +92,10 @@
 #define I2C_DEVICE (I2CDEV_2) // Flex port - SCL/PB10, SDA/PB11
 
 #define USE_ADC
+
+#define CURRENT_METER_ADC_PIN       PB1
+#define VBAT_ADC_PIN                PA0
+#define RSSI_ADC_PIN                PA1
 
 #define CURRENT_METER_ADC_GPIO      GPIOB
 #define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_1

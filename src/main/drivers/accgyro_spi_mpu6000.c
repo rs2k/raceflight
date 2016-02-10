@@ -48,7 +48,6 @@ static void mpu6000AccAndGyroInit(uint8_t lpf);
 
 static bool mpuSpi6000InitDone = false;
 
-
 // Bits
 #define BIT_SLEEP				    0x40
 #define BIT_H_RESET				    0x80
@@ -101,7 +100,7 @@ static bool mpuSpi6000InitDone = false;
 #define DISABLE_MPU6000       IOHi(mpuSpi6000CsPin)
 #define ENABLE_MPU6000        IOLo(mpuSpi6000CsPin)
 
-static IO_t mpuSpi6000CsPin;
+static IO_t mpuSpi6000CsPin = IO_NONE;
 
 void resetGyro (void) {
     // Device Reset
@@ -250,8 +249,9 @@ bool mpu6000SpiDetect(void)
     uint8_t in;
     uint8_t attemptsRemaining = 20;
 
+#ifdef MPU6000_CS_PIN     
     mpuSpi6000CsPin = IOGetByTag(IO_TAG(MPU6000_CS_PIN));
-    IOInit(mpuSpi6000CsPin, OWNER_SYSTEM, RESOURCE_SPI);
+#endif    IOInit(mpuSpi6000CsPin, OWNER_SYSTEM, RESOURCE_SPI);
     IOConfigGPIO(mpuSpi6000CsPin, SPI_IO_CS_CFG);
     
     spiSetDivisor(MPU6000_SPI_INSTANCE, SPI_SLOW_CLOCK); //low speed

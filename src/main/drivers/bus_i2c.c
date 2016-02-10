@@ -118,6 +118,10 @@ static bool i2cHandleHardwareFailure(I2CDevice device) {
 }
 
 bool i2cWriteBuffer(I2CDevice device, uint8_t addr_, uint8_t reg_, uint8_t len_, uint8_t *data) {
+    
+    if (device == I2CINVALID)
+        return false;
+
     uint32_t timeout = I2C_DEFAULT_TIMEOUT;
 
     I2C_TypeDef *I2Cx;
@@ -159,6 +163,10 @@ bool i2cWrite(I2CDevice device, uint8_t addr_, uint8_t reg_, uint8_t data) {
 }
 
 bool i2cRead(I2CDevice device, uint8_t addr_, uint8_t reg_, uint8_t len, uint8_t* buf) {
+
+    if (device == I2CINVALID)
+        return false;
+    
     uint32_t timeout = I2C_DEFAULT_TIMEOUT;
 
     I2C_TypeDef *I2Cx;
@@ -337,6 +345,9 @@ void i2c_ev_handler(I2CDevice device) {
 
 void i2cInit(I2CDevice device) 
 {
+    if (device == I2CINVALID)
+        return;
+
     i2cDevice_t *i2c;
 	i2c = &(i2cHardwareMap[device]);
 

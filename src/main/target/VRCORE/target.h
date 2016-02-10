@@ -32,9 +32,7 @@
 #define LED1 PD15 // Red LED
 #define BEEPER PA0
 
-#define MPU9250_CS_GPIO_CLK_PERIPHERAL   RCC_AHB1Periph_GPIOE
-#define MPU9250_CS_GPIO       GPIOE
-#define MPU9250_CS_PIN        GPIO_Pin_10
+#define MPU9250_CS_PIN        PE10
 #define MPU9250_SPI_INSTANCE  SPI2
 
 #define ACC
@@ -50,7 +48,8 @@
 // MPU6000 interrupts
 #define USE_MPU_DATA_READY_SIGNAL
 #define EXTI_CALLBACK_HANDLER_COUNT 2 // MPU data ready (mag disabled)
-#define MPU_INT_EXTI_CONFIG { RCC_AHB1Periph_GPIOD, Pin_10, GPIOD, EXTI_PortSourceGPIOD, EXTI_Line10, EXTI_PinSource10, EXTI15_10_IRQn }
+#define MPU_INT_EXTI PD10
+#define USE_EXTI
 
 //#define MAG
 //#define USE_MAG_HMC5883
@@ -113,20 +112,10 @@
 #define USE_SPI_DEVICE_1
 
 #define USE_SPI_DEVICE_2
-#define SPI2_NSS_GPIO           GPIOE
-#define SPI2_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOE
-#define SPI2_NSS_PIN            GPIO_Pin_10
-#define SPI2_NSS_PIN_SOURCE     GPIO_PinSource10
-#define SPI2_SCK_GPIO           GPIOB
-#define SPI2_SCK_PERIPHERAL     RCC_AHBPeriph_GPIOB
-#define SPI2_SCK_PIN            GPIO_Pin_13
-#define SPI2_SCK_PIN_SOURCE     GPIO_PinSource13
-#define SPI2_GPIO               GPIOB
-#define SPI2_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOB
-#define SPI2_MISO_PIN           GPIO_Pin_14
-#define SPI2_MISO_PIN_SOURCE    GPIO_PinSource14
-#define SPI2_MOSI_PIN           GPIO_Pin_15
-#define SPI2_MOSI_PIN_SOURCE    GPIO_PinSource15
+#define SPI2_NSS_PIN            PE10
+#define SPI2_SCK_PIN            PB13
+#define SPI2_MISO_PIN           PB14
+#define SPI2_MOSI_PIN           PB15
 
 //#define USE_SPI_DEVICE_3
 
@@ -137,16 +126,13 @@
 
 #define USE_ADC
 
-#define CURRENT_METER_ADC_GPIO      GPIOA
-#define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_5
+#define CURRENT_METER_ADC_PIN       PA5
 #define CURRENT_METER_ADC_CHANNEL   ADC_Channel_2
 
-#define VBAT_ADC_GPIO               GPIOC
-#define VBAT_ADC_GPIO_PIN           GPIO_Pin_0
+#define VBAT_ADC_PIN                PC0
 #define VBAT_ADC_CHANNEL            ADC_Channel_1
 
-#define RSSI_ADC_GPIO               GPIOB
-#define RSSI_ADC_GPIO_PIN           GPIO_Pin_1
+#define RSSI_ADC_GPIO_PIN           PB1
 #define RSSI_ADC_CHANNEL            ADC_Channel_12
 
 #define SENSORS_SET (SENSOR_ACC)
@@ -163,3 +149,9 @@
 #define USE_CLI
 
 #define USE_QUATERNION
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTD 0xffff
+#define TARGET_IO_PORTE 0xffff

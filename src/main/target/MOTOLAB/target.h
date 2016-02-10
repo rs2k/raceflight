@@ -22,6 +22,11 @@
 #define USBD_PRODUCT_STRING "Motolab"
 
 #define USE_CLI
+#define USE_EXTI
+
+#define LED0    PB5
+#define LED1    PB9
+#define BEEPER  PA0
 
 #define LED0_GPIO   GPIOB
 #define LED0_PIN    Pin_5 // Blue LEDs - PB5
@@ -34,7 +39,6 @@
 #define BEEP_PIN    Pin_0
 #define BEEP_PERIPHERAL RCC_AHBPeriph_GPIOA
 #define BEEPER_INVERTED
-#define BEEPER
 
 #define USABLE_TIMER_CHANNEL_COUNT 9
 
@@ -42,7 +46,7 @@
 #define EXTI15_10_CALLBACK_HANDLER_COUNT 1 // MPU data ready
 #define USE_MPU_DATA_READY_SIGNAL
 //#define ENSURE_MPU_DATA_READY_IS_LOW
-#define MPU_INT_EXTI_CONFIG { RCC_AHBPeriph_GPIOA, Pin_15, GPIOA, EXTI_PortSourceGPIOA, EXTI_Line15, EXTI_PinSource15, EXTI15_10_IRQn }
+#define MPU_INT_EXTI    PA15
 
 #define GYRO
 #define ACC
@@ -60,7 +64,7 @@
 #define ACC_MPU6000_ALIGN CW180_DEG
 
 #define MPU6000_CS_GPIO GPIOB
-#define MPU6000_CS_PIN GPIO_Pin_12
+#define MPU6000_CS_PIN PB12
 #define MPU6000_SPI_INSTANCE SPI2
 
 //#define BARO
@@ -118,21 +122,21 @@
 #define GPIO_AF_SPI2			GPIO_AF_5
 #define SPI2_NSS_GPIO           GPIOB
 #define SPI2_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOB
-#define SPI2_NSS_PIN            Pin_12
+#define SPI2_NSS_PIN            PB12
 #define SPI2_NSS_PIN_SOURCE     GPIO_PinSource12
 #define SPI2_GPIO               GPIOB
 #define SPI2_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOB
-#define SPI2_SCK_PIN            Pin_13
+#define SPI2_SCK_PIN            PB13
 #define SPI2_SCK_PIN_SOURCE     GPIO_PinSource13
 #define SPI2_SCK_GPIO    		GPIOB
 #define SPI2_SCK_PERIPHERAL     RCC_AHBPeriph_GPIOB
-#define SPI2_MISO_PIN           Pin_14
+#define SPI2_MISO_PIN           PB14
 #define SPI2_MISO_PIN_SOURCE    GPIO_PinSource14
-#define SPI2_MOSI_PIN           Pin_15
+#define SPI2_MOSI_PIN           PB15
 #define SPI2_MOSI_PIN_SOURCE    GPIO_PinSource15
 
 #define M25P16_CS_GPIO        GPIOB
-#define M25P16_CS_PIN         GPIO_Pin_12
+#define M25P16_CS_PIN         PB12
 #define M25P16_SPI_INSTANCE   SPI2
 
 //#define SENSORS_SET (SENSOR_ACC | SENSOR_BARO | SENSOR_GPS | SENSOR_MAG)
@@ -213,3 +217,7 @@
 #define S1W_RX_GPIO         GPIOB
 #define S1W_RX_PIN          GPIO_Pin_7
 
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTF 0xffff

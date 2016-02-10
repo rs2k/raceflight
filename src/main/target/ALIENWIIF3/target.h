@@ -21,15 +21,9 @@
 
 #define USBD_PRODUCT_STRING "AlienWii32 F3"
 
-#define LED0_GPIO   GPIOB
-#define LED0_PIN    Pin_4 // Blue LEDs - PB4
-#define LED0_PERIPHERAL RCC_AHBPeriph_GPIOB
-#define LED1_GPIO   GPIOB
-#define LED1_PIN    Pin_5  // Green LEDs - PB5
-#define LED1_PERIPHERAL RCC_AHBPeriph_GPIOB
-#define BEEP_GPIO   GPIOA
-#define BEEP_PIN    Pin_5  // White LEDs - PA5
-#define BEEP_PERIPHERAL RCC_AHBPeriph_GPIOA
+#define LED0    PB4 // Blue LEDs - PB4
+#define LED1    PB5  // Green LEDs - PB5
+#define BEEPER  PA5  // White LEDs - PA5
 
 #define USABLE_TIMER_CHANNEL_COUNT 11
 
@@ -53,10 +47,6 @@
 //#define USE_MAG_AK8975
 
 #define MAG_AK8975_ALIGN CW0_DEG_FLIP
-
-#define BEEPER
-#define LED0
-#define LED1
 
 #define USE_VCP
 #define USE_USART1 // Not connected - TX (PB6) RX PB7 (AF7)

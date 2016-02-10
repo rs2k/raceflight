@@ -28,6 +28,7 @@
 #include "rcc.h"
 
 /* for F30x processors */
+#if defined(STM32F303xC)
 #ifndef GPIO_AF_SPI1
 #define GPIO_AF_SPI1    GPIO_AF_5
 #endif
@@ -37,6 +38,7 @@
 #ifndef GPIO_AF_SPI3
 #define GPIO_AF_SPI3	GPIO_AF_5
 #endif
+#endif 
 
 #ifndef SPI1_SCK_PIN
 #define SPI1_NSS_PIN    PA4
@@ -59,9 +61,24 @@
 #define SPI3_MOSI_PIN   PB5
 #endif
 
+#ifndef SPI1_NSS_PIN
+#define SPI1_NSS_PIN NONE
+#endif
+#ifndef SPI2_NSS_PIN
+#define SPI2_NSS_PIN NONE
+#endif
+#ifndef SPI3_NSS_PIN
+#define SPI3_NSS_PIN NONE
+#endif
+
 static spiDevice_t spiHardwareMap[] = {
+#if defined(STM32F10X)
+    { .dev = SPI1, .nss = IO_TAG(SPI1_NSS_PIN), .sck = IO_TAG(SPI1_SCK_PIN), .miso = IO_TAG(SPI1_MISO_PIN), .mosi = IO_TAG(SPI1_MOSI_PIN), .rcc = RCC_APB2(SPI1), .af = 0 },
+    { .dev = SPI2, .nss = IO_TAG(SPI2_NSS_PIN), .sck = IO_TAG(SPI2_SCK_PIN), .miso = IO_TAG(SPI2_MISO_PIN), .mosi = IO_TAG(SPI2_MOSI_PIN), .rcc = RCC_APB1(SPI2), .af = 0 },
+#else
     { .dev = SPI1, .nss = IO_TAG(SPI1_NSS_PIN), .sck = IO_TAG(SPI1_SCK_PIN), .miso = IO_TAG(SPI1_MISO_PIN), .mosi = IO_TAG(SPI1_MOSI_PIN), .rcc = RCC_APB2(SPI1), .af = GPIO_AF_SPI1 },
     { .dev = SPI2, .nss = IO_TAG(SPI2_NSS_PIN), .sck = IO_TAG(SPI2_SCK_PIN), .miso = IO_TAG(SPI2_MISO_PIN), .mosi = IO_TAG(SPI2_MOSI_PIN), .rcc = RCC_APB1(SPI2), .af = GPIO_AF_SPI2 },
+#endif
 #if defined(STM32F40_41xxx) || defined(STM32F411xE)
     { .dev = SPI3, .nss = IO_TAG(SPI3_NSS_PIN), .sck = IO_TAG(SPI3_SCK_PIN), .miso = IO_TAG(SPI3_MISO_PIN), .mosi = IO_TAG(SPI3_MOSI_PIN), .rcc = RCC_APB1(SPI3), .af = GPIO_AF_SPI3 }
 #endif
@@ -95,13 +112,23 @@ void spiInitDevice(SPIDevice device)
     IOInit(IOGetByTag(spi->miso), OWNER_SYSTEM, RESOURCE_SPI);
     IOInit(IOGetByTag(spi->mosi), OWNER_SYSTEM, RESOURCE_SPI);
     
+#if defined(STM32F303xC) || defined(STM32F40_41xxx) || defined(STM32F411xE)
     IOConfigGPIOAF(IOGetByTag(spi->sck), SPI_IO_AF_CFG, spi->af);
     IOConfigGPIOAF(IOGetByTag(spi->miso), SPI_IO_AF_CFG, spi->af);
     IOConfigGPIOAF(IOGetByTag(spi->mosi), SPI_IO_AF_CFG, spi->af);
-    
+
     if (spi->nss)
         IOConfigGPIOAF(IOGetByTag(spi->nss), SPI_IO_CS_CFG, spi->af);
-
+#endif
+#if defined(STM32F10X)
+    IOConfigGPIO(IOGetByTag(spi->sck), SPI_IO_AF_CFG);
+    IOConfigGPIO(IOGetByTag(spi->miso), SPI_IO_AF_CFG);
+    IOConfigGPIO(IOGetByTag(spi->mosi), SPI_IO_AF_CFG);
+    
+    if (spi->nss)
+        IOConfigGPIO(IOGetByTag(spi->nss), SPI_IO_CS_CFG);
+#endif
+    
     // Init SPI1 hardware
     SPI_I2S_DeInit(spi->dev);
 

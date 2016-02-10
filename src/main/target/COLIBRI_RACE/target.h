@@ -26,39 +26,22 @@
 #define USE_EXTI
 #define MPU_INT_EXTI PA5
 
-#define LED0_GPIO   GPIOC
-#define LED0_PIN    Pin_15
-#define LED0_PERIPHERAL RCC_AHBPeriph_GPIOC
 
-#define LED1_GPIO   GPIOC
-#define LED1_PIN    Pin_14
-#define LED1_PERIPHERAL RCC_AHBPeriph_GPIOC
-
-#define LED2_GPIO   GPIOC
-#define LED2_PIN    Pin_13
-#define LED2_PERIPHERAL RCC_AHBPeriph_GPIOC
-
-#define BEEP_GPIO   GPIOB
-#define BEEP_PIN    Pin_13
-#define BEEP_PERIPHERAL RCC_AHBPeriph_GPIOB
+#define BEEPER  PB13
+#define LED0    PC15
+#define LED1    PC14
+#define LED2    PC13
 #define BEEPER_INVERTED
 
-#define MPU6500_CS_GPIO_CLK_PERIPHERAL   RCC_AHBPeriph_GPIOA
-#define MPU6500_CS_GPIO                  GPIOA
-#define MPU6500_CS_PIN                   GPIO_Pin_4
+#define MPU6500_CS_PIN                   PA4
 #define MPU6500_SPI_INSTANCE             SPI1
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 
-#define SPI1_GPIO               GPIOB
-#define SPI1_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOB
-#define SPI1_SCK_PIN            GPIO_Pin_3
-#define SPI1_SCK_PIN_SOURCE     GPIO_PinSource3
-#define SPI1_MISO_PIN           GPIO_Pin_4
-#define SPI1_MISO_PIN_SOURCE    GPIO_PinSource4
-#define SPI1_MOSI_PIN           GPIO_Pin_5
-#define SPI1_MOSI_PIN_SOURCE    GPIO_PinSource5
+#define SPI1_SCK_PIN            PB3
+#define SPI1_MISO_PIN           PB4
+#define SPI1_MOSI_PIN           PB5
 
 #define USABLE_TIMER_CHANNEL_COUNT 11
 
@@ -86,11 +69,6 @@
 #define USE_MAG_HMC5883
 #define USE_MAG_AK8975
 //#define MAG_AK8975_ALIGN CW0_DEG_FLIP
-
-#define BEEPER
-#define LED0
-#define LED1
-#define LED2
 
 #define USE_VCP
 #define USE_USART1
@@ -185,3 +163,8 @@
 #define SERIAL_RX
 #define USE_SERVOS
 #define USE_CLI
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTF 0xffff

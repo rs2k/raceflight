@@ -21,6 +21,10 @@
 
 #define USBD_PRODUCT_STRING "Chebuzz F3"
 
+#define BEEPER  PE8
+#define LED0    PE10
+#define LED1    PE9
+
 #define LED0_GPIO   GPIOE
 #define LED0_PIN    Pin_8|Pin_12 // Blue LEDs - PE8/PE12
 #define LED0_PERIPHERAL RCC_AHBPeriph_GPIOE
@@ -66,10 +70,6 @@
 #define USE_MAG_AK8975
 
 #define MAG_AK8975_ALIGN CW90_DEG_FLIP
-
-#define BEEPER
-#define LED0
-#define LED1
 
 #define USE_VCP
 #define USE_USART1
@@ -127,3 +127,9 @@
 #define SERIAL_RX
 #define USE_SERVOS
 #define USE_CLI
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTE 0xffff
+#define TARGET_IO_PORTF 0xffff

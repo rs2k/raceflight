@@ -52,8 +52,8 @@ void detectHardwareRevision(void)
 
 #ifdef USE_SPI
 
-#define DISABLE_SPI_CS       GPIO_SetBits(NAZE_SPI_CS_GPIO,   NAZE_SPI_CS_PIN)
-#define ENABLE_SPI_CS        GPIO_ResetBits(NAZE_SPI_CS_GPIO, NAZE_SPI_CS_PIN)
+#define DISABLE_SPI_CS       IOHi(IOGetByTag(IO_TAG(NAZE_SPI_CS_PIN)))
+#define ENABLE_SPI_CS        IOLo(IOGetByTag(IO_TAG(NAZE_SPI_CS_PIN)))
 
 #define SPI_DEVICE_NONE (0)
 #define SPI_DEVICE_FLASH (1)
