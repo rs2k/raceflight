@@ -668,7 +668,7 @@ void HardFault_Handler(void) {
     LED0_OFF;
 
     while(1) {
-#ifdef BLUEJAYF4
+#ifdef LED2
         delay(25);
         LED2_TOGGLE;
 #endif

@@ -105,9 +105,6 @@ void mpu6500GyroInit(uint8_t lpf)
     mpuConfiguration.write(MPU_RA_PWR_MGMT_1, INV_CLK_PLL);
     delayMicroseconds(1);
 
-#if defined (REVONANO) || defined (SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
-    //mpuConfiguration.write(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_8800_32); //Fchoice_b defaults to 00 which makes fchoice 11
-    //delayMicroseconds(1);
     mpuConfiguration.write(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_DISABLED); //Fchoice_b defaults to 00 which makes fchoice 11
     delay(15);
     mpuConfiguration.write(MPU_RA_ACCEL_CONFIG, INV_FSR_8G << 3);
@@ -124,24 +121,6 @@ void mpu6500GyroInit(uint8_t lpf)
     delay(15);
     mpuConfiguration.write(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops()); // Get Divider Drops
     delay(15);
-#else
-    mpuConfiguration.write(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_DISABLED); //Fchoice_b defaults to 00 which makes fchoice 11
-    delay(15);
-    mpuConfiguration.write(MPU_RA_ACCEL_CONFIG, INV_FSR_8G << 3);
-    delay(15);
-
-    if (lpf == 4) {
-    	mpuConfiguration.write(MPU_RA_CONFIG, 1); //1KHz, 184DLPF
-    } else if (lpf < 4) {
-    	mpuConfiguration.write(MPU_RA_CONFIG, 7); //8KHz, 3600DLPF
-    } else if (lpf > 4) {
-    	mpuConfiguration.write(MPU_RA_CONFIG, 0); //8KHz, 250DLPF
-    }
-
-    delay(15);
-    mpuConfiguration.write(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops()); // Get Divider Drops
-    delay(15);
-#endif
 
     mpuConfiguration.write(MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 1 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 0 << 0);  // INT_ANYRD_2CLEAR, BYPASS_EN
     delayMicroseconds(1);

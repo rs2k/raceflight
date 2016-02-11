@@ -158,8 +158,6 @@ static void mpu9250AccAndGyroInit(uint8_t lpf) {
 
 	verifympu9250WriteRegister(MPU_RA_PWR_MGMT_1, INV_CLK_PLL);
 
-#if defined (REVONANO) || defined (SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE)
-    //mpu9250WriteRegister(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_8800_32); //Fchoice_b defaults to 00 which makes fchoice 11
 	verifympu9250WriteRegister(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_DISABLED); //Fchoice_b defaults to 00 which makes fchoice 11
 
     if (lpf == 4) {
@@ -171,19 +169,6 @@ static void mpu9250AccAndGyroInit(uint8_t lpf) {
     }
 
 	verifympu9250WriteRegister(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops()); // Get Divider Drops
-#else
-	verifympu9250WriteRegister(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_DISABLED); //Fchoice_b defaults to 00 which makes fchoice 11
-
-    if (lpf == 4) {
-    	verifympu9250WriteRegister(MPU_RA_CONFIG, 1); //1KHz, 184DLPF
-    } else if (lpf < 4) {
-    	verifympu9250WriteRegister(MPU_RA_CONFIG, 7); //8KHz, 3600DLPF
-    } else if (lpf > 4) {
-    	verifympu9250WriteRegister(MPU_RA_CONFIG, 0); //8KHz, 250DLPF
-    }
-
-	verifympu9250WriteRegister(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops()); // Get Divider Drops
-#endif
 
 	verifympu9250WriteRegister(MPU_RA_ACCEL_CONFIG, INV_FSR_8G << 3);
 	verifympu9250WriteRegister(MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 1 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 0 << 0);  // INT_ANYRD_2CLEAR, BYPASS_EN
