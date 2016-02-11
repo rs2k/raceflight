@@ -112,24 +112,22 @@ void adcInit(drv_adc_config_t *init)
 
     // calibrate
 
-    /*ADC_VoltageRegulatorCmd(ADC1, ENABLE);
+    /*
+    ADC_VoltageRegulatorCmd(ADC1, ENABLE);
     delay(10);
     ADC_SelectCalibrationMode(ADC1, ADC_CalibrationMode_Single);
     ADC_StartCalibration(ADC1);
     while(ADC_GetCalibrationStatus(ADC1) != RESET);
     ADC_VoltageRegulatorCmd(ADC1, DISABLE);
-
-
     */
-	ADC_CommonInitTypeDef ADC_CommonInitStructure;
+
+    ADC_CommonInitTypeDef ADC_CommonInitStructure;
 
     ADC_CommonStructInit(&ADC_CommonInitStructure);
     ADC_CommonInitStructure.ADC_Mode = ADC_Mode_Independent;
     ADC_CommonInitStructure.ADC_Prescaler = ADC_Prescaler_Div8;
-    //ADC_CommonInitStructure.ADC_DMAAccessMode = ADC_DMAAccessMode_1;
     ADC_CommonInitStructure.ADC_DMAAccessMode = ADC_DMAAccessMode_Disabled;
     ADC_CommonInitStructure.ADC_TwoSamplingDelay = ADC_TwoSamplingDelay_5Cycles;
-    //ADC_CommonInitStructure.ADC_TwoSamplingDelay = 0;
     ADC_CommonInit(&ADC_CommonInitStructure);
 
     ADC_StructInit(&ADC_InitStructure);

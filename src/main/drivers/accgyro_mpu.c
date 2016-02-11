@@ -29,9 +29,8 @@
 #include "nvic.h"
 
 #include "system.h"
-#include "gpio.h"
-#include "drivers/io.h"
-#include "drivers/exti.h"
+#include "io.h"
+#include "exti.h"
 #include "bus_i2c.h"
 #include "gyro_sync.h"
 
@@ -240,7 +239,7 @@ void mpuIntExtiInit(void)
         return;
     }
 
-#ifdef USE_MPU_DATA_READY_SIGNAL 
+#if defined(USE_MPU_DATA_READY_SIGNAL) && defined(USE_EXTI)
 
 	IO_t mpuIntIO = IOGetByTag(mpuIntExtiConfig->io);
 	
@@ -284,7 +283,8 @@ static bool mpuWriteRegisterI2C(uint8_t reg, uint8_t data)
 #else
     bool ack = i2cWrite(MPU_I2C_INSTANCE, MPU_ADDRESS, reg, data);
     return ack;
-#endif}
+#endif
+}
 
 bool mpuAccRead(int16_t *accData)
 {

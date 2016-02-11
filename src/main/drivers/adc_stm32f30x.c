@@ -22,7 +22,7 @@
 #include "platform.h"
 #include "system.h"
 
-#include "gpio.h"
+#include "io.h"
 
 #include "sensor.h"
 #include "accgyro.h"
@@ -40,21 +40,16 @@ void adcInit(drv_adc_config_t *init)
 {
     ADC_InitTypeDef ADC_InitStructure;
     DMA_InitTypeDef DMA_InitStructure;
-    GPIO_InitTypeDef GPIO_InitStructure;
 
     uint8_t i;
     uint8_t adcChannelCount = 0;
 
     memset(&adcConfig, 0, sizeof(adcConfig));
 
-    GPIO_StructInit(&GPIO_InitStructure);
-    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AN;
-    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL ;
-
-#ifdef VBAT_ADC_GPIO
+#ifdef VBAT_ADC_PIN
     if (init->enableVBat) {
-        GPIO_InitStructure.GPIO_Pin   = VBAT_ADC_GPIO_PIN;
-        GPIO_Init(VBAT_ADC_GPIO, &GPIO_InitStructure);
+	    IOInit(IOGetByTag(IO_TAG(VBAT_ADC_PIN)), OWNER_SYSTEM, RESOURCE_ADC);
+	    IOConfigGPIO(IOGetByTag(IO_TAG(VBAT_ADC_PIN)), IO_CONFIG(GPIO_Mode_AN, 0, GPIO_OType_OD, GPIO_PuPd_NOPULL));
 
         adcConfig[ADC_BATTERY].adcChannel = VBAT_ADC_CHANNEL;
         adcConfig[ADC_BATTERY].dmaIndex = adcChannelCount;
@@ -64,10 +59,10 @@ void adcInit(drv_adc_config_t *init)
     }
 #endif
 
-#ifdef RSSI_ADC_GPIO
+#ifdef RSSI_ADC_PIN
     if (init->enableRSSI) {
-        GPIO_InitStructure.GPIO_Pin = RSSI_ADC_GPIO_PIN;
-        GPIO_Init(RSSI_ADC_GPIO, &GPIO_InitStructure);
+	    IOInit(IOGetByTag(IO_TAG(RSSI_ADC_PIN)), OWNER_SYSTEM, RESOURCE_ADC);
+	    IOConfigGPIO(IOGetByTag(IO_TAG(RSSI_ADC_PIN)), IO_CONFIG(GPIO_Mode_AN, 0, GPIO_OType_OD, GPIO_PuPd_NOPULL));
 
         adcConfig[ADC_RSSI].adcChannel = RSSI_ADC_CHANNEL;
         adcConfig[ADC_RSSI].dmaIndex = adcChannelCount;
@@ -77,10 +72,10 @@ void adcInit(drv_adc_config_t *init)
     }
 #endif
 
-#ifdef CURRENT_METER_ADC_GPIO
+#ifdef CURRENT_METER_ADC_PIN
     if (init->enableCurrentMeter) {
-        GPIO_InitStructure.GPIO_Pin = CURRENT_METER_ADC_GPIO_PIN;
-        GPIO_Init(CURRENT_METER_ADC_GPIO, &GPIO_InitStructure);
+	    IOInit(IOGetByTag(IO_TAG(CURRENT_METER_ADC_PIN)), OWNER_SYSTEM, RESOURCE_ADC);
+	    IOConfigGPIO(IOGetByTag(IO_TAG(CURRENT_METER_ADC_PIN)), IO_CONFIG(GPIO_Mode_AN, 0, GPIO_OType_OD, GPIO_PuPd_NOPULL));
 
         adcConfig[ADC_CURRENT].adcChannel = CURRENT_METER_ADC_CHANNEL;
         adcConfig[ADC_CURRENT].dmaIndex = adcChannelCount;
@@ -90,10 +85,10 @@ void adcInit(drv_adc_config_t *init)
     }
 #endif
 
-#ifdef EXTERNAL1_ADC_GPIO
+#ifdef EXTERNAL1_ADC_PIN
     if (init->enableExternal1) {
-        GPIO_InitStructure.GPIO_Pin   = EXTERNAL1_ADC_GPIO_PIN;
-        GPIO_Init(EXTERNAL1_ADC_GPIO, &GPIO_InitStructure);
+	    IOInit(IOGetByTag(IO_TAG(EXTERNAL1_ADC_PIN)), OWNER_SYSTEM, RESOURCE_ADC);
+	    IOConfigGPIO(IOGetByTag(IO_TAG(EXTERNAL1_ADC_PIN)), IO_CONFIG(GPIO_Mode_AN, 0, GPIO_OType_OD, GPIO_PuPd_NOPULL));
 
         adcConfig[ADC_EXTERNAL1].adcChannel = EXTERNAL1_ADC_CHANNEL;
         adcConfig[ADC_EXTERNAL1].dmaIndex = adcChannelCount;

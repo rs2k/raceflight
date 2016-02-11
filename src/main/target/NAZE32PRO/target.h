@@ -24,16 +24,8 @@
 
 #pragma once
 
-#define LED0_GPIO   GPIOB
-#define LED0_PIN    Pin_12
-#define LED0_PERIPHERAL RCC_AHBPeriph_GPIOB
-#define BEEP_GPIO   GPIOB
-#define BEEP_PIN    Pin_10
-#define BEEP_PERIPHERAL RCC_AHBPeriph_GPIOB
-
-#define BEEPER
-#define LED0
-
+#define LED0        PB12
+#define BEEPER      PB10
 #define GYRO
 #define ACC
 
@@ -57,3 +49,4 @@
 // USART2, PA3
 #define BIND_PORT  GPIOA
 #define BIND_PIN   Pin_3
+
