@@ -133,7 +133,11 @@ enum {
     PWM13,
     PWM14,
     PWM15,
-    PWM16
+    PWM16,
+    PWM17,
+    PWM18,
+    PWM19,
+    PWM20
 };
 
 pwmOutputConfiguration_t *pwmGetOutputConfiguration(void);
