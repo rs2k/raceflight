@@ -21,7 +21,7 @@
 #include <platform.h>
 #include "build_config.h"
 
-#include "gpio.h"
+#include "io.h"
 #include "system.h"
 
 #include "bus_i2c.h"
@@ -38,6 +38,13 @@ static void i2cUnstick(IO_t scl, IO_t sda);
 #define GPIO_AF_I2C GPIO_AF_I2C1
 
 #if defined(STM32F40_41xxx) || defined(STM32F411xE)
+
+#if defined(USE_I2C_PULLUP)
+#define IOCFG_I2C IO_CONFIG(GPIO_Mode_AF, 0, GPIO_OType_OD, GPIO_PuPd_UP)
+#else
+#define IOCFG_I2C IOCFG_AF_OD
+#endif
+
 #ifndef I2C1_SCL 
 #define I2C1_SCL PB8 
 #endif
@@ -367,6 +374,15 @@ void i2cInit(I2CDevice device)
     
     i2cUnstick(scl, sda);
      
+    // Init pins
+#if defined(STM32F40_41xxx) || defined(STM32F411xE)
+    IOConfigGPIOAF(scl, IOCFG_I2C, GPIO_AF_I2C);
+    IOConfigGPIOAF(sda, IOCFG_I2C, GPIO_AF_I2C);
+#else
+    IOConfigGPIO(scl, IOCFG_AF_OD);
+    IOConfigGPIO(sda, IOCFG_AF_OD);
+#endif
+    
 	I2C_DeInit(i2c->dev);
     I2C_StructInit(&i2cInit);
     
@@ -438,15 +454,6 @@ static void i2cUnstick(IO_t scl, IO_t sda)
     IOHi(scl); // Set bus scl high
     delayMicroseconds(10);
     IOHi(sda); // Set bus sda high
-
-    // Init pins
-#if defined(STM32F40_41xxx) || defined(STM32F411xE)
-    IOConfigGPIOAF(scl, IOCFG_AF_OD, GPIO_AF_I2C);
-    IOConfigGPIOAF(sda, IOCFG_AF_OD, GPIO_AF_I2C);
-#else
-    IOConfigGPIO(scl, IOCFG_AF_OD);
-    IOConfigGPIO(sda, IOCFG_AF_OD);
-#endif
 }
 
 #endif

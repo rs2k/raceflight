@@ -26,9 +26,7 @@
 #define BEEPER PB13
 #define BEEPER_INVERTED
 
-#define MPU6500_CS_GPIO_CLK_PERIPHERAL   RCC_AHBPeriph_GPIOA
-#define MPU6500_CS_GPIO                  GPIOA
-#define MPU6500_CS_PIN                   GPIO_Pin_4
+#define MPU6500_CS_PIN                   PA4
 #define MPU6500_SPI_INSTANCE             SPI1
 
 #define USE_EXTI
@@ -37,18 +35,10 @@
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 
-#define SPI1_NSS_GPIO           GPIOA
-#define SPI1_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOA
-#define SPI1_NSS_PIN            GPIO_Pin_4
-#define SPI1_NSS_PIN_SOURCE     GPIO_PinSource4
-#define SPI1_GPIO               GPIOB
-#define SPI1_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOB
-#define SPI1_SCK_PIN            GPIO_Pin_3
-#define SPI1_SCK_PIN_SOURCE     GPIO_PinSource3
-#define SPI1_MISO_PIN           GPIO_Pin_4
-#define SPI1_MISO_PIN_SOURCE    GPIO_PinSource4
-#define SPI1_MOSI_PIN           GPIO_Pin_5
-#define SPI1_MOSI_PIN_SOURCE    GPIO_PinSource5
+#define SPI1_NSS_PIN            PA4
+#define SPI1_SCK_PIN            PB3
+#define SPI1_MISO_PIN           PB4
+#define SPI1_MOSI_PIN           PB5
 
 #define USABLE_TIMER_CHANNEL_COUNT 11
 
@@ -120,20 +110,16 @@
 #define ADC_AHB_PERIPHERAL          RCC_AHBPeriph_DMA1
 #define ADC_DMA_CHANNEL             DMA1_Channel1
 
-#define VBAT_ADC_GPIO               GPIOC
-#define VBAT_ADC_GPIO_PIN           GPIO_Pin_0
+#define VBAT_ADC_PIN                PC0
 #define VBAT_ADC_CHANNEL            ADC_Channel_6
 
-#define CURRENT_METER_ADC_GPIO      GPIOC
-#define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_1
+#define CURRENT_METER_ADC_PIN       PC1
 #define CURRENT_METER_ADC_CHANNEL   ADC_Channel_7
 
-#define RSSI_ADC_GPIO               GPIOC
-#define RSSI_ADC_GPIO_PIN           GPIO_Pin_2
+#define RSSI_ADC_PIN                PC2
 #define RSSI_ADC_CHANNEL            ADC_Channel_8
 
-#define EXTERNAL1_ADC_GPIO          GPIOC
-#define EXTERNAL1_ADC_GPIO_PIN      GPIO_Pin_3
+#define EXTERNAL1_ADC_PIN           PC3
 #define EXTERNAL1_ADC_CHANNEL       ADC_Channel_9
 
 #define BLACKBOX

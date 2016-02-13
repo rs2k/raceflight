@@ -661,7 +661,7 @@ void HardFault_Handler(void) {
     // fall out of the sky
     uint8_t requiredState = SYSTEM_STATE_CONFIG_LOADED | SYSTEM_STATE_MOTORS_READY;
     if ((systemState & requiredState) == requiredState) {
-        stopMotors();
+       stopMotorsNoDelay();
     }
 
     LED1_OFF;
@@ -669,7 +669,7 @@ void HardFault_Handler(void) {
 
     while(1) {
 #ifdef LED2
-        delay(25);
+        delay(5);
         LED2_TOGGLE;
 #endif
     }

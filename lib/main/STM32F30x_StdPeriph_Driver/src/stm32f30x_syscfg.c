@@ -474,6 +474,8 @@ FlagStatus SYSCFG_GetFlagStatus(uint32_t SYSCFG_Flag)
   /* Check the parameter */
   assert_param(IS_SYSCFG_FLAG(SYSCFG_Flag));
 
+  (void)(SYSCFG_Flag);
+    
   /* Check the status of the specified SPI flag */
   if ((SYSCFG->CFGR2 & SYSCFG_CFGR2_SRAM_PE) != (uint32_t)RESET)
   {
