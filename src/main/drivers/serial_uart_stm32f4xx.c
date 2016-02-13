@@ -39,6 +39,7 @@
 #define UART_RX_BUFFER_SIZE UART1_RX_BUFFER_SIZE
 #define UART_TX_BUFFER_SIZE UART1_TX_BUFFER_SIZE
 
+#define MAX_UARTS 6
 typedef enum UARTDevice {
     UARTDEV_1 = 0,
     UARTDEV_2 = 1,
@@ -67,7 +68,7 @@ typedef struct uartDevice_s {
     uint32_t rxPriority;
 } uartDevice_t;
 
-static uartPort_t uartPort[UARTDEV_6];
+static uartPort_t uartPort[MAX_UARTS];
 
 static uartDevice_t uartHardwareMap[] = {
 #ifdef USE_USART1
