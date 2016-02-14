@@ -123,16 +123,8 @@
 #define CURRENT_METER_ADC_PIN       PA5
 #define RSSI_ADC_PIN                PB2
 
-#define VBAT_ADC_GPIO               GPIOA
-#define VBAT_ADC_GPIO_PIN           GPIO_Pin_4
 #define VBAT_ADC_CHANNEL            ADC_Channel_1
-
-#define CURRENT_METER_ADC_GPIO      GPIOA
-#define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_5
 #define CURRENT_METER_ADC_CHANNEL   ADC_Channel_2
-
-#define RSSI_ADC_GPIO               GPIOB
-#define RSSI_ADC_GPIO_PIN           GPIO_Pin_2
 #define RSSI_ADC_CHANNEL            ADC_Channel_12
 
 #define LED_STRIP

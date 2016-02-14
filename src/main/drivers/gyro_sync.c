@@ -109,7 +109,7 @@ void gyroUpdateSampleRate(uint8_t lpf) {
     		mpuDividerDropsOverride = false; // do not override mpuDividerDrops
            break;
     }
-#elif defined(REVONANO) || defined(SPARKY2) || defined(ALIENFLIGHTF4) || defined(BLUEJAYF4) || defined(VRCORE) || defined(QUANTON)
+#elif defined(STM32F40_41xxx) || defined(STM32F411xE)
     switch (lpf) {
 		case 0:
 		case 1:
@@ -131,51 +131,6 @@ void gyroUpdateSampleRate(uint8_t lpf) {
         	gyroSamplePeriod = 125;
     		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
     		mpuDividerDropsOverride = true; // do not override mpuDividerDrops
-    		break;
-    }
-    switch (lpf) {
-		case 0:
-		case 5:
-    		ESCWriteDenominator = 8; // ESC Write at 1khz
-    		break;
-		case 1:
-		case 6:
-    		ESCWriteDenominator = 4; // ESC Write at 2khz
-    		break;
-		case 2:
-		case 7:
-    		ESCWriteDenominator = 2; // ESC Write at 4khz
-    		break;
-		case 3:
-		case 8:
-    		ESCWriteDenominator = 1; // ESC Write at 8khz
-    		break;
-        case 4:
-    		ESCWriteDenominator = 1; // ESC Write at 8khz
-    		break;
-    }
-#elif defined(REVO)
-    switch (lpf) {
-		case 0:
-		case 1:
-		case 2:
-		case 3:
-        	gyroSamplePeriod = 125;
-    		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
-    		mpuDividerDropsOverride = true; // override mpuDividerDrops
-    		break;
-		case 4:
-        	gyroSamplePeriod = 1000;
-    		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
-    		mpuDividerDropsOverride = false; // override mpuDividerDrops
-    		break;
-		case 5:
-		case 6:
-		case 7:
-		case 8:
-        	gyroSamplePeriod = 125;
-    		gyroSyncDenominator = 1; // Sample every gyro measurement 8khz
-    		mpuDividerDropsOverride = true; // override mpuDividerDrops
     		break;
     }
     switch (lpf) {

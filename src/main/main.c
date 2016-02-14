@@ -661,15 +661,15 @@ void HardFault_Handler(void) {
     // fall out of the sky
     uint8_t requiredState = SYSTEM_STATE_CONFIG_LOADED | SYSTEM_STATE_MOTORS_READY;
     if ((systemState & requiredState) == requiredState) {
-        stopMotors();
+       stopMotorsNoDelay();
     }
 
     LED1_OFF;
     LED0_OFF;
 
     while(1) {
-#ifdef BLUEJAYF4
-        delay(25);
+#ifdef LED2
+        delay(5);
         LED2_TOGGLE;
 #endif
     }

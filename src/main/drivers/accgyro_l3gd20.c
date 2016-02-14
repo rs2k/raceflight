@@ -77,7 +77,8 @@ static void l3gd20SpiInit(SPI_TypeDef *SPIx)
 
 #ifdef L3GD20_CS_PIN
     mpuSpil3gd20CsPin = IOGetByTag(IO_TAG(L3GD20_CS_PIN));
-#endif    IOInit(mpuSpil3gd20CsPin, OWNER_SYSTEM, RESOURCE_SPI);
+#endif
+    IOInit(mpuSpil3gd20CsPin, OWNER_SYSTEM, RESOURCE_SPI);
     IOConfigGPIO(mpuSpil3gd20CsPin, SPI_IO_CS_CFG);
 
     spiSetDivisor(L3GD20_SPI, SPI_STANDARD_CLOCK);

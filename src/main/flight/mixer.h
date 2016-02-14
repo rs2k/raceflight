@@ -219,4 +219,5 @@ void mixerResetDisarmedMotors(void);
 void mixTable(void);
 void writeMotors(void);
 void stopMotors(void);
+void stopMotorsNoDelay(void);
 void StopPwmAllMotors(void);

@@ -110,20 +110,10 @@
 #define USE_SPI
 #define USE_SPI_DEVICE_2 // PB12,13,14,15 on AF5
 
-#define SPI2_NSS_GPIO           GPIOB
-#define SPI2_NSS_PERIPHERAL     RCC_AHBPeriph_GPIOB
 #define SPI2_NSS_PIN            PB12
-#define SPI2_NSS_PIN_SOURCE     GPIO_PinSource12
-#define SPI2_GPIO               GPIOB
-#define SPI2_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOB
 #define SPI2_SCK_PIN            PB13
-#define SPI2_SCK_PIN_SOURCE     GPIO_PinSource13
-#define SPI2_SCK_GPIO    		GPIOB
-#define SPI2_SCK_PERIPHERAL     RCC_AHBPeriph_GPIOB
 #define SPI2_MISO_PIN           PB14
-#define SPI2_MISO_PIN_SOURCE    GPIO_PinSource14
 #define SPI2_MOSI_PIN           PB15
-#define SPI2_MOSI_PIN_SOURCE    GPIO_PinSource15
 
 #define M25P16_CS_GPIO          GPIOB
 #define M25P16_CS_PIN           PB12
@@ -137,16 +127,13 @@
 #define ADC_DMA_CHANNEL             DMA2_Channel1
 #define ADC_AHB_PERIPHERAL          RCC_AHBPeriph_DMA2
 
-#define VBAT_ADC_GPIO               GPIOA
-#define VBAT_ADC_GPIO_PIN           GPIO_Pin_4
+#define VBAT_ADC_PIN                PA4
 #define VBAT_ADC_CHANNEL            ADC_Channel_1
 
-#define CURRENT_METER_ADC_GPIO      GPIOA
-#define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_5
+#define CURRENT_METER_ADC_PIN       PA5
 #define CURRENT_METER_ADC_CHANNEL   ADC_Channel_2
 
-#define RSSI_ADC_GPIO               GPIOB
-#define RSSI_ADC_GPIO_PIN           GPIO_Pin_2
+#define RSSI_ADC_PIN                PB2
 #define RSSI_ADC_CHANNEL            ADC_Channel_12
 
 #define LED_STRIP
