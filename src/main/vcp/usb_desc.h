@@ -30,6 +30,8 @@
 #define __USB_DESC_H
 
 /* Includes ------------------------------------------------------------------*/
+#include "platform.h"
+
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
@@ -45,10 +47,6 @@
 
 #define VIRTUAL_COM_PORT_SIZ_DEVICE_DESC        18
 #define VIRTUAL_COM_PORT_SIZ_CONFIG_DESC        67
-#define VIRTUAL_COM_PORT_SIZ_STRING_LANGID      4
-#define VIRTUAL_COM_PORT_SIZ_STRING_VENDOR      38
-#define VIRTUAL_COM_PORT_SIZ_STRING_PRODUCT     50
-#define VIRTUAL_COM_PORT_SIZ_STRING_SERIAL      26
 
 #define STANDARD_ENDPOINT_DESC_SIZE             0x09
 
@@ -56,10 +54,17 @@
 extern const uint8_t Virtual_Com_Port_DeviceDescriptor[VIRTUAL_COM_PORT_SIZ_DEVICE_DESC];
 extern const uint8_t Virtual_Com_Port_ConfigDescriptor[VIRTUAL_COM_PORT_SIZ_CONFIG_DESC];
 
-extern const uint8_t Virtual_Com_Port_StringLangID[VIRTUAL_COM_PORT_SIZ_STRING_LANGID];
-extern const uint8_t Virtual_Com_Port_StringVendor[VIRTUAL_COM_PORT_SIZ_STRING_VENDOR];
-extern const uint8_t Virtual_Com_Port_StringProduct[VIRTUAL_COM_PORT_SIZ_STRING_PRODUCT];
-extern uint8_t Virtual_Com_Port_StringSerial[VIRTUAL_COM_PORT_SIZ_STRING_SERIAL];
+
+#define USBD_MANUFACTURER_STRING        "RaceFlight"
+
+#ifndef USBD_PRODUCT_STRING
+  #define USBD_PRODUCT_STRING          "STM32 Virtual ComPort"
+#endif /* USBD_PRODUCT_STRING */
+
+#ifndef USBD_SERIALNUMBER_STRING
+  // start of STM32 flash
+  #define USBD_SERIALNUMBER_STRING     "0x8000000"
+#endif /* USBD_SERIALNUMBER_STRING */
 
 #endif /* __USB_DESC_H */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
