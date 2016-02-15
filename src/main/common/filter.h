@@ -22,5 +22,12 @@ typedef struct biquad_s {
     float x1, x2, y1, y2;
 } biquad_t;
 
+typedef struct filterStatePt1_s {
+	float state;
+	float RC;
+	float constdT;
+} filterStatePt1_t;
+
+float filterApplyPt1(float input, filterStatePt1_t *filter, uint8_t f_cut, float dt);
 float applyBiQuadFilter(float sample, biquad_t *state);
 void BiQuadNewLpf(uint8_t filterCutFreq, biquad_t *newState, float refreshRate);

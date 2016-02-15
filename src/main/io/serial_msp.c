@@ -972,6 +972,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize8(masterConfig.profile[0].rcControlsConfig.yaw_deadband);
         serialize8(currentProfile->pidProfile.gyro_lpf_hz);
         serialize8(currentProfile->pidProfile.dterm_lpf_hz);
+        serialize8(currentProfile->pidProfile.yaw_pterm_cut_hz);
         break;
     case MSP_PID:
         headSerialReply( (3 * PID_ITEM_COUNT) );
@@ -1503,6 +1504,7 @@ static bool processInCommand(void)
                 masterConfig.profile[0].rcControlsConfig.yaw_deadband = read8();
                 currentProfile->pidProfile.gyro_lpf_hz = read8();
     			currentProfile->pidProfile.dterm_lpf_hz = read8();
+    			currentProfile->pidProfile.yaw_pterm_cut_hz = read8();
             }
         } else {
             headSerialError(0);

@@ -722,6 +722,7 @@ static bool bstSlaveProcessFeedbackCommand(uint8_t bstRequest)
 			}
 			bstWrite8(currentProfile->pidProfile.gyro_lpf_hz);
 			bstWrite8(currentProfile->pidProfile.dterm_lpf_hz);
+			bstWrite8(currentProfile->pidProfile.yaw_pterm_cut_hz);
 			bstWrite8(masterConfig.rf_loop_ctrl);
 			break;
 	    case BST_PIDNAMES:
@@ -1085,6 +1086,7 @@ static bool bstSlaveProcessWriteCommand(uint8_t bstWriteCommand)
 					if (bstReadDataSize() >= PID_ITEM_COUNT+4) {
 						currentProfile->pidProfile.gyro_lpf_hz = bstRead8();
 						currentProfile->pidProfile.dterm_lpf_hz = bstRead8();
+						currentProfile->pidProfile.yaw_pterm_cut_hz = bstRead8();
 						masterConfig.rf_loop_ctrl = bstRead8();
 					}
 				} else {
@@ -1096,6 +1098,7 @@ static bool bstSlaveProcessWriteCommand(uint8_t bstWriteCommand)
 					if (bstReadDataSize() >= PID_ITEM_COUNT+1) {
 						currentProfile->pidProfile.gyro_lpf_hz = bstRead8();
 						currentProfile->pidProfile.dterm_lpf_hz = bstRead8();
+						currentProfile->pidProfile.yaw_pterm_cut_hz = bstRead8();
 						masterConfig.rf_loop_ctrl = bstRead8();
 					}
 				}

@@ -311,9 +311,20 @@ bool mpuGyroRead(int16_t *gyroADC)
         return false;
     }
 
-    gyroADC[0] = (int16_t)((data[0] << 8) | data[1]);
-    gyroADC[1] = (int16_t)((data[2] << 8) | data[3]);
-    gyroADC[2] = (int16_t)((data[4] << 8) | data[5]);
+    static int16_t last_data0[3] = {0, 0, 0};
+    static int16_t last_data1[3] = {0, 0, 0};
+
+    gyroADC[0] = ((int16_t)((data[0] << 8) | data[1]) + last_data0[0] + last_data1[0]) / 3;
+    gyroADC[1] = ((int16_t)((data[2] << 8) | data[3]) + last_data0[1] + last_data1[1]) / 3;
+    gyroADC[2] = ((int16_t)((data[4] << 8) | data[5]) + last_data0[2] + last_data1[2]) / 3;
+
+    last_data0[0] = last_data1[0];
+    last_data0[1] = last_data1[1];
+    last_data0[2] = last_data1[2];
+
+    last_data1[0] = (int16_t)((data[0] << 8) | data[1]);
+    last_data1[1] = (int16_t)((data[2] << 8) | data[3]);
+    last_data1[2] = (int16_t)((data[4] << 8) | data[5]);
 
     return true;
 }

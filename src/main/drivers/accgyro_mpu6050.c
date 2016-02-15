@@ -111,7 +111,7 @@ static void mpu6050GyroInit(uint8_t lpf)
     if (lpf == 4) {
     	ack = mpuConfiguration.write(MPU_RA_CONFIG, 1); //1KHz, 184DLPF
     } else if (lpf < 4) {
-    	ack = mpuConfiguration.write(MPU_RA_CONFIG, 7); //8KHz, BypassedDLPF
+    	ack = mpuConfiguration.write(MPU_RA_CONFIG, 0); //8KHz, BypassedDLPF //temp change to 0
     } else if (lpf > 4) {
     	ack = mpuConfiguration.write(MPU_RA_CONFIG, 0); //8KHz, 256DLPF
     }

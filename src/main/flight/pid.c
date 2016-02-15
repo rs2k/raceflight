@@ -115,6 +115,7 @@ const angle_index_t rcAliasToAngleIndexMap[] = { AI_ROLL, AI_PITCH };
 
 static airModePlus_t airModePlusAxisState[3];
 static biquad_t deltaBiQuadState[3];
+static filterStatePt1_t yawPTermState;
 static bool deltaStateIsSet;
 
 static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRateConfig,
@@ -196,17 +197,15 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
         RateError = AngleRate - gyroRate;
 
         // -----calculate P component
-#if defined(STM32F40_41xxx) || defined (STM32F411xE)
         PTerm = RateError * (pidProfile->P_f[axis]/4) * PIDweight[axis] / 100;
-#else
-        PTerm = RateError * (pidProfile->P_f[axis]) * PIDweight[axis] / 100;
-#endif
+
+        if (axis == YAW && pidProfile->yaw_pterm_cut_hz) {
+            PTerm = filterApplyPt1(PTerm, &yawPTermState, pidProfile->yaw_pterm_cut_hz, dT);
+        }
+
         // -----calculate I component.
-#if defined(STM32F40_41xxx) || defined (STM32F411xE)
-        errorGyroIf[axis] = constrainf(errorGyroIf[axis] + RateError * dT * (pidProfile->I_f[axis]/4)  * 10, -250.0f, 250.0f);
-#else
-        errorGyroIf[axis] = constrainf(errorGyroIf[axis] + RateError * dT * (pidProfile->I_f[axis])  * 10, -250.0f, 250.0f);
-#endif
+        errorGyroIf[axis] = constrainf(errorGyroIf[axis] + RateError * dT * (pidProfile->I_f[axis]/2)  * 10, -250.0f, 250.0f);
+
 
         if (IS_RC_MODE_ACTIVE(BOXAIRMODE)) {
             airModePlus(&airModePlusAxisState[axis], axis, controlRateConfig);
@@ -241,11 +240,9 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
         // would be scaled by different dt each time. Division by dT fixes that.
         delta *= (1.0f / dT);
 
-#if defined(STM32F40_41xxx) || defined (STM32F411xE)
-        DTerm = constrainf(delta * (pidProfile->D_f[axis]/4) * PIDweight[axis] / 100, -300.0f, 300.0f);
-#else
-        DTerm = constrainf(delta * (pidProfile->D_f[axis]) * PIDweight[axis] / 100, -300.0f, 300.0f);
-#endif
+
+        DTerm = constrainf(delta * (pidProfile->D_f[axis]/10) * PIDweight[axis] / 100, -300.0f, 300.0f);
+
 
         // -----calculate total PID output
         axisPID[axis] = constrain(lrintf(PTerm + ITerm + DTerm), -1000, 1000);
@@ -343,7 +340,11 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
         RateError = AngleRateTmp - gyroRate;
 
         // -----calculate P component
-        PTerm = (RateError * pidProfile->P8[axis] * PIDweight[axis] / 100) >> 7;
+		PTerm = (RateError * pidProfile->P8[axis] * PIDweight[axis] / 100) >> 7;
+
+		if (axis == YAW && pidProfile->yaw_pterm_cut_hz) {
+			PTerm = filterApplyPt1(PTerm, &yawPTermState, pidProfile->yaw_pterm_cut_hz, dT);
+		}
 
         // -----calculate I component
         // there should be no division before accumulating the error to integrator, because the precision would be reduced.
@@ -385,7 +386,7 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
         // would be scaled by different dt each time. Division by dT fixes that.
         delta = (delta * ((uint16_t) 0xFFFF / ((uint16_t)targetESCwritetime >> 4))) >> 6;
 
-        DTerm = (delta * 3 * pidProfile->D8[axis] * PIDweight[axis] / 100) >> 8;
+        DTerm = (delta * 3 * (pidProfile->D8[axis]/4) * PIDweight[axis] / 100) >> 8;
 
         // -----calculate total PID output
         axisPID[axis] = PTerm + ITerm + DTerm;

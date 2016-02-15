@@ -682,8 +682,11 @@ static bool haveProcessedAnnexCodeOnce = false;
 
 void taskMainPidLoop(void)
 {
+	static uint32_t cycleTimelastCalledAt = 0;
+	uint32_t cycleTimenow = micros();
 	static uint8_t counter = 1;
-    cycleTime = getTaskDeltaTime(TASK_SELF);
+    cycleTime = cycleTimenow - cycleTimelastCalledAt;
+    cycleTimelastCalledAt = cycleTimenow;
     dT = (float)targetESCwritetime * 0.000001f;
 
     imuUpdateGyroAndAttitude();

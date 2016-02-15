@@ -151,7 +151,7 @@ static uint32_t activeFeaturesLatch = 0;
 static uint8_t currentControlRateProfileIndex = 0;
 controlRateConfig_t *currentControlRateProfile;
 
-static const uint8_t EEPROM_CONF_VERSION = 122;
+static const uint8_t EEPROM_CONF_VERSION = 123;
 
 static void resetAccelerometerTrims(flightDynamicsTrims_t *accelerometerTrims)
 {
@@ -197,6 +197,7 @@ static void resetPidProfile(pidProfile_t *pidProfile)
 
 #if defined(STM32F411xE) || defined(STM32F40_41xxx)
     pidProfile->dterm_lpf_hz = 60;   // filtering ON by default
+    pidProfile->yaw_pterm_cut_hz = 30;
     pidProfile->P_f[ROLL] = 5.012f;     // new PID for raceflight. test carefully
     pidProfile->I_f[ROLL] = 1.021f;
     pidProfile->D_f[ROLL] = 0.020f;
@@ -210,7 +211,8 @@ static void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->H_level = 3.000f;
     pidProfile->H_sensitivity = 100;
 #else
-    pidProfile->dterm_lpf_hz = 0;   // filtering ON by default
+    pidProfile->dterm_lpf_hz = 40;   // filtering ON by default
+    pidProfile->yaw_pterm_cut_hz = 30;
     pidProfile->P_f[ROLL] = 1.1f;     // new PID with preliminary defaults test carefully
     pidProfile->I_f[ROLL] = 0.4f;
     pidProfile->D_f[ROLL] = 0.01f;

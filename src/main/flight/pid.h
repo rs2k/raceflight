@@ -61,6 +61,7 @@ typedef struct pidProfile_s {
     uint8_t AcroPlusFactor;                 // Acro+ factor
     uint8_t gyro_lpf_hz;                    // Gyro Soft filter in hz
     uint8_t dterm_lpf_hz;                   // Delta Filter in hz
+    uint8_t yaw_pterm_cut_hz;               // Used for filering Pterm noise on noisy frames
 
 #ifdef GTUNE
     uint8_t  gtune_lolimP[3];               // [0..200] Lower limit of P during G tune
