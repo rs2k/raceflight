@@ -35,6 +35,7 @@
 #include "rx/rx.h"
 #include "rx/sbus.h"
 
+#include "config/config.h"
 /*
  * Observations
  *
@@ -97,7 +98,9 @@ bool sbusInit(rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig, rcReadRa
         return false;
     }
 
-    serialPort_t *sBusPort = openSerialPort(portConfig->identifier, FUNCTION_RX_SERIAL, sbusDataReceive, SBUS_BAUDRATE, MODE_RX, SBUS_PORT_OPTIONS);
+    portOptions_t options = SBUS_PORT_OPTIONS;
+    if (!feature(FEATURE_SBUS_INVERTER)) options = options & ~SERIAL_INVERTED;
+    serialPort_t *sBusPort = openSerialPort(portConfig->identifier, FUNCTION_RX_SERIAL, sbusDataReceive, SBUS_BAUDRATE, MODE_RX, options);
 
     return sBusPort != NULL;
 }
