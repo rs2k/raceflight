@@ -348,9 +348,7 @@ void init(void)
 #endif
 
 #ifdef INVERTER
-    if (feature(FEATURE_SBUS_INVERTER)) {
-    	initInverter();
-    }
+    initInverter(feature(FEATURE_SBUS_INVERTER));
 #endif
 
 #ifdef USE_BST

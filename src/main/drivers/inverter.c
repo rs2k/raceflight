@@ -22,17 +22,19 @@
 
 #ifdef INVERTER  
 
-#include "drivers/io.h"
-#include "drivers/io_impl.h"
+#include "io.h"
+#include "io_impl.h"
 
 #include "inverter.h"
 
 static const IO_t pin = DEFIO_IO(INVERTER);
 
-void initInverter(void)
+void initInverter(bool enabled)
 {
 	IOInit(pin, OWNER_SYSTEM, RESOURCE_OUTPUT);
 	IOConfigGPIO(pin, IOCFG_OUT_PP);
+    
+    inverterSet(enabled);
 }
 
 void inverterSet(bool on)

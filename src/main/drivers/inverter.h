@@ -26,7 +26,7 @@ void inverterSet(bool on);
 #define INVERTER_ON do {} while(0)
 #endif
 
-void initInverter(void);
+void initInverter(bool enabled);
 
 
 
