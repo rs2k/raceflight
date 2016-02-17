@@ -1059,6 +1059,7 @@ if (init->useBuzzerP6) {
 
 #endif
 
+/* TODO: For F4 targets ADC is currently using IO mapping so this no longer holds true. Ok for the minute as no clashes (more pins on F4 targets). */
 #ifdef VBAT_ADC_GPIO
         if (init->useVbat && timerHardwarePtr->gpio == VBAT_ADC_GPIO && timerHardwarePtr->pin == VBAT_ADC_GPIO_PIN) {
             continue;
