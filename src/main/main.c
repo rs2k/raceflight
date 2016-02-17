@@ -463,6 +463,7 @@ void init(void)
 
     failsafeInit(&masterConfig.rxConfig, masterConfig.flight3DConfig.deadband3d_throttle);
 
+    masterConfig.rxConfig.rxSerialInverted = feature(FEATURE_SBUS_INVERTER);
     rxInit(&masterConfig.rxConfig, currentProfile->modeActivationConditions);
 
 #ifdef GPS
