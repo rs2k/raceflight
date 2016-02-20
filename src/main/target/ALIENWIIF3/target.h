@@ -19,6 +19,10 @@
 
 #define TARGET_BOARD_IDENTIFIER "AWF3" // AlienWii32 F3.
 
+#define CONFIG_SERIALRX_PROVIDER SERIALRX_SPEKTRUM2048
+#define CONFIG_FEATURE_RX_SERIAL
+#define CONFIG_RX_SERIAL_PORT 2
+
 #define USBD_PRODUCT_STRING "AlienWii32 F3"
 
 #define LED0    PB4 // Blue LEDs - PB4
@@ -26,6 +30,11 @@
 #define BEEPER  PA5  // White LEDs - PA5
 
 #define USABLE_TIMER_CHANNEL_COUNT 11
+
+// MPU6050 interrupts
+#define EXTI15_10_CALLBACK_HANDLER_COUNT 1 // MPU data ready
+#define USE_MPU_DATA_READY_SIGNAL
+#define MPU_INT_EXTI PA15
 
 // Using MPU6050 for the moment.
 #define GYRO

@@ -42,6 +42,26 @@
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
+#define USE_SPI_DEVICE_2
+
+// SPI1
+// PB5  SPI1_MOSI
+// PB4  SPI1_MISO
+// PB3  SPI1_SCK
+// PA15 SPI1_NSS
+
+// SPI2
+// PB15 SPI2_MOSI
+// PB14 SPI2_MISO
+// PB13 SPI2_SCK
+// PB12 SPI2_NSS
+
+//#define USE_FLASHFS
+//#define USE_FLASH_M25P16
+
+//#define M25P16_CS_GPIO          GPIOB
+//#define M25P16_CS_PIN           GPIO_Pin_12
+//#define M25P16_SPI_INSTANCE     SPI2
 
 #define GYRO
 #define USE_GYRO_L3GD20
@@ -53,6 +73,22 @@
 
 #define GYRO_L3GD20_ALIGN CW270_DEG
 
+#define USE_SDCARD
+
+#define SDCARD_SPI_INSTANCE                  SPI2
+#define SDCARD_SPI_CS_PIN                    PB12
+
+// SPI2 is on the APB1 bus whose clock runs at 36MHz. Divide to under 400kHz for init:
+#define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 128
+// Divide to under 25MHz for normal operation:
+#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 2
+
+// Note, this is the same DMA channel as USART1_RX. Luckily we don't use DMA for USART Rx.
+#define SDCARD_DMA_CHANNEL_TX               DMA1_Channel5
+#define SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG DMA1_FLAG_TC5
+
+// Performance logging for SD card operations:
+// #define AFATFS_USE_INTROSPECTIVE_LOGGING
 #define ACC
 #define USE_ACC_LSM303DLHC
 
@@ -90,11 +126,12 @@
 #define EXTERNAL1_ADC_GPIO_PIN      GPIO_Pin_3
 #define EXTERNAL1_ADC_CHANNEL       ADC_Channel_9
 
+#define LED_STRIP
+#define LED_STRIP_TIMER TIM16
+
 #define BLACKBOX
 #define GPS
 #define GTUNE
-#define LED_STRIP
-#define LED_STRIP_TIMER TIM16
 #define TELEMETRY
 #define SERIAL_RX
 #define USE_SERVOS

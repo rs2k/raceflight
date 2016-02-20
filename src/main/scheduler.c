@@ -36,6 +36,7 @@ static uint32_t totalWaitingTasksSamples;
 static uint32_t realtimeGuardInterval;
 
 uint32_t currentTime = 0;
+uint16_t averageSystemLoadPercent = 0;
 uint16_t averageWaitingTasks100 = 0;
 
 typedef struct {

@@ -84,6 +84,7 @@ typedef enum {
 } cfTaskId_e;
 
 extern uint16_t cpuLoad;
+extern uint16_t averageSystemLoadPercent;
 extern uint16_t averageWaitingTasks100;
 
 void getTaskInfo(cfTaskId_e taskId, cfTaskInfo_t * taskInfo);
