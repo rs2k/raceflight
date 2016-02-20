@@ -42,6 +42,10 @@ void adcInit(drv_adc_config_t *init)
 
     memset(&adcConfig, 0, sizeof(adcConfig));
 
+#if !defined(VBAT_ADC_PIN) && !defined(EXTERNAL1_ADC_PIN) && !defined(RSSI_ADC_PIN) && !defined(CURRENT_METER_ADC_PIN)
+    UNUSED(init);
+#endif
+
 #ifdef VBAT_ADC_PIN
     if (init->enableVBat) {
         IOInit(IOGetByTag(IO_TAG(VBAT_ADC_PIN)), OWNER_SYSTEM, RESOURCE_ADC);
