@@ -21,8 +21,17 @@
 #include <platform.h>
 
 #include "common/color.h"
-#include "drivers/light_ws2811strip.h"
+#include "light_ws2811strip.h"
+#include "dma.h"
 #include "nvic.h"
+
+void ws2811DMAHandler(DMA_Channel_TypeDef *channel) {
+    if (DMA_GetFlagStatus(WS2811_DMA_TC_FLAG)) {
+        ws2811LedDataTransferInProgress = 0;
+        DMA_Cmd(channel, DISABLE);
+        DMA_ClearFlag(WS2811_DMA_TC_FLAG);
+    }
+}
 
 void ws2811LedStripHardwareInit(void)
 {
@@ -76,6 +85,8 @@ void ws2811LedStripHardwareInit(void)
     /* configure DMA */
     /* DMA clock enable */
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
+
+    dmaSetHandler(WS2811_DMA_HANDLER_IDENTIFER, ws2811DMAHandler);
 
     /* DMA1 Channel6 Config */
     DMA_DeInit(DMA1_Channel6);

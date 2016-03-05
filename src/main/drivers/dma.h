@@ -22,16 +22,10 @@ typedef void (*dmaCallbackHandlerFuncPtr)(DMA_Stream_TypeDef *stream);
 
 typedef enum {
     DMA1_ST2_HANDLER = 0,
-    DMA1_ST3_HANDLER,
-    DMA1_ST6_HANDLER,
-    DMA2_ST1_HANDLER,
 } dmaHandlerIdentifier_e;
 
 typedef struct dmaHandlers_s {
     dmaCallbackHandlerFuncPtr dma1Stream2IRQHandler;
-    dmaCallbackHandlerFuncPtr dma1Stream3IRQHandler;
-    dmaCallbackHandlerFuncPtr dma1Stream6IRQHandler;
-    dmaCallbackHandlerFuncPtr dma2Stream1IRQHandler;
 } dmaHandlers_t;
 
 #else

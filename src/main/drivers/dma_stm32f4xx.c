@@ -35,35 +35,15 @@ void dmaNoOpHandler(DMA_Stream_TypeDef *stream)
 	UNUSED(stream);
 }
 
-/*
 void DMA1_Stream2_IRQHandler(void)
 {
     dmaHandlers.dma1Stream2IRQHandler(DMA1_Stream2);
 }
 
-void DMA1_Stream3_IRQHandler(void)
-{
-    dmaHandlers.dma1Stream3IRQHandler(DMA1_Stream3);
-}
-
-void DMA1_Stream6_IRQHandler(void)
-{
-    dmaHandlers.dma1Stream6IRQHandler(DMA1_Stream6);
-}
-
-void DMA2_Stream1_IRQHandler(void)
-{
-    dmaHandlers.dma2Stream1IRQHandler(DMA2_Stream1);
-}
-*/
-
 void dmaInit(void)
 {
     memset(&dmaHandlers, 0, sizeof(dmaHandlers));
     dmaHandlers.dma1Stream2IRQHandler = dmaNoOpHandler;
-    dmaHandlers.dma1Stream3IRQHandler = dmaNoOpHandler;
-    dmaHandlers.dma1Stream6IRQHandler = dmaNoOpHandler;
-    dmaHandlers.dma2Stream1IRQHandler = dmaNoOpHandler;
 }
 
 void dmaSetHandler(dmaHandlerIdentifier_e identifier, dmaCallbackHandlerFuncPtr callback)
@@ -71,15 +51,6 @@ void dmaSetHandler(dmaHandlerIdentifier_e identifier, dmaCallbackHandlerFuncPtr 
     switch (identifier) {
         case DMA1_ST2_HANDLER:
             dmaHandlers.dma1Stream2IRQHandler = callback;
-            break;
-        case DMA1_ST3_HANDLER:
-            dmaHandlers.dma1Stream3IRQHandler = callback;
-            break;
-        case DMA1_ST6_HANDLER:
-            dmaHandlers.dma1Stream6IRQHandler = callback;
-            break;
-        case DMA2_ST1_HANDLER:
-            dmaHandlers.dma2Stream1IRQHandler = callback;
             break;
     }
 }
