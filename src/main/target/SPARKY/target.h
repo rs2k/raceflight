@@ -106,7 +106,7 @@
 
 #define BLACKBOX
 #define GPS
-#define GTUNE
+//#define GTUNE
 #define DISPLAY
 #define SERIAL_RX
 #define TELEMETRY
@@ -128,6 +128,8 @@
 #define WS2811_TIMER_APB2_PERIPHERAL    RCC_APB2Periph_TIM16
 #define WS2811_DMA_CHANNEL              DMA1_Channel3
 #define WS2811_IRQ                      DMA1_Channel3_IRQn
+#define WS2811_DMA_TC_FLAG              DMA1_FLAG_TC3
+#define WS2811_DMA_HANDLER_IDENTIFER    DMA1_CH3_HANDLER
 #endif
 
 #if 0

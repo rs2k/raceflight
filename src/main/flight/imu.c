@@ -56,7 +56,6 @@
 // http://gentlenav.googlecode.com/files/fastRotations.pdf
 #define SPIN_RATE_LIMIT 20
 
-int16_t accSmooth[XYZ_AXIS_COUNT];
 int32_t accSum[XYZ_AXIS_COUNT];
 
 uint32_t accTimeSum = 0;        // keep track for integration of acc
@@ -111,14 +110,13 @@ void imuConfigure(
     imuRuntimeConfig_t *initialImuRuntimeConfig,
     pidProfile_t *initialPidProfile,
     accDeadband_t *initialAccDeadband,
-    float accz_lpf_cutoff,
     uint16_t throttle_correction_angle
 )
 {
     imuRuntimeConfig = initialImuRuntimeConfig;
     pidProfile = initialPidProfile;
     accDeadband = initialAccDeadband;
-    fc_acc = calculateAccZLowPassFilterRCTimeConstant(accz_lpf_cutoff);
+    fc_acc = calculateAccZLowPassFilterRCTimeConstant(5.0f); // Set to fix value
     throttleAngleScale = calculateThrottleAngleScale(throttle_correction_angle);
 }
 
@@ -366,9 +364,8 @@ static bool imuIsAccelerometerHealthy(void)
 
     accMagnitude = accMagnitude * 100 / (sq((int32_t)acc_1G));
 
-    return true; //bypass
-    // Accept accel readings only in range 0.85g - 1.15g
-    return (72 < accMagnitude) && (accMagnitude < 133);
+    // Accept accel readings only in range 0.90g - 1.10g
+    return (81 < accMagnitude) && (accMagnitude < 121);
 }
 
 static bool isMagnetometerHealthy(void)
@@ -378,11 +375,8 @@ static bool isMagnetometerHealthy(void)
 
 static void imuCalculateEstimatedAttitude(void)
 {
-	static biquad_t accLPFState[3];
-	static bool accStateIsSet;
     static uint32_t previousIMUUpdateTime;
     float rawYawError = 0;
-    int32_t axis;
     bool useAcc = false;
     bool useMag = false;
     bool useYaw = false;
@@ -390,20 +384,6 @@ static void imuCalculateEstimatedAttitude(void)
     uint32_t currentTime = micros();
     uint32_t deltaT = currentTime - previousIMUUpdateTime;
     previousIMUUpdateTime = currentTime;
-
-    // Smooth and use only valid accelerometer readings
-    for (axis = 0; axis < 3; axis++) {
-        if (imuRuntimeConfig->acc_cut_hz) {
-            if (accStateIsSet) {
-                accSmooth[axis] = lrintf(applyBiQuadFilter((float) accADC[axis], &accLPFState[axis]));
-            } else {
-                for (axis = 0; axis < 3; axis++) BiQuadNewLpf(imuRuntimeConfig->acc_cut_hz, &accLPFState[axis], 1000);
-                accStateIsSet = true;
-            }
-        } else {
-            accSmooth[axis] = accADC[axis];
-        }
-    }
 
     if (imuIsAccelerometerHealthy()) {
         useAcc = true;
@@ -439,16 +419,19 @@ void imuUpdateAccelerometer(rollAndPitchTrims_t *accelerometerTrims)
     }
 }
 
-void imuUpdateGyroAndAttitude(void)
+void imuUpdateGyro(void)
 {
     gyroUpdate();
+}
 
+void imuUpdateAttitude(void)
+{
     if (sensors(SENSOR_ACC) && isAccelUpdatedAtLeastOnce) {
         imuCalculateEstimatedAttitude();
     } else {
-        accADC[X] = 0;
-        accADC[Y] = 0;
-        accADC[Z] = 0;
+        accSmooth[X] = 0;
+        accSmooth[Y] = 0;
+        accSmooth[Z] = 0;
     }
 }
 
