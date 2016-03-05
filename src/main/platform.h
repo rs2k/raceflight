@@ -18,6 +18,8 @@
 #pragma once
 
 #if defined(STM32F40_41xxx) || defined (STM32F411xE)
+#define STM32F4
+
 #include "stm32f4xx_conf.h"
 #include "stm32f4xx_rcc.h"
 #include "stm32f4xx_gpio.h"
@@ -32,6 +34,8 @@
 
 
 #ifdef STM32F303xC
+#define STM32F3
+
 #include "stm32f30x_conf.h"
 #include "stm32f30x_rcc.h"
 #include "stm32f30x_gpio.h"
@@ -45,6 +49,7 @@
 #endif
 
 #ifdef STM32F10X
+#define STM32F1
 
 #include "stm32f10x_conf.h"
 #include "stm32f10x_gpio.h"

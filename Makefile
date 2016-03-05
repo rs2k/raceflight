@@ -385,6 +385,7 @@ COMMON_SRC = build_config.c \
 		   common/encoding.c \
 		   common/filter.c \
 		   scheduler.c \
+		   scheduler_tasks.c \
 		   main.c \
 		   mw.c \
 		   flight/altitudehold.c \
@@ -392,7 +393,6 @@ COMMON_SRC = build_config.c \
 		   flight/pid.c \
 		   flight/imu.c \
 		   flight/mixer.c \
-		   flight/lowpass.c \
 		   drivers/bus_i2c_soft.c \
 		   drivers/exti.c \
 		   drivers/io.c \
@@ -401,6 +401,7 @@ COMMON_SRC = build_config.c \
 		   drivers/sound_beeper.c \
 		   drivers/system.c \
 		   drivers/gyro_sync.c \
+		   drivers/buf_writer.c \
 		   io/beeper.c \
 		   io/rc_controls.c \
 		   io/rc_curves.c \
@@ -418,6 +419,7 @@ COMMON_SRC = build_config.c \
 		   rx/spektrum.c \
 		   rx/xbus.c \
 		   rx/ibus.c \
+		   rx/jetiexbus.c \
 		   sensors/acceleration.c \
 		   sensors/battery.c \
 		   sensors/boardalignment.c \
@@ -438,8 +440,8 @@ HIGHEND_SRC = \
 		   telemetry/telemetry.c \
 		   telemetry/frsky.c \
 		   telemetry/hott.c \
-		   telemetry/msp.c \
 		   telemetry/smartport.c \
+		   telemetry/ltm.c \
 		   sensors/sonar.c \
 		   sensors/barometer.c \
 		   blackbox/blackbox.c \

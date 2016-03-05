@@ -330,7 +330,7 @@ void init(void)
 #endif
 
 	pwm_params.useOneshot = feature(FEATURE_ONESHOT125);
-	pwm_params.useMultiShot = feature(FEATURE_MULTISHOT);
+    pwm_params.useFixedPWM = masterConfig.force_motor_pwm_rate ? true : false;
 	pwm_params.usePwmRate = feature(FEATURE_USE_PWM_RATE);
     if (masterConfig.use_oneshot42) {
         pwm_params.useOneshot42 = masterConfig.use_oneshot42 ? true : false;
@@ -340,18 +340,12 @@ void init(void)
     }
     pwm_params.motorPwmRate = masterConfig.motor_pwm_rate;
     pwm_params.idlePulse = masterConfig.escAndServoConfig.mincommand;
-    if (feature(FEATURE_3D))
-    {
+    if (feature(FEATURE_3D)) {
         pwm_params.idlePulse = masterConfig.flight3DConfig.neutral3d;
-    }
-    else 
-    {
-        if ((pwm_params.motorPwmRate > 500 && !masterConfig.use_fast_pwm) && !feature(FEATURE_USE_PWM_RATE))
-        {
+    } else {
+        if ((pwm_params.motorPwmRate > 500  && !masterConfig.force_motor_pwm_rate) && !feature(FEATURE_USE_PWM_RATE)) {
             pwm_params.idlePulse = 0; // brushed motors
-        }
-        else
-        {
+        } else {
         	if (feature(FEATURE_USE_PWM_RATE)) {
         		pwm_params.idlePulse = (uint16_t)((float)(masterConfig.escAndServoConfig.mincommand-1000) / 4.1666f)+60;
         	} else {
@@ -499,7 +493,7 @@ void init(void)
         LED1_TOGGLE;
         LED0_TOGGLE;
         delay(25);
-        BEEP_ON;
+        if (!(getPreferedBeeperOffMask() & (1 << (BEEPER_SYSTEM_INIT - 1)))) BEEP_ON;
         delay(25);
         BEEP_OFF;
     }
@@ -522,7 +516,7 @@ void init(void)
     failsafeInit(&masterConfig.rxConfig, masterConfig.flight3DConfig.deadband3d_throttle);
 
     masterConfig.rxConfig.rxSerialInverted = feature(FEATURE_SBUS_INVERTER);
-    rxInit(&masterConfig.rxConfig, currentProfile->modeActivationConditions);
+    rxInit(&masterConfig.rxConfig, masterConfig.modeActivationConditions);
 
 #ifdef GPS
     if (feature(FEATURE_GPS)) {
@@ -699,12 +693,6 @@ int main(void) {
         	case(62):
 				accTargetLooptime = 10000;
                 break;
-        	case(125):
-				accTargetLooptime = 10000;
-                break;
-        	case(250):
-				accTargetLooptime = 10000;
-                break;
              case(500):
              case(375):
              case(250):
@@ -775,7 +763,15 @@ void HardFault_Handler(void) {
     if ((systemState & requiredStateForMotors) == requiredStateForMotors) {
        stopMotorsNoDelay();
     }
-
+    
+#ifdef TRANSPONDER
+    // prevent IR LEDs from burning out.
+    uint8_t requiredStateForTransponder = SYSTEM_STATE_CONFIG_LOADED | SYSTEM_STATE_TRANSPONDER_ENABLED;
+    if ((systemState & requiredStateForTransponder) == requiredStateForTransponder) {
+        transponderIrDisable();
+    }
+#endif
+    
     LED1_OFF;
     LED0_OFF;
 
@@ -785,12 +781,4 @@ void HardFault_Handler(void) {
         LED2_TOGGLE;
 #endif
     }
-#ifdef TRANSPONDER
-    // prevent IR LEDs from burning out.
-    uint8_t requiredStateForTransponder = SYSTEM_STATE_CONFIG_LOADED | SYSTEM_STATE_TRANSPONDER_ENABLED;
-    if ((systemState & requiredStateForTransponder) == requiredStateForTransponder) {
-        transponderIrDisable();
-    }
-#endif
-
 }

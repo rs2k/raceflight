@@ -167,6 +167,10 @@ static void cliFlashRead(char *cmdline);
 static void cliSdInfo(char *cmdline);
 #endif
 
+#ifdef BEEPER
+static void cliBeeper(char *cmdline);
+#endif
+
 // buffer
 static char cliBuffer[48];
 static uint32_t bufferIndex = 0;
@@ -318,6 +322,10 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("tasks", "show task stats", NULL, cliTasks),
 #endif
     CLI_COMMAND_DEF("version", "show version", NULL, cliVersion),
+#ifdef BEEPER
+    CLI_COMMAND_DEF("beeper", "turn on/off beeper", "list\r\n"
+            "\t<+|->[name]", cliBeeper),
+#endif
 };
 #define CMD_COUNT (sizeof(cmdTable) / sizeof(clicmd_t))
 
@@ -489,7 +497,7 @@ static const lookupTableEntry_t lookupTables[] = {
     { lookupTableGimbalMode, sizeof(lookupTableGimbalMode) / sizeof(char *) },
     { lookupTablePidController, sizeof(lookupTablePidController) / sizeof(char *) },
     { lookupTableSerialRX, sizeof(lookupTableSerialRX) / sizeof(char *) },
-    { lookupTableRFLoopCtrl, sizeof(lookupTableRFLoopCtrl) / sizeof(char *) }
+    { lookupTableRFLoopCtrl, sizeof(lookupTableRFLoopCtrl) / sizeof(char *) },
     { lookupTableGyroLpf, sizeof(lookupTableGyroLpf) / sizeof(char *) },
     { lookupTableAccHardware, sizeof(lookupTableAccHardware) / sizeof(char *) },
     { lookupTableBaroHardware, sizeof(lookupTableBaroHardware) / sizeof(char *) },
@@ -571,6 +579,7 @@ const clivalue_t valueTable[] = {
     { "3d_neutral",                 VAR_UINT16 | MASTER_VALUE,  &masterConfig.flight3DConfig.neutral3d, .config.minmax = { PWM_RANGE_ZERO,  PWM_RANGE_MAX } },
     { "3d_deadband_throttle",       VAR_UINT16 | MASTER_VALUE,  &masterConfig.flight3DConfig.deadband3d_throttle, .config.minmax = { PWM_RANGE_ZERO,  PWM_RANGE_MAX } },
 
+    { "force_motor_pwm_rate",       VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.force_motor_pwm_rate, .config.lookup = { TABLE_OFF_ON } },
     { "use_oneshot42",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.use_oneshot42, .config.lookup = { TABLE_OFF_ON } },
     { "use_multishot",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.use_multiShot, .config.lookup = { TABLE_OFF_ON } },
 #ifdef CC3D
@@ -695,9 +704,6 @@ const clivalue_t valueTable[] = {
     { "acro_plus_factor",           VAR_UINT8  | MASTER_VALUE, &masterConfig.rxConfig.acroPlusFactor, .config.minmax = {1, 100 } },
     { "acro_plus_offset",           VAR_UINT8  | MASTER_VALUE, &masterConfig.rxConfig.acroPlusOffset, .config.minmax = {1, 90 } },
 
-    { "acro_plus_factor",         	VAR_UINT8  | CONTROL_RATE_VALUE, &masterConfig.controlRateProfiles[0].AcroPlusFactor, .config.minmax = {0, 100 } },
-    { "giant_green_catfish",       	VAR_UINT8  | CONTROL_RATE_VALUE, &masterConfig.controlRateProfiles[0].AcroPlusFactor, .config.minmax = {0, 100 } },
-
     { "failsafe_delay",             VAR_UINT8  | MASTER_VALUE,  &masterConfig.failsafeConfig.failsafe_delay, .config.minmax = { 0,  200 } },
     { "failsafe_off_delay",         VAR_UINT8  | MASTER_VALUE,  &masterConfig.failsafeConfig.failsafe_off_delay, .config.minmax = { 0,  200 } },
     { "failsafe_throttle",          VAR_UINT16 | MASTER_VALUE,  &masterConfig.failsafeConfig.failsafe_throttle, .config.minmax = { PWM_RANGE_MIN,  PWM_RANGE_MAX } },
@@ -776,17 +782,15 @@ const clivalue_t valueTable[] = {
     { "i_vel",                      VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.I8[PIDVEL], .config.minmax = { 0,  200 } },
     { "d_vel",                      VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.D8[PIDVEL], .config.minmax = { 0,  200 } },
 
-    { "gyro_lpf_hz",                VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.gyro_lpf_hz, .config.minmax = {0, 255 } },
+//    { "gyro_lpf_hz",                VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.gyro_lpf_hz, .config.minmax = {0, 255 } },
     { "dterm_lpf_hz",               VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.dterm_lpf_hz, .config.minmax = {0, 255 } },
-    { "yaw_pterm_cut_hz",           VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.yaw_pterm_cut_hz, .config.minmax = {0, 255 } },
+//    { "yaw_pterm_cut_hz",           VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.yaw_pterm_cut_hz, .config.minmax = {0, 255 } },
 
 #ifdef BLACKBOX
     { "blackbox_rate_num",          VAR_UINT8  | MASTER_VALUE,  &masterConfig.blackbox_rate_num, .config.minmax = { 1,  32 } },
     { "blackbox_rate_denom",        VAR_UINT8  | MASTER_VALUE,  &masterConfig.blackbox_rate_denom, .config.minmax = { 1,  32 } },
     { "blackbox_device",            VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.blackbox_device, .config.lookup = { TABLE_BLACKBOX_DEVICE } },
 #endif
-
-    { "beeper_off_flags",           VAR_UINT32 | MASTER_VALUE, &masterConfig.beeper_off.flags, .config.minmax = {BEEPER_OFF_FLAGS_MIN, BEEPER_OFF_FLAGS_MAX }},
 
     { "magzero_x",                  VAR_INT16  | MASTER_VALUE, &masterConfig.magZero.raw[X], .config.minmax = { -32768,  32767 } },
     { "magzero_y",                  VAR_INT16  | MASTER_VALUE, &masterConfig.magZero.raw[Y], .config.minmax = { -32768,  32767 } },
@@ -804,7 +808,6 @@ typedef union {
 static void cliSetVar(const clivalue_t *var, const int_float_value_t value);
 static void cliPrintVar(const clivalue_t *var, uint32_t full);
 static void cliPrint(const char *str);
-static void cliPutch(void *port, char ch);
 static void cliPrintf(const char *fmt, ...); 
 static void cliWrite(uint8_t ch);
 
@@ -1939,6 +1942,21 @@ static void cliDump(char *cmdline)
                 cliPrintf("feature %s\r\n", featureNames[i]);
         }
 
+
+#ifdef BEEPER
+        cliPrint("\r\n\r\n# beeper\r\n");
+
+        uint8_t beeperCount = beeperTableEntryCount();
+        mask = getBeeperOffMask();
+        for (int i = 0; i < (beeperCount-2); i++) {
+            if (mask & (1 << i))
+                cliPrintf("beeper -%s\r\n", beeperNameForTableIndex(i));
+            else
+                cliPrintf("beeper  %s\r\n", beeperNameForTableIndex(i));
+        }
+#endif
+
+
         cliPrint("\r\n\r\n# map\r\n");
 
         for (i = 0; i < 8; i++)
@@ -2123,6 +2141,79 @@ static void cliFeature(char *cmdline)
         }
     }
 }
+
+#ifdef BEEPER
+static void cliBeeper(char *cmdline)
+{
+    uint32_t i;
+    uint32_t len = strlen(cmdline);;
+    uint8_t beeperCount = beeperTableEntryCount();
+    uint32_t mask = getBeeperOffMask();
+
+    if (len == 0) {
+        cliPrintf("Disabled:");
+        for (int i = 0; ; i++) {
+        	if (i == beeperCount-2){
+                if (mask == 0)
+                	cliPrint("  none");
+        		break;
+        	}
+            if (mask & (1 << i))
+                cliPrintf("  %s", beeperNameForTableIndex(i));
+        }
+        cliPrint("\r\n");
+    } else if (strncasecmp(cmdline, "list", len) == 0) {
+        cliPrint("Available:");
+        for (i = 0; i < beeperCount; i++)
+            cliPrintf("  %s", beeperNameForTableIndex(i));
+        cliPrint("\r\n");
+        return;
+    } else {
+        bool remove = false;
+        if (cmdline[0] == '-') {
+            remove = true;     // this is for beeper OFF condition
+            cmdline++;
+            len--;
+        }
+
+        for (i = 0; ; i++) {
+            if (i == beeperCount) {
+                cliPrint("Invalid name\r\n");
+                break;
+            }
+            if (strncasecmp(cmdline, beeperNameForTableIndex(i), len) == 0) {
+                if (remove) { // beeper off
+                    if (i == BEEPER_ALL-1)
+                        beeperOffSetAll(beeperCount-2);
+                    else
+                    	if (i == BEEPER_PREFERENCE-1)
+                            setBeeperOffMask(getPreferedBeeperOffMask());
+                        else {
+                            mask = 1 << i;
+                            beeperOffSet(mask);
+                        }
+                    cliPrint("Disabled");
+                }
+                else { // beeper on
+                    if (i == BEEPER_ALL-1)
+                        beeperOffClearAll();
+                    else
+                    	if (i == BEEPER_PREFERENCE-1)
+                            setPreferedBeeperOffMask(getBeeperOffMask());
+                        else {
+                            mask = 1 << i;
+                            beeperOffClear(mask);
+                        }
+                    cliPrint("Enabled");
+                }
+            cliPrintf(" %s\r\n", beeperNameForTableIndex(i));
+            break;
+            }
+        }
+    }
+}
+#endif
+
 
 #ifdef GPS
 static void cliGpsPassthrough(char *cmdline)

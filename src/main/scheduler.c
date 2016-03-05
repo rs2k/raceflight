@@ -38,15 +38,8 @@ static uint32_t totalWaitingTasksSamples;
 
 uint32_t currentTime = 0;
 uint16_t averageSystemLoadPercent = 0;
-#if defined(STM32F40_41xxx) || defined (STM32F411xE)
-        .desiredPeriod = 125,
-#else
-#endif
-
-
 static int taskQueuePos = 0;
 static int taskQueueSize = 0;
-// No need for a linked list for the queue, since items are only inserted at startup
 
 static cfTask_t* taskQueueArray[TASK_COUNT + 1]; // extra item for NULL pointer at end of queue
 

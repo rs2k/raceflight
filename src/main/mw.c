@@ -103,7 +103,6 @@ enum {
 #define GYRO_WATCHDOG_DELAY 80 //  delay for gyro sync
 
 uint16_t cycleTime = 0;         // this is the number in micro second to achieve a full loop, it can differ a little and is taken into account in the PID loop
-
 float dT;
 
 int32_t reading_flash_timer;
@@ -120,6 +119,7 @@ extern uint32_t currentTime;
 extern uint8_t dynP8[3], dynI8[3], dynD8[3], PIDweight[3];
 extern bool antiWindupProtection;
 
+uint16_t filteredCycleTime;
 static bool isRXDataNew;
 
 typedef void (*pidControllerFuncPtr)(pidProfile_t *pidProfile, controlRateConfig_t *controlRateConfig,
@@ -173,46 +173,38 @@ bool isCalibrating()
 }
 
 void filterRc(void){
-    static int16_t lastCommand[4] = { 0, 0, 0, 0 };
-    static int16_t deltaRC[4] = { 0, 0, 0, 0 };
-    static int16_t factor, rcInterpolationFactor;
-    uint16_t rxRefreshRate;
-    static biquad_t filteredCycleTimeState;
-    static bool filterIsSet;
-    uint16_t filteredCycleTime;
+	static int16_t lastCommand[4] = { 0, 0, 0, 0 };
+	static int16_t deltaRC[4] = { 0, 0, 0, 0 };
+	static int16_t factor, rcInterpolationFactor;
+	uint16_t rxRefreshRate;
 
-    // Set RC refresh rate for sampling and channels to filter
-    initRxRefreshRate(&rxRefreshRate);
+	    // Set RC refresh rate for sampling and channels to filter
+	initRxRefreshRate(&rxRefreshRate);
 
-	/* Initialize cycletime filter */
-	 if (!filterIsSet) {
-		 BiQuadNewLpf(1, &filteredCycleTimeState, 0);
-		 filterIsSet = true;
-	 }
+	rcInterpolationFactor = rxRefreshRate / targetPidLooptime + 1;
 
-         filteredCycleTime = applyBiQuadFilter((float) cycleTime, &filteredCycleTimeState);
+	if (isRXDataNew) {
+		for (int channel = 0; channel < 4; channel++) {
+			deltaRC[channel] = rcCommand[channel] -  (lastCommand[channel] - deltaRC[channel] * factor / rcInterpolationFactor);
+			lastCommand[channel] = rcCommand[channel];
+		}
 
+		isRXDataNew = false;
+		factor = rcInterpolationFactor - 1;
+	}
+	else {
+		factor--;
+	}
 
-    if (isRXDataNew) {
-        for (int channel=0; channel < 4; channel++) {
-            deltaRC[channel] = rcCommand[channel] -  (lastCommand[channel] - deltaRC[channel] * factor / rcInterpolationFactor);
-            lastCommand[channel] = rcCommand[channel];
-        }
-
-        isRXDataNew = false;
-        factor = rcInterpolationFactor - 1;
-    } else {
-        factor--;
-    }
-
-    // Interpolate steps of rcCommand
-    if (factor > 0) {
-        for (int channel=0; channel < 4; channel++) {
-            rcCommand[channel] = lastCommand[channel] - deltaRC[channel] * factor/rcInterpolationFactor;
-         }
-    } else {
-        factor = 0;
-    }
+	    // Interpolate steps of rcCommand
+	if (factor > 0) {
+		for (int channel = 0; channel < 4; channel++) {
+			rcCommand[channel] = lastCommand[channel] - deltaRC[channel] * factor / rcInterpolationFactor;
+		}
+	}
+	else {
+		factor = 0;
+	}
 }
 
 void scaleRcCommandToFpvCamAngle(void) {
@@ -296,13 +288,8 @@ void annexCode(void)
             rcCommand[axis] = -rcCommand[axis];
     }
 
-    if (isUsingSticksForArming()) {
-        tmp = constrain(rcData[THROTTLE], masterConfig.rxConfig.mincheck, PWM_RANGE_MAX);
-        tmp = (uint32_t)(tmp - masterConfig.rxConfig.mincheck) * PWM_RANGE_MIN / (PWM_RANGE_MAX - masterConfig.rxConfig.mincheck);
-    } else {
-        tmp = constrain(rcData[THROTTLE], PWM_RANGE_MIN, PWM_RANGE_MAX);
-        tmp = (uint32_t)(tmp - PWM_RANGE_MIN) * PWM_RANGE_MIN / (PWM_RANGE_MAX - PWM_RANGE_MIN);       // [MINCHECK;2000] -> [0;1000]
-    }
+    tmp = constrain(rcData[THROTTLE], masterConfig.rxConfig.mincheck, PWM_RANGE_MAX);
+    tmp = (uint32_t)(tmp - masterConfig.rxConfig.mincheck) * PWM_RANGE_MIN / (PWM_RANGE_MAX - masterConfig.rxConfig.mincheck);
     tmp2 = tmp / 100;
     rcCommand[THROTTLE] = lookupThrottleRC[tmp2] + (tmp - tmp2 * 100) * (lookupThrottleRC[tmp2 + 1] - lookupThrottleRC[tmp2]) / 100;    // [0;1000] -> expo -> [MINTHROTTLE;MAXTHROTTLE]
 
@@ -671,21 +658,15 @@ static bool haveProcessedAnnexCodeOnce = false;
 
 void taskMainPidLoop(void)
 {
-	static uint8_t counter = 1;
-    cycleTime = cycleTimenow - cycleTimelastCalledAt;
-    cycleTimelastCalledAt = cycleTimenow;
-    dT = (float)targetESCwritetime * 0.000001f;
-
     // PID - note this is function pointer set by setPIDController()
-    pid_controller(
-        &currentProfile->pidProfile,
-        currentControlRateProfile,
-        masterConfig.max_angle_inclination,
-        &masterConfig.accelerometerTrims,
-        &masterConfig.rxConfig
-    );
+	pid_controller(
+	    &currentProfile->pidProfile,
+		currentControlRateProfile,
+		masterConfig.max_angle_inclination,
+		&masterConfig.accelerometerTrims,
+		&masterConfig.rxConfig);
 
-    mixTable();
+	mixTable();
 }
 
 void subTasksMainPidLoop(void) {
@@ -782,6 +763,17 @@ void taskMotorUpdate(void) {
 
 }
 
+// Check for oneshot125 protection. With fast looptimes oneshot125 pulse duration gets more near the pid looptime
+bool shouldUpdateMotorsAfterPIDLoop(void) {
+    if (targetPidLooptime > 375 ) {
+        return true;
+    } else if ((masterConfig.use_multiShot || masterConfig.use_oneshot42) && feature(FEATURE_ONESHOT125)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 // Function for loop trigger
 void taskMainPidLoopCheck(void) {
     static uint32_t previousTime;
@@ -791,18 +783,18 @@ void taskMainPidLoopCheck(void) {
 
     cycleTime = micros() - previousTime;
     previousTime = micros();
-
+    
     if (debugMode == DEBUG_CYCLETIME) {
         debug[0] = cycleTime;
         debug[1] = averageSystemLoadPercent;
     }
-
+    
     while (true) {
         if (gyroSyncCheckUpdate() || ((currentDeltaTime + (micros() - previousTime)) >= (targetLooptime + GYRO_WATCHDOG_DELAY))) {
             static uint8_t pidUpdateCountdown;
 
             if (runTaskMainSubprocesses) {
-                taskMotorUpdate();
+                if (!shouldUpdateMotorsAfterPIDLoop()) taskMotorUpdate();
                 subTasksMainPidLoop();
                 runTaskMainSubprocesses = false;
             }
@@ -814,6 +806,7 @@ void taskMainPidLoopCheck(void) {
             } else {
                 pidUpdateCountdown = masterConfig.pid_process_denom - 1;
                 taskMainPidLoop();
+                if (shouldUpdateMotorsAfterPIDLoop()) taskMotorUpdate();
                 runTaskMainSubprocesses = true;
             }
 

@@ -171,6 +171,14 @@ void setGyroSamplingSpeed(uint16_t looptime) {
 #endif
         masterConfig.gyro_sync_denom = constrain(looptime / gyroSampleRate, 1, maxDivider);
         if (!(masterConfig.use_multiShot || masterConfig.use_oneshot42) && ((masterConfig.gyro_sync_denom * gyroSampleRate) == 125)) masterConfig.pid_process_denom = 3;
+            masterConfig.force_motor_pwm_rate = 1;
+            if (masterConfig.use_multiShot || masterConfig.use_oneshot42) {
+                masterConfig.motor_pwm_rate = 4200;
+            } else {
+                masterConfig.motor_pwm_rate = 2700;
+            }
+        } else {
+            masterConfig.force_motor_pwm_rate = 0;
     }
 }
 
@@ -886,9 +894,10 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize16(currentControlRateProfile->tpa_breakpoint);
         serialize8(currentControlRateProfile->rcYawExpo8);
         serialize8(currentControlRateProfile->AcroPlusFactor);
-        serialize8(masterConfig.profile[0].rcControlsConfig.deadband);
-        serialize8(masterConfig.profile[0].rcControlsConfig.yaw_deadband);
-        serialize8(currentProfile->pidProfile.gyro_lpf_hz);
+        serialize8(masterConfig.rcControlsConfig.deadband);
+	    serialize8(masterConfig.rcControlsConfig.yaw_deadband);
+	    serialize8(0);
+//        serialize8(currentProfile->pidProfile.gyro_lpf_hz);
         serialize8(currentProfile->pidProfile.dterm_lpf_hz);
 //        serialize8(currentProfile->pidProfile.yaw_pterm_cut_hz);
         break;
@@ -1443,9 +1452,10 @@ static bool processInCommand(void)
             }
             if (currentPort->dataSize >= 12) {
                 currentControlRateProfile->AcroPlusFactor = read8();
-                masterConfig.profile[0].rcControlsConfig.deadband = read8();
-                masterConfig.profile[0].rcControlsConfig.yaw_deadband = read8();
-                currentProfile->pidProfile.gyro_lpf_hz = read8();
+                masterConfig.rcControlsConfig.deadband = read8();
+                masterConfig.rcControlsConfig.yaw_deadband = read8();
+                read8();
+//                currentProfile->pidProfile.gyro_lpf_hz = read8();
     			currentProfile->pidProfile.dterm_lpf_hz = read8();
 //    			currentProfile->pidProfile.yaw_pterm_cut_hz = read8();
             }

@@ -26,7 +26,7 @@
 #include "common/utils.h"
 
 #include "usb_core.h"
-#if defined(STM32F40_41xxx) || defined (STM32F411xE)
+#ifdef STM32F4
 #include "usbd_cdc_vcp.h"
 #else
 #include "usb_init.h"
@@ -170,18 +170,6 @@ static const struct serialPortVTable usbVTable[] = {
         .beginWrite = usbVcpBeginWrite,
         .endWrite = usbVcpEndWrite,
         .writeBuf = usbVcpWriteBuf
-    }
-};
-static const struct serialPortVTable usbVTable[] = {
-    {
-    .serialWrite = usbVcpWrite,
-    .serialTotalRxWaiting = usbVcpAvailable,
-    .serialRead = usbVcpRead,
-    .serialSetBaudRate = usbVcpSetBaudRate,
-    .isSerialTransmitBufferEmpty = isUsbVcpTransmitBufferEmpty,
-    .setMode = usbVcpSetMode,
-    .beginWrite = usbVcpBeginWrite,
-    .endWrite = usbVcpEndWrite,
     }
 };
 

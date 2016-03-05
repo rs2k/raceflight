@@ -202,7 +202,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
 
 #if defined(STM32F411xE) || defined(STM32F40_41xxx)
     pidProfile->dterm_lpf_hz = 60;   // filtering ON by default
-    pidProfile->yaw_pterm_cut_hz = 30;
     pidProfile->P_f[ROLL] = 5.012f;     // new PID for raceflight. test carefully
     pidProfile->I_f[ROLL] = 1.021f;
     pidProfile->D_f[ROLL] = 0.020f;
@@ -433,7 +432,6 @@ static void resetConf(void)
 
     setProfile(0);
 
-    masterConfig.beeper_off.flags = BEEPER_OFF_FLAGS_MIN;
     masterConfig.version = EEPROM_CONF_VERSION;
     masterConfig.mixerMode = MIXER_QUADX;
     featureClearAll();
@@ -513,7 +511,7 @@ static void resetConf(void)
     masterConfig.rxConfig.spektrum_sat_bind = 0;
     masterConfig.rxConfig.spektrum_sat_bind_autoreset = 1;
     masterConfig.rxConfig.midrc = 1500;
-    masterConfig.rxConfig.mincheck = 1100;
+    masterConfig.rxConfig.mincheck = 1040;
     masterConfig.rxConfig.maxcheck = 1900;
     masterConfig.rxConfig.rx_min_usec = 885;          // any of first 4 channels below this value will trigger rx loss detection
     masterConfig.rxConfig.rx_max_usec = 2115;         // any of first 4 channels above this value will trigger rx loss detection
@@ -556,6 +554,7 @@ static void resetConf(void)
     masterConfig.motor_pwm_rate = BRUSHLESS_MOTORS_PWM_RATE;
 #endif
     masterConfig.servo_pwm_rate = 50;
+    masterConfig.force_motor_pwm_rate = 0;
     masterConfig.use_oneshot42 = 0;
 #ifdef CC3D
     masterConfig.use_buzzer_p6 = 0;
@@ -592,7 +591,7 @@ static void resetConf(void)
     masterConfig.acc_unarmedcal = 1;
 
 #ifdef BARO
-    resetBarometerConfig(&currentProfile->barometerConfig);
+    resetBarometerConfig(&masterConfig.barometerConfig);
 #endif
 
     // Radio
@@ -681,6 +680,7 @@ static void resetConf(void)
 #ifdef ALIENFLIGHT
     featureSet(FEATURE_MOTOR_STOP);
     featureClear(FEATURE_ONESHOT125);
+#endif
 #ifdef ALIENFLIGHTF3
     masterConfig.mag_hardware = MAG_NONE;            // disabled by default
     masterConfig.rxConfig.spektrum_sat_bind = 5;
@@ -1164,4 +1164,44 @@ void featureClearAll()
 uint32_t featureMask(void)
 {
     return masterConfig.enabledFeatures;
+}
+
+void beeperOffSet(uint32_t mask)
+{
+    masterConfig.beeper_off_flags |= mask;
+}
+
+void beeperOffSetAll(uint8_t beeperCount)
+{
+    masterConfig.beeper_off_flags = (1 << beeperCount) -1;
+}
+
+void beeperOffClear(uint32_t mask)
+{
+    masterConfig.beeper_off_flags &= ~(mask);
+}
+
+void beeperOffClearAll(void)
+{
+    masterConfig.beeper_off_flags = 0;
+}
+
+uint32_t getBeeperOffMask(void)
+{
+    return masterConfig.beeper_off_flags;
+}
+
+void setBeeperOffMask(uint32_t mask)
+{
+    masterConfig.beeper_off_flags = mask;
+}
+
+uint32_t getPreferedBeeperOffMask(void)
+{
+    return masterConfig.prefered_beeper_off_flags;
+}
+
+void setPreferedBeeperOffMask(uint32_t mask)
+{
+    masterConfig.prefered_beeper_off_flags = mask;
 }

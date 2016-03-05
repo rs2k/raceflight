@@ -65,10 +65,10 @@ typedef struct drv_pwm_config_s {
 #endif
     bool useVbat;
 	bool useOneshot;
+    bool useFixedPWM;
     bool useOneshot42;
     bool useMultiShot;
     bool usePwmRate;
-    bool useFastPWM;
     bool useSoftSerial;
     bool useLEDStrip;
 #ifdef SONAR

@@ -27,8 +27,6 @@ typedef struct master_t {
     uint32_t enabledFeatures;
     uint8_t emf_avoidance;                   // change pll settings to avoid noise in the uhf band
 
-    beeperOffConditions_t beeper_off;
-    
     // motor/esc/servo related stuff
     motorMixer_t customMotorMixer[MAX_SUPPORTED_MOTORS];
     escAndServoConfig_t escAndServoConfig;
@@ -36,6 +34,7 @@ typedef struct master_t {
 
     uint16_t motor_pwm_rate;                // The update rate of motor outputs (50-498Hz)
     uint16_t servo_pwm_rate;                // The update rate of servo outputs (50-498Hz)
+    uint8_t force_motor_pwm_rate;           // Use fixed motor update even when oneshot enabled
     uint8_t use_oneshot42;                  // Oneshot42
     uint8_t use_multiShot;                  // multishot
 
@@ -139,6 +138,9 @@ typedef struct master_t {
     uint8_t blackbox_rate_denom;
     uint8_t blackbox_device;
 #endif
+
+    uint32_t beeper_off_flags;
+    uint32_t prefered_beeper_off_flags;
 
     uint8_t magic_ef;                       // magic number, should be 0xEF
     uint8_t chk;                            // XOR checksum
