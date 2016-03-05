@@ -18,11 +18,20 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "platform.h"
+#include <platform.h>
 
 #include "common/color.h"
-#include "drivers/light_ws2811strip.h"
+#include "light_ws2811strip.h"
+#include "dma.h"
 #include "nvic.h"
+
+void ws2811DMAHandler(DMA_Channel_TypeDef *channel) {
+    if (DMA_GetFlagStatus(WS2811_DMA_TC_FLAG)) {
+        ws2811LedDataTransferInProgress = 0;
+        DMA_Cmd(channel, DISABLE);
+        DMA_ClearFlag(WS2811_DMA_TC_FLAG);
+    }
+}
 
 void ws2811LedStripHardwareInit(void)
 {
@@ -77,6 +86,8 @@ void ws2811LedStripHardwareInit(void)
     /* DMA clock enable */
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
 
+    dmaSetHandler(WS2811_DMA_HANDLER_IDENTIFER, ws2811DMAHandler);
+
     /* DMA1 Channel6 Config */
     DMA_DeInit(DMA1_Channel6);
 
@@ -110,15 +121,6 @@ void ws2811LedStripHardwareInit(void)
 
     setStripColor(&hsv_white);
     ws2811UpdateStrip();
-}
-
-void DMA1_Channel6_IRQHandler(void)
-{
-    if (DMA_GetFlagStatus(DMA1_FLAG_TC6)) {
-        ws2811LedDataTransferInProgress = 0;
-        DMA_Cmd(DMA1_Channel6, DISABLE);            // disable DMA channel 6
-        DMA_ClearFlag(DMA1_FLAG_TC6);               // clear DMA1 Channel 6 transfer complete flag
-    }
 }
 
 void ws2811LedStripDMAEnable(void)

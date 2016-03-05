@@ -71,7 +71,7 @@ typedef struct mixer_s {
 
 typedef struct mixerConfig_s {
     int8_t yaw_motor_direction;
-    uint16_t yaw_jump_prevention_limit;      // make limit configurable (original fixed value was 100)
+    uint16_t yaw_jump_prevention_limit;     // make limit configurable (original fixed value was 100)
 #ifdef USE_SERVOS
     uint8_t tri_unarmed_servo;              // send tail servo correction pulses even when unarmed
     int16_t servo_lowpass_freq;             // lowpass servo filter frequency selection; 1/1000ths of loop freq
@@ -190,6 +190,7 @@ bool isMixerUsingServos(void);
 void writeServos(void);
 void filterServos(void);
 #endif
+bool motorLimitReached;
 
 extern int16_t motor[MAX_SUPPORTED_MOTORS];
 extern int16_t motor_disarmed[MAX_SUPPORTED_MOTORS];

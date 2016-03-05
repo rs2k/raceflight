@@ -34,6 +34,10 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define ABS(x) ((x) > 0 ? (x) : -(x))
 
+#define Q12 (1 << 12)
+
+typedef int32_t fix12_t;
+
 typedef struct stdev_s
 {
     float m_oldM, m_newM, m_oldS, m_newS;
@@ -108,3 +112,7 @@ float acos_approx(float x);
 #endif
 
 void arraySubInt32(int32_t *dest, int32_t *array1, int32_t *array2, int count);
+
+int16_t qPercent(fix12_t q);
+int16_t qMultiply(fix12_t q, int16_t input);
+fix12_t qConstruct(int16_t num, int16_t den);
