@@ -786,7 +786,7 @@ void acroPlusApply(void) {
 void mixTable(void)
 {
     uint32_t i;
-    fix12_t vbatCompensationFactor;
+    fix12_t vbatCompensationFactor = 0;
     static fix12_t mixReduction;
     uint8_t axis;
 

@@ -216,7 +216,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->H_sensitivity = 100;
 #else
     pidProfile->dterm_lpf_hz = 40;   // filtering ON by default
-    pidProfile->yaw_pterm_cut_hz = 30;
     pidProfile->P_f[ROLL] = 1.1f;     // new PID with preliminary defaults test carefully
     pidProfile->I_f[ROLL] = 0.4f;
     pidProfile->D_f[ROLL] = 0.01f;
