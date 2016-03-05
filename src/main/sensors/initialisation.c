@@ -534,6 +534,14 @@ static void detectMag(magSensor_e magHardwareToUse)
 
 #endif
 
+#ifdef AQ32_V2
+    static const hmc5883Config_t aq32v2Hmc5883Config = {
+        .io = IO_TAG(PE2)
+    };
+
+    hmc5883Config = &aq32v2Hmc5883Config;
+#endif
+
 retry:
 
     magAlign = ALIGN_DEFAULT;
