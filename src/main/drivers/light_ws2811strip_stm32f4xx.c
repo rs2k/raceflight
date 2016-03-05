@@ -89,7 +89,7 @@ void ws2811LedStripHardwareInit(void)
 
     /* configure DMA */
     /* DMA1 Channel Config */
-    DMA_Cmd(DMA1_Stream2, DISABLE);            // disable DMA channel 6
+    DMA_Cmd(DMA1_Stream2, DISABLE);            // disable DMA1 stream 2
     DMA_DeInit(DMA1_Stream2);
     DMA_StructInit(&DMA_InitStructure);
     DMA_InitStructure.DMA_Channel = DMA_Channel_6;
