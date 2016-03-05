@@ -30,56 +30,56 @@
  */
 static dmaHandlers_t dmaHandlers;
 
-#if defined(STM32F1) || defined(STM32F3)
-void dmaNoOpHandler(DMA_Channel_TypeDef *channel)
+void dmaNoOpHandler(DMA_Stream_TypeDef *stream)
 {
-    UNUSED(channel);
+	UNUSED(stream);
 }
 
-void DMA1_Channel2_IRQHandler(void)
+/*
+void DMA1_Stream2_IRQHandler(void)
 {
-    dmaHandlers.dma1Channel2IRQHandler(DMA1_Channel2);
+    dmaHandlers.dma1Stream2IRQHandler(DMA1_Stream2);
 }
 
-void DMA1_Channel3_IRQHandler(void)
+void DMA1_Stream3_IRQHandler(void)
 {
-    dmaHandlers.dma1Channel3IRQHandler(DMA1_Channel3);
+    dmaHandlers.dma1Stream3IRQHandler(DMA1_Stream3);
 }
 
-void DMA1_Channel6_IRQHandler(void)
+void DMA1_Stream6_IRQHandler(void)
 {
-    dmaHandlers.dma1Channel6IRQHandler(DMA1_Channel6);
+    dmaHandlers.dma1Stream6IRQHandler(DMA1_Stream6);
 }
 
-void DMA1_Channel7_IRQHandler(void)
+void DMA2_Stream1_IRQHandler(void)
 {
-    dmaHandlers.dma1Channel7IRQHandler(DMA1_Channel7);
+    dmaHandlers.dma2Stream1IRQHandler(DMA2_Stream1);
 }
-#endif
+*/
 
 void dmaInit(void)
 {
     memset(&dmaHandlers, 0, sizeof(dmaHandlers));
-    dmaHandlers.dma1Channel2IRQHandler = dmaNoOpHandler;
-    dmaHandlers.dma1Channel3IRQHandler = dmaNoOpHandler;
-    dmaHandlers.dma1Channel6IRQHandler = dmaNoOpHandler;
-    dmaHandlers.dma1Channel7IRQHandler = dmaNoOpHandler;
+    dmaHandlers.dma1Stream2IRQHandler = dmaNoOpHandler;
+    dmaHandlers.dma1Stream3IRQHandler = dmaNoOpHandler;
+    dmaHandlers.dma1Stream6IRQHandler = dmaNoOpHandler;
+    dmaHandlers.dma2Stream1IRQHandler = dmaNoOpHandler;
 }
 
 void dmaSetHandler(dmaHandlerIdentifier_e identifier, dmaCallbackHandlerFuncPtr callback)
 {
     switch (identifier) {
-        case DMA1_CH2_HANDLER:
-            dmaHandlers.dma1Channel2IRQHandler = callback;
+        case DMA1_ST2_HANDLER:
+            dmaHandlers.dma1Stream2IRQHandler = callback;
             break;
-        case DMA1_CH3_HANDLER:
-            dmaHandlers.dma1Channel3IRQHandler = callback;
+        case DMA1_ST3_HANDLER:
+            dmaHandlers.dma1Stream3IRQHandler = callback;
             break;
-        case DMA1_CH6_HANDLER:
-            dmaHandlers.dma1Channel6IRQHandler = callback;
+        case DMA1_ST6_HANDLER:
+            dmaHandlers.dma1Stream6IRQHandler = callback;
             break;
-        case DMA1_CH7_HANDLER:
-            dmaHandlers.dma1Channel7IRQHandler = callback;
+        case DMA2_ST1_HANDLER:
+            dmaHandlers.dma2Stream1IRQHandler = callback;
             break;
     }
 }
