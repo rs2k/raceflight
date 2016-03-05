@@ -2028,17 +2028,6 @@ static void cliDump(char *cmdline)
 
         dumpValues(PROFILE_RATE_VALUE);
     }
-    if (dumpMask & DUMP_RATES) {		
-        cliPrint("\r\n# dump rates\r\n");		
-
-        cliPrint("\r\n# rateprofile\r\n");		
-        cliRateProfile("");		
-
-        printSectionBreak();		
- 
-        dumpValues(PROFILE_RATE_VALUE);
- }
-    
 }
 
 void cliEnter(serialPort_t *serialPort)
@@ -2412,8 +2401,6 @@ static void cliRateProfile(char *cmdline) {
 	
 	if (isEmpty(cmdline)) {		
 		cliPrintf("rateprofile %d\r\n", getCurrentControlRateProfile());		
-        cliPrintf("rateprofile %d\r\n", getCurrentControlRateProfile());
-
 		return;		
 	} else {		
 		i = atoi(cmdline);		
