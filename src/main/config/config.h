@@ -17,8 +17,8 @@
 
 #pragma once
 
-#define MAX_PROFILE_COUNT 3
-#define MAX_CONTROL_RATE_PROFILE_COUNT 3
+#define MAX_PROFILE_COUNT 2
+#define MAX_RATEPROFILES 3
 #define ONESHOT_FEATURE_CHANGED_DELAY_ON_BOOT_MS 1500
 
 typedef enum {
@@ -42,10 +42,10 @@ typedef enum {
     FEATURE_DISPLAY = 1 << 17,
     FEATURE_ONESHOT125 = 1 << 18,
     FEATURE_BLACKBOX = 1 << 19,
-	FEATURE_CHANNEL_FORWARDING = 1 << 20,
-	FEATURE_MULTISHOT = 1 << 21,
+    FEATURE_CHANNEL_FORWARDING = 1 << 20,
+    FEATURE_TRANSPONDER = 1 << 21,
 	FEATURE_USE_PWM_RATE = 1 << 22,
-	FEATURE_RESERVED = 1 << 23,
+	FEATURE_MULTISHOT = 1 << 23,
 	FEATURE_TX_STYLE_EXPO = 1 << 24,
 	FEATURE_SBUS_INVERTER = 1 << 25,
 } features_e;
@@ -58,6 +58,14 @@ void featureSet(uint32_t mask);
 void featureClear(uint32_t mask);
 void featureClearAll(void);
 uint32_t featureMask(void);
+void beeperOffSet(uint32_t mask);
+void beeperOffSetAll(uint8_t beeperCount);
+void beeperOffClear(uint32_t mask);
+void beeperOffClearAll(void);
+uint32_t getBeeperOffMask(void);
+void setBeeperOffMask(uint32_t mask);
+uint32_t getPreferedBeeperOffMask(void);
+void setPreferedBeeperOffMask(uint32_t mask);
 
 void copyCurrentProfileToProfileSlot(uint8_t profileSlotIndex);
 
@@ -74,7 +82,6 @@ void changeProfile(uint8_t profileIndex);
 
 uint8_t getCurrentControlRateProfile(void);
 void changeControlRateProfile(uint8_t profileIndex);
-
 bool canSoftwareSerialBeUsed(void);
 
 uint16_t getCurrentMinthrottle(void);

@@ -24,14 +24,17 @@
 #include "common/filter.h"
 #include "common/maths.h"
 
-#include "drivers/gyro_sync.h"
+#define M_LN2_FLOAT	0.69314718055994530942f
+#define M_PI_FLOAT	3.14159265358979323846f
+
+#define BIQUAD_BANDWIDTH 1.9f     /* bandwidth in octaves */
 
 // PT1 Low Pass filter (when no dT specified it will be calculated from the cycleTime)
-float filterApplyPt1(float input, filterStatePt1_t *filter, uint8_t f_cut, float dT) {
+float filterApplyPt1(float input, filterStatePt1_t *filter, float f_cut, float dT) {
 
 	// Pre calculate and store RC
 	if (!filter->RC) {
-		filter->RC = 1.0f / ( 2.0f * (float)M_PI * f_cut );
+		filter->RC = 1.0f / ( 2.0f * M_PI_FLOAT * f_cut );
 	}
 
     filter->state = filter->state + dT / (filter->RC + dT) * (input - filter->state);
@@ -39,29 +42,18 @@ float filterApplyPt1(float input, filterStatePt1_t *filter, uint8_t f_cut, float
     return filter->state;
 }
 
-#define M_LN2_FLOAT	0.69314718055994530942f
-#define M_PI_FLOAT	3.14159265358979323846f
-
-
-#define BIQUAD_BANDWIDTH 1.9f     /* bandwidth in octaves */
-
 /* sets up a biquad Filter */
-void BiQuadNewLpf(uint8_t filterCutFreq, biquad_t *newState, float refreshRate)
+void BiQuadNewLpf(float filterCutFreq, biquad_t *newState, uint32_t refreshRate)
 {
-	float samplingRate;
-    samplingRate = 1 / (targetLooptime * 0.000001f);
+    float sampleRate;
 
-    if (!refreshRate) {
-    	samplingRate = 1 / (targetLooptime * 0.000001f);
-    } else {
-    	samplingRate = refreshRate;
-    }
+    sampleRate = 1 / ((float)refreshRate * 0.000001f);
 
     float omega, sn, cs, alpha;
     float a0, a1, a2, b0, b1, b2;
 
     /* setup variables */
-    omega = 2 * M_PI_FLOAT * (float) filterCutFreq / samplingRate;
+    omega = 2 * M_PI_FLOAT * filterCutFreq / sampleRate;
     sn = sinf(omega);
     cs = cosf(omega);
     alpha = sn * sinf(M_LN2_FLOAT /2 * BIQUAD_BANDWIDTH * omega /sn);
@@ -74,16 +66,15 @@ void BiQuadNewLpf(uint8_t filterCutFreq, biquad_t *newState, float refreshRate)
     a2 = 1 - alpha;
 
     /* precompute the coefficients */
-    newState->a0 = b0 /a0;
-    newState->a1 = b1 /a0;
-    newState->a2 = b2 /a0;
-    newState->a3 = a1 /a0;
-    newState->a4 = a2 /a0;
+    newState->b0 = b0 /a0;
+    newState->b1 = b1 /a0;
+    newState->b2 = b2 /a0;
+    newState->a1 = a1 /a0;
+    newState->a2 = a2 /a0;
 
     /* zero initial samples */
     newState->x1 = newState->x2 = 0;
     newState->y1 = newState->y2 = 0;
-
 }
 
 /* Computes a biquad_t filter on a sample */
@@ -92,8 +83,8 @@ float applyBiQuadFilter(float sample, biquad_t *state)
     float result;
 
     /* compute result */
-    result = state->a0 * sample + state->a1 * state->x1 + state->a2 * state->x2 -
-        state->a3 * state->y1 - state->a4 * state->y2;
+    result = state->b0 * sample + state->b1 * state->x1 + state->b2 * state->x2 -
+        state->a1 * state->y1 - state->a2 * state->y2;
 
     /* shift x1 to x2, sample to x1 */
     state->x2 = state->x1;

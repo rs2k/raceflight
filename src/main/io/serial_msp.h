@@ -292,10 +292,9 @@ typedef struct mspPort_s {
     mspPortUsage_e mspPortUsage;
 } mspPort_t;
 
-void mspInit(serialConfig_t *serialConfig);
+#define MSP_PORT_INBUF_SIZE 64
 
+void mspInit(serialConfig_t *serialConfig);
 void mspProcess(void);
-void sendMspTelemetry(void);
-void mspSetTelemetryPort(serialPort_t *mspTelemetryPort);
 void mspAllocateSerialPorts(serialConfig_t *serialConfig);
 void mspReleasePortIfAllocated(serialPort_t *serialPort);

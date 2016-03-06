@@ -36,12 +36,10 @@
 #define MAX_INPUTS  8
 
 #define PWM_TIMER_MHZ 1
-
+#define ONESHOT_TIMER_MHZ 24
 //these three have to be the same because of the ppmAvoidPWMTimerClash functions
-#define ONESHOT125_TIMER_MHZ 12
 #define MULTISHOT_TIMER_MHZ 12
 #define PWM_BRUSHED_TIMER_MHZ 12
-
 
 typedef struct sonarGPIOConfig_s {
     GPIO_TypeDef *gpio;
@@ -67,9 +65,10 @@ typedef struct drv_pwm_config_s {
 #endif
     bool useVbat;
 	bool useOneshot;
-	bool useMultiShot;
-	bool usePwmRate;
-    bool useFastPWM;
+    bool useFixedPWM;
+    bool useOneshot42;
+    bool useMultiShot;
+    bool usePwmRate;
     bool useSoftSerial;
     bool useLEDStrip;
 #ifdef SONAR

@@ -18,6 +18,7 @@
 #pragma once
 
 #define TARGET_BOARD_IDENTIFIER "LUX"
+#define BOARD_HAS_VOLTAGE_DIVIDER
 
 #define LED0 PC15
 #define LED1 PC14
@@ -66,10 +67,14 @@
 //#define USE_MAG_HMC5883
 //#define USE_MAG_AK8975
 //#define MAG_AK8975_ALIGN CW0_DEG_FLIP
+#define USB_IO
 
 #define USE_VCP
-
 #define USE_USART1
+#define USE_USART2
+#define USE_USART3
+#define SERIAL_PORT_COUNT 4
+
 #define UART1_TX_PIN        GPIO_Pin_4
 #define UART1_RX_PIN        GPIO_Pin_5
 #define UART1_GPIO          GPIOC
@@ -77,15 +82,13 @@
 #define UART1_TX_PINSOURCE  GPIO_PinSource4
 #define UART1_RX_PINSOURCE  GPIO_PinSource5
 
-#define USE_USART2
-#define UART2_TX_PIN        GPIO_Pin_14 //PA14
-#define UART2_RX_PIN        GPIO_Pin_15 //PA15
+#define UART2_TX_PIN        GPIO_Pin_14
+#define UART2_RX_PIN        GPIO_Pin_15
 #define UART2_GPIO          GPIOA
 #define UART2_GPIO_AF       GPIO_AF_7
 #define UART2_TX_PINSOURCE  GPIO_PinSource14
 #define UART2_RX_PINSOURCE  GPIO_PinSource15
 
-#define USE_USART3
 #define UART3_TX_PIN        GPIO_Pin_10
 #define UART3_RX_PIN        GPIO_Pin_11
 #define UART3_GPIO          GPIOB
@@ -100,9 +103,6 @@
 
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_2)
-
-#define I2C2_SCL         PA9
-#define I2C2_SDA         PA10
 
 #define USE_ADC
 
@@ -124,9 +124,7 @@
 
 #define BLACKBOX
 #define GPS
-#define GTUNE
-
-
+//#define GTUNE
 #define LED_STRIP
 
 #define LED_STRIP_TIMER TIM16
@@ -141,6 +139,14 @@
 #define WS2811_TIMER_APB2_PERIPHERAL    RCC_APB2Periph_TIM16
 #define WS2811_DMA_CHANNEL              DMA1_Channel3
 #define WS2811_IRQ                      DMA1_Channel3_IRQn
+#define WS2811_DMA_TC_FLAG              DMA1_FLAG_TC3
+#define WS2811_DMA_HANDLER_IDENTIFER    DMA1_CH3_HANDLER
+
+
+// MPU6500 interrupt
+//#define DEBUG_MPU_DATA_READY_INTERRUPT
+#define USE_MPU_DATA_READY_SIGNAL
+#define ENSURE_MPU_DATA_READY_IS_LOW
 
 #define TELEMETRY
 #define SERIAL_RX
@@ -148,12 +154,12 @@
 #define USE_CLI
 
 #define SPEKTRUM_BIND
-// USART1
+// USART1, PC5
 #define BIND_PORT  GPIOC
 #define BIND_PIN   Pin_5
 
 #define USE_SERIAL_1WIRE
-// USART2, RX is on USART1
+// Untested
 #define S1W_TX_GPIO         GPIOB
 #define S1W_TX_PIN          GPIO_Pin_10
 #define S1W_RX_GPIO         GPIOB

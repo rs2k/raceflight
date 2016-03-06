@@ -14,13 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "rx/rx.h"
 
 #pragma once
 
 #define GYRO_I_MAX 256                      // Gyro I limiter
 #define YAW_P_LIMIT_MIN 100                 // Maximum value for yaw P limiter
 #define YAW_P_LIMIT_MAX 500                 // Maximum value for yaw P limiter
-#define IS_POSITIVE(x) ((x > 0) ? true : false)
 
 typedef enum {
     PIDROLL,
@@ -37,10 +37,22 @@ typedef enum {
 } pidIndex_e;
 
 typedef enum {
-    PID_CONTROLLER_MWREWRITE = 1,
+    PID_CONTROLLER_MW23,
+    PID_CONTROLLER_MWREWRITE,
     PID_CONTROLLER_LUX_FLOAT,
     PID_COUNT
 } pidControllerType_e;
+
+typedef enum {
+	DELTA_FROM_ERROR = 0,
+	DELTA_FROM_MEASUREMENT
+} pidDeltaType_e;
+
+typedef enum {
+    RESET_DISABLE = 0,
+    RESET_ITERM,
+    RESET_ITERM_AND_REDUCE_PID
+} pidErrorResetOption_e;
 
 #define IS_PID_CONTROLLER_FP_BASED(pidController) (pidController == 2)
 
@@ -58,10 +70,10 @@ typedef struct pidProfile_s {
     float H_level;
     uint8_t H_sensitivity;
 
-    uint8_t AcroPlusFactor;                 // Acro+ factor
-    uint8_t gyro_lpf_hz;                    // Gyro Soft filter in hz
-    uint8_t dterm_lpf_hz;                   // Delta Filter in hz
-    uint8_t yaw_pterm_cut_hz;               // Used for filering Pterm noise on noisy frames
+    float dterm_lpf_hz;                     // Delta Filter in hz
+    uint8_t deltaMethod;                    // Alternative delta Calculation
+    uint16_t yaw_p_limit;
+    uint8_t dterm_average_count;            // Configurable delta count for dterm
 
 #ifdef GTUNE
     uint8_t  gtune_lolimP[3];               // [0..200] Lower limit of P during G tune
@@ -72,20 +84,13 @@ typedef struct pidProfile_s {
 #endif
 } pidProfile_t;
 
-typedef struct airModePlus {
-    float factor;
-    float wowFactor;
-    float iTermScaler;
-} airModePlus_t;
-
 extern int16_t axisPID[XYZ_AXIS_COUNT];
 extern int32_t axisPID_P[3], axisPID_I[3], axisPID_D[3];
-
-extern float factor0;
-extern float factor1;
-extern float wow_factor0;
-extern float wow_factor1;
+bool antiWindupProtection;
+extern uint32_t targetPidLooptime;
 
 void pidSetController(pidControllerType_e type);
-void pidResetErrorGyro(void);
+void pidResetErrorAngle(void);
+void pidResetErrorGyroState(uint8_t resetOption);
+void setTargetPidLooptime(uint8_t pidProcessDenom);
 

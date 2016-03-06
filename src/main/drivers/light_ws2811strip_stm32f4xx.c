@@ -21,10 +21,24 @@
 #include "platform.h"
 
 #include "common/color.h"
-#include "drivers/light_ws2811strip.h"
+#include "light_ws2811strip.h"
+#include "dma.h"
 #include "nvic.h"
 
-#if defined(REVO) || defined(REVONANO) || defined(SPARKY2) || defined(ALIENFLIGHTF4) || defined(VRCORE)
+#ifndef WS2811_DMA_HANDLER_IDENTIFER
+#define WS2811_DMA_HANDLER_IDENTIFER DMA1_ST2_HANDLER
+#endif
+
+void ws2811DMAHandler(DMA_Stream_TypeDef *stream)
+{
+    if (DMA_GetFlagStatus(stream, DMA_FLAG_TCIF2)) {
+        ws2811LedDataTransferInProgress = 0;
+        DMA_Cmd(stream, DISABLE);
+        TIM_DMACmd(TIM5, TIM_DMA_CC1, DISABLE);
+        DMA_ClearITPendingBit(stream, DMA_IT_TCIF2);
+    }
+}
+
 void ws2811LedStripHardwareInit(void)
 {
     TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
@@ -49,7 +63,6 @@ void ws2811LedStripHardwareInit(void)
 
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource0,  GPIO_AF_TIM5);
 
-
     // Stop timer
     TIM_Cmd(TIM5, DISABLE);
 
@@ -72,10 +85,11 @@ void ws2811LedStripHardwareInit(void)
 
     TIM_Cmd(TIM5, ENABLE);
 
+    dmaSetHandler(WS2811_DMA_HANDLER_IDENTIFER, ws2811DMAHandler);
 
     /* configure DMA */
     /* DMA1 Channel Config */
-    DMA_Cmd(DMA1_Stream2, DISABLE);            // disable DMA channel 6
+    DMA_Cmd(DMA1_Stream2, DISABLE);            // disable DMA1 stream 2
     DMA_DeInit(DMA1_Stream2);
     DMA_StructInit(&DMA_InitStructure);
     DMA_InitStructure.DMA_Channel = DMA_Channel_6;
@@ -110,16 +124,6 @@ void ws2811LedStripHardwareInit(void)
     ws2811UpdateStrip();
 }
 
-void DMA1_Stream2_IRQHandler(void)
-{
-    if (DMA_GetFlagStatus(DMA1_Stream2, DMA_FLAG_TCIF2)) {
-        ws2811LedDataTransferInProgress = 0;
-        DMA_Cmd(DMA1_Stream2, DISABLE);
-        TIM_DMACmd(TIM5, TIM_DMA_CC1, DISABLE);
-        DMA_ClearITPendingBit(DMA1_Stream2, DMA_IT_TCIF2);
-    }
-}
-
 void ws2811LedStripDMAEnable(void)
 {
     DMA_SetCurrDataCounter(DMA1_Stream2, WS2811_DMA_BUFFER_SIZE);  // load number of bytes to be transferred
@@ -127,4 +131,4 @@ void ws2811LedStripDMAEnable(void)
     DMA_Cmd(DMA1_Stream2, ENABLE);
     TIM_DMACmd(TIM5, TIM_DMA_CC1, ENABLE);
 }
-#endif
+
