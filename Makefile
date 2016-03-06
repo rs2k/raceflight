@@ -842,8 +842,12 @@ ALIENFLIGHTF3_SRC = \
 		   drivers/display_ug2864hsweg01.c \
 		   drivers/accgyro_mpu.c \
 		   drivers/accgyro_mpu6050.c \
+		   drivers/accgyro_mpu6500.c \
+		   drivers/accgyro_spi_mpu6500.c \
+		   drivers/compass_ak8963.c \
 		   drivers/serial_usb_vcp.c \
 		   drivers/sonar_hcsr04.c \
+		   hardware_revision.c \
 		   $(HIGHEND_SRC) \
 		   $(COMMON_SRC) \
 		   $(VCP_SRC)
