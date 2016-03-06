@@ -51,7 +51,7 @@ typedef enum mixerMode
     MIXER_CUSTOM = 23,
     MIXER_CUSTOM_AIRPLANE = 24,
     MIXER_CUSTOM_TRI = 25,
-    MIXER_QUADX_1234 = 26
+	MIXER_QUADX_1234 = 26
 } mixerMode_e;
 
 // Custom mixer data per motor
@@ -189,8 +189,8 @@ extern int16_t servo[MAX_SUPPORTED_SERVOS];
 bool isMixerUsingServos(void);
 void writeServos(void);
 void filterServos(void);
-bool motorLimitReached;
 #endif
+bool motorLimitReached;
 
 extern int16_t motor[MAX_SUPPORTED_MOTORS];
 extern int16_t motor_disarmed[MAX_SUPPORTED_MOTORS];
@@ -220,4 +220,5 @@ void mixerResetDisarmedMotors(void);
 void mixTable(void);
 void writeMotors(void);
 void stopMotors(void);
+void stopMotorsNoDelay(void);
 void StopPwmAllMotors(void);

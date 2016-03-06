@@ -19,24 +19,24 @@
 
 #define TARGET_BOARD_IDENTIFIER "SPKY" // SParKY
 
-#define LED0_GPIO   GPIOB
-#define LED0_PIN    Pin_4  // Blue (Rev 1 & 2) - PB4
-#define LED0_PERIPHERAL RCC_AHBPeriph_GPIOB
-#define LED1_GPIO   GPIOB
-#define LED1_PIN    Pin_5  // Green (Rev 1) / Red (Rev 2) - PB5
-#define LED1_PERIPHERAL RCC_AHBPeriph_GPIOB
+#define USBD_PRODUCT_STRING "Sparky 1.x"
+#ifdef OPBL
+	#define USBD_SERIALNUMBER_STRING "0x800C000"
+#endif
 
-#define BEEP_GPIO   GPIOA  //USE PWM10 as beeper signal
-#define BEEP_PIN    Pin_1
-#define BEEP_PERIPHERAL RCC_AHBPeriph_GPIOA
+#define USE_EXTI
+
+#define LED0 PB4
+#define LED1 PB5
+#define BEEPER PA1
 #define BEEPER_INVERTED
-#define BEEPER
 
 #define USABLE_TIMER_CHANNEL_COUNT 11
 
 // MPU6050 interrupts
 #define EXTI15_10_CALLBACK_HANDLER_COUNT 1 // MPU data ready
 #define USE_MPU_DATA_READY_SIGNAL
+#define MPU_INT_EXTI PA15
 
 // MPU 9150 INT connected to PA15, pulled up to VCC by 10K Resistor, contains MPU6050 and AK8975 in single component.
 #define GYRO
@@ -57,9 +57,6 @@
 #define USE_MAG_AK8975
 
 #define MAG_AK8975_ALIGN CW180_DEG_FLIP
-
-#define LED0
-#define LED1
 
 #define USE_VCP
 #define USE_USART1 // Conn 1 - TX (PB6) RX PB7 (AF7)
@@ -93,16 +90,8 @@
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_2) // SDA (PA10/AF4), SCL (PA9/AF4)
 
-#define I2C2_SCL_GPIO        GPIOA
-#define I2C2_SCL_GPIO_AF     GPIO_AF_4
-#define I2C2_SCL_PIN         GPIO_Pin_9
-#define I2C2_SCL_PIN_SOURCE  GPIO_PinSource9
-#define I2C2_SCL_CLK_SOURCE  RCC_AHBPeriph_GPIOA
-#define I2C2_SDA_GPIO        GPIOA
-#define I2C2_SDA_GPIO_AF     GPIO_AF_4
-#define I2C2_SDA_PIN         GPIO_Pin_10
-#define I2C2_SDA_PIN_SOURCE  GPIO_PinSource10
-#define I2C2_SDA_CLK_SOURCE  RCC_AHBPeriph_GPIOA
+#define I2C2_SCL         PA9
+#define I2C2_SDA         PA10
 
 #define USE_ADC
 
@@ -110,12 +99,9 @@
 #define ADC_DMA_CHANNEL             DMA2_Channel1
 #define ADC_AHB_PERIPHERAL          RCC_AHBPeriph_DMA2
 
-#define VBAT_ADC_GPIO               GPIOA
-#define VBAT_ADC_GPIO_PIN           GPIO_Pin_4
+#define VBAT_ADC_PIN                PA4
 #define VBAT_ADC_CHANNEL            ADC_Channel_1
-
-#define CURRENT_METER_ADC_GPIO      GPIOA
-#define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_7
+#define CURRENT_METER_ADC_PIN       PA7
 #define CURRENT_METER_ADC_CHANNEL   ADC_Channel_4
 
 #define BLACKBOX
@@ -174,3 +160,8 @@
 // USART2, PA3
 #define BIND_PORT GPIOA
 #define BIND_PIN Pin_3
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTF 0xffff

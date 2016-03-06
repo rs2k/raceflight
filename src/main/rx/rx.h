@@ -129,9 +129,11 @@ typedef struct rxConfig_s {
 
     uint16_t rx_min_usec;
     uint16_t rx_max_usec;
+    uint8_t max_aux_channels;
     rxFailsafeChannelConfiguration_t failsafe_channel_configurations[MAX_SUPPORTED_RC_CHANNEL_COUNT];
 
     rxChannelRangeConfiguration_t channelRanges[NON_AUX_CHANNEL_COUNT];
+    bool rxSerialInverted;
 } rxConfig_t;
 
 #define REMAPPABLE_CHANNEL_COUNT (sizeof(((rxConfig_t *)0)->rcmap) / sizeof(((rxConfig_t *)0)->rcmap[0]))

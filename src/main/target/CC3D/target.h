@@ -17,27 +17,24 @@
 
 #define TARGET_BOARD_IDENTIFIER "CC3D" // CopterControl 3D
 
-#define LED0_GPIO   GPIOB
-#define LED0_PIN    Pin_3 // PB3 (LED)
-#define LED0_PERIPHERAL RCC_APB2Periph_GPIOB
-#define LED0
+#define USBD_PRODUCT_STRING "CC3D"
+#ifdef OPBL
+	#define USBD_SERIALNUMBER_STRING "0x8003000"
+#endif
 
-#define INVERTER_PIN Pin_2 // PB2 (BOOT1) used as inverter select GPIO
-#define INVERTER_GPIO GPIOB
-#define INVERTER_PERIPHERAL RCC_APB2Periph_GPIOB
+#define LED0 PB3
+#define INVERTER PB2
 #define INVERTER_USART USART1
 
+#define USE_EXTI
+#define MPU_INT_EXTI PA3
 
-#define BEEP_GPIO GPIOA
-#define BEEP_PIN Pin_15 // PA15 (Beeper)
-#define BEEP_PERIPHERAL RCC_APB2Periph_GPIOA
+#define BEEPER PA15
 
-#define MPU6000_CS_GPIO       GPIOA
-#define MPU6000_CS_PIN        GPIO_Pin_4
+#define MPU6000_CS_PIN        PA4
 #define MPU6000_SPI_INSTANCE  SPI1
 
-#define M25P16_CS_GPIO        GPIOB
-#define M25P16_CS_PIN         GPIO_Pin_12
+#define M25P16_CS_PIN         PB12
 #define M25P16_SPI_INSTANCE   SPI2
 
 #define USE_FLASHFS
@@ -61,19 +58,15 @@
 // MPU6000 interrupts
 #define USE_MPU_DATA_READY_SIGNAL
 
-// External I2C BARO
-#define BARO
-#define USE_BARO_MS5611
-#define USE_BARO_BMP085
-#define USE_BARO_BMP280
+//// External I2C BARO
+//#define BARO
+//#define USE_BARO_MS5611
+//#define USE_BARO_BMP085
+//#define USE_BARO_BMP280
 
-// External I2C MAG
-#define MAG
-#define USE_MAG_HMC5883
-
-#define INVERTER
-#define BEEPER
-#define DISPLAY
+//// External I2C MAG
+//#define MAG
+//#define USE_MAG_HMC5883
 
 #define USE_VCP
 #define USE_USART1
@@ -100,6 +93,10 @@
 
 #define USE_ADC
 
+#define CURRENT_METER_ADC_PIN       PB1
+#define VBAT_ADC_PIN                PA0
+#define RSSI_ADC_PIN                PA1
+
 #define CURRENT_METER_ADC_GPIO      GPIOB
 #define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_1
 #define CURRENT_METER_ADC_CHANNEL   ADC_Channel_9
@@ -108,14 +105,13 @@
 #define VBAT_ADC_GPIO_PIN           GPIO_Pin_0
 #define VBAT_ADC_CHANNEL            ADC_Channel_0
 
-#define RSSI_ADC_GPIO               GPIOB
-#define RSSI_ADC_GPIO_PIN           GPIO_Pin_0
-#define RSSI_ADC_CHANNEL            ADC_Channel_8
+#define RSSI_ADC_GPIO               GPIOA
+#define RSSI_ADC_GPIO_PIN           GPIO_Pin_1
+#define RSSI_ADC_CHANNEL            ADC_Channel_1
 
+#define GPS
 #define LED_STRIP
 #define LED_STRIP_TIMER TIM3
-#define WS2811_DMA_TC_FLAG           DMA1_FLAG_TC6
-#define WS2811_DMA_HANDLER_IDENTIFER DMA1_CH6_HANDLER
 
 #define BLACKBOX
 #define TELEMETRY
@@ -137,11 +133,13 @@
 
 #undef DISPLAY
 #undef SONAR
-//#if defined(OPBL) && defined(USE_SERIAL_1WIRE)
+#if defined(OPBL) && defined(USE_SERIAL_1WIRE)
 #undef BARO
-//#undef BLACKBOX
 #undef GPS
-//#endif
+#undef BLACKBOX
+#undef LED_STRIP
+#undef USE_ADC
+#endif
 #define SKIP_CLI_COMMAND_HELP
 
 #define SPEKTRUM_BIND
@@ -150,3 +148,9 @@
 #define BIND_PIN   Pin_11
 
 #define USE_QUATERNION
+
+#define USE_EXTI
+// IO - from schematics
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC (BIT(14))

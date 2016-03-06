@@ -19,6 +19,12 @@
 
 #define TARGET_BOARD_IDENTIFIER "CHF3" // Chebuzz F3
 
+#define USBD_PRODUCT_STRING "Chebuzz F3"
+
+#define BEEPER  PE8
+#define LED0    PE10
+#define LED1    PE9
+
 #define LED0_GPIO   GPIOE
 #define LED0_PIN    Pin_8|Pin_12 // Blue LEDs - PE8/PE12
 #define LED0_PERIPHERAL RCC_AHBPeriph_GPIOE
@@ -39,31 +45,16 @@
 #define USE_SPI_DEVICE_1
 #define USE_SPI_DEVICE_2
 
-#define SPI2_GPIO               GPIOB
-#define SPI2_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOB
-#define SPI2_NSS_PIN            Pin_12
-#define SPI2_NSS_PIN_SOURCE     GPIO_PinSource12
-#define SPI2_SCK_PIN            Pin_13
-#define SPI2_SCK_PIN_SOURCE     GPIO_PinSource13
-#define SPI2_MISO_PIN           Pin_14
-#define SPI2_MISO_PIN_SOURCE    GPIO_PinSource14
-#define SPI2_MOSI_PIN           Pin_15
-#define SPI2_MOSI_PIN_SOURCE    GPIO_PinSource15
-
 #define USE_SDCARD
-#define USE_SDCARD_SPI2
 
-#define SDCARD_DETECT_PIN                    GPIO_Pin_14
+#define SDCARD_DETECT_PIN                    PC14
 #define SDCARD_DETECT_EXTI_LINE              EXTI_Line14
 #define SDCARD_DETECT_EXTI_PIN_SOURCE        EXTI_PinSource14
-#define SDCARD_DETECT_GPIO_PORT              GPIOC
-#define SDCARD_DETECT_GPIO_CLK               RCC_AHBPeriph_GPIOC
 #define SDCARD_DETECT_EXTI_PORT_SOURCE       EXTI_PortSourceGPIOC
 #define SDCARD_DETECT_EXTI_IRQn              EXTI15_10_IRQn
 
 #define SDCARD_SPI_INSTANCE                  SPI2
-#define SDCARD_SPI_CS_GPIO                   SPI2_GPIO
-#define SDCARD_SPI_CS_PIN                    SPI2_NSS_PIN
+#define SDCARD_SPI_CS_PIN                    PB12
 
 // SPI2 is on the APB1 bus whose clock runs at 36MHz. Divide to under 400kHz for init:
 #define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 128
@@ -101,15 +92,12 @@
 
 #define BARO
 #define USE_BARO_MS5611
+#define USE_BARO_BMP280
 
 #define MAG
 #define USE_MAG_AK8975
 
 #define MAG_AK8975_ALIGN CW90_DEG_FLIP
-
-#define BEEPER
-#define LED0
-#define LED1
 
 #define USE_VCP
 #define USE_USART1
@@ -125,20 +113,14 @@
 #define ADC_AHB_PERIPHERAL          RCC_AHBPeriph_DMA1
 #define ADC_DMA_CHANNEL             DMA1_Channel1
 
-#define VBAT_ADC_GPIO               GPIOC
-#define VBAT_ADC_GPIO_PIN           GPIO_Pin_0
+#define VBAT_ADC_PIN                PC0
 #define VBAT_ADC_CHANNEL            ADC_Channel_6
 
-#define CURRENT_METER_ADC_GPIO      GPIOC
-#define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_1
+#define CURRENT_METER_ADC_PIN       PC1
 #define CURRENT_METER_ADC_CHANNEL   ADC_Channel_7
-
-#define RSSI_ADC_GPIO               GPIOC
-#define RSSI_ADC_GPIO_PIN           GPIO_Pin_2
+#define RSSI_ADC_PIN                PC2
 #define RSSI_ADC_CHANNEL            ADC_Channel_8
-
-#define EXTERNAL1_ADC_GPIO          GPIOC
-#define EXTERNAL1_ADC_GPIO_PIN      GPIO_Pin_3
+#define EXTERNAL1_ADC_PIN           PC3
 #define EXTERNAL1_ADC_CHANNEL       ADC_Channel_9
 
 #define GPS
@@ -167,3 +149,9 @@
 #define SERIAL_RX
 #define USE_SERVOS
 #define USE_CLI
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTE 0xffff
+#define TARGET_IO_PORTF 0xffff

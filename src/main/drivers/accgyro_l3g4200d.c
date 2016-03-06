@@ -30,6 +30,10 @@
 #include "accgyro.h"
 #include "accgyro_l3g4200d.h"
 
+#ifndef L3G4200D_I2C_INSTANCE
+#define L3G4200D_I2C_INSTANCE I2C_DEVICE
+#endif
+
 // L3G4200D, Standard address 0x68
 #define L3G4200D_ADDRESS         0x68
 #define L3G4200D_ID              0xD3
@@ -63,7 +67,7 @@ bool l3g4200dDetect(gyro_t *gyro)
 
     delay(25);
 
-    i2cRead(L3G4200D_ADDRESS, L3G4200D_WHO_AM_I, 1, &deviceid);
+    i2cRead(L3G4200D_I2C_INSTANCE, L3G4200D_ADDRESS, L3G4200D_WHO_AM_I, 1, &deviceid);
     if (deviceid != L3G4200D_ID)
         return false;
 
@@ -100,12 +104,12 @@ static void l3g4200dInit(uint8_t lpf)
 
     delay(100);
 
-    ack = i2cWrite(L3G4200D_ADDRESS, L3G4200D_CTRL_REG4, L3G4200D_FS_SEL_2000DPS);
+    ack = i2cWrite(L3G4200D_I2C_INSTANCE, L3G4200D_ADDRESS, L3G4200D_CTRL_REG4, L3G4200D_FS_SEL_2000DPS);
     if (!ack)
         failureMode(FAILURE_ACC_INIT);
 
     delay(5);
-    i2cWrite(L3G4200D_ADDRESS, L3G4200D_CTRL_REG1, L3G4200D_POWER_ON | mpuLowPassFilter);
+    i2cWrite(L3G4200D_I2C_INSTANCE, L3G4200D_ADDRESS, L3G4200D_CTRL_REG1, L3G4200D_POWER_ON | mpuLowPassFilter);
 }
 
 // Read 3 gyro values into user-provided buffer. No overrun checking is done.
@@ -113,7 +117,7 @@ static bool l3g4200dRead(int16_t *gyroADC)
 {
     uint8_t buf[6];
 
-    if (!i2cRead(L3G4200D_ADDRESS, L3G4200D_AUTOINCR | L3G4200D_GYRO_OUT, 6, buf)) {
+    if (!i2cRead(L3G4200D_I2C_INSTANCE, L3G4200D_ADDRESS, L3G4200D_AUTOINCR | L3G4200D_GYRO_OUT, 6, buf)) {
         return false;
     }
 

@@ -66,6 +66,7 @@
 #define MULTIWII_IDENTIFIER "MWII";
 #define CLEANFLIGHT_IDENTIFIER "CLFL"
 #define BETAFLIGHT_IDENTIFIER "BTFL"
+#define RACEFLIGHT_IDENTIFIER "RCFL"
 #define BASEFLIGHT_IDENTIFIER "BAFL";
 
 #define FLIGHT_CONTROLLER_IDENTIFIER_LENGTH 4
@@ -214,6 +215,7 @@ static const char * const boardIdentifier = TARGET_BOARD_IDENTIFIER;
 #define MSP_SERVO_CONFIGURATIONS 120    //out message         All servo configurations.
 #define MSP_NAV_STATUS           121    //out message         Returns navigation status
 #define MSP_NAV_CONFIG           122    //out message         Returns navigation parameters
+#define MSP_PID_FLOAT            123    //out message         P I D Used for Luxfloat
 #define MSP_3D                   124    //out message         Settings needed for reversible ESCs
 #define MSP_RC_DEADBAND          125    //out message         deadbands for yaw alt pitch roll
 #define MSP_SENSOR_ALIGNMENT     126    //out message         orientation of acc,gyro,mag
@@ -233,6 +235,7 @@ static const char * const boardIdentifier = TARGET_BOARD_IDENTIFIER;
 #define MSP_SET_SERVO_CONFIGURATION 212    //in message          Servo settings
 #define MSP_SET_MOTOR            214    //in message          PropBalance function
 #define MSP_SET_NAV_CONFIG       215    //in message          Sets nav config parameters - write to the eeprom
+#define MSP_SET_PID_FLOAT        216    //in message          P I D used for luxfloat
 #define MSP_SET_3D               217    //in message          Settings needed for reversible ESCs
 #define MSP_SET_RC_DEADBAND      218    //in message          deadbands for yaw alt pitch roll
 #define MSP_SET_RESET_CURR_PID   219    //in message          resetting the current pid profile to defaults
@@ -269,6 +272,12 @@ typedef enum {
     COMMAND_RECEIVED
 } mspState_e;
 
+typedef enum {
+    UNUSED_PORT = 0,
+    FOR_GENERAL_MSP,
+    FOR_TELEMETRY
+} mspPortUsage_e;
+
 #define MSP_PORT_INBUF_SIZE 64
 
 typedef struct mspPort_s {
@@ -280,7 +289,10 @@ typedef struct mspPort_s {
     uint8_t inBuf[MSP_PORT_INBUF_SIZE];
     mspState_e c_state;
     uint8_t cmdMSP;
+    mspPortUsage_e mspPortUsage;
 } mspPort_t;
+
+#define MSP_PORT_INBUF_SIZE 64
 
 void mspInit(serialConfig_t *serialConfig);
 void mspProcess(void);

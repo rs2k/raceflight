@@ -30,6 +30,7 @@
  */
 static dmaHandlers_t dmaHandlers;
 
+#if defined(STM32F1) || defined(STM32F3)
 void dmaNoOpHandler(DMA_Channel_TypeDef *channel)
 {
     UNUSED(channel);
@@ -54,6 +55,7 @@ void DMA1_Channel7_IRQHandler(void)
 {
     dmaHandlers.dma1Channel7IRQHandler(DMA1_Channel7);
 }
+#endif
 
 void dmaInit(void)
 {

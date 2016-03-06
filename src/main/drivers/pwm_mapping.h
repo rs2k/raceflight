@@ -37,8 +37,9 @@
 
 #define PWM_TIMER_MHZ 1
 #define ONESHOT_TIMER_MHZ 24
-#define PWM_BRUSHED_TIMER_MHZ 8
+//these three have to be the same because of the ppmAvoidPWMTimerClash functions
 #define MULTISHOT_TIMER_MHZ 12
+#define PWM_BRUSHED_TIMER_MHZ 12
 
 typedef struct sonarGPIOConfig_s {
     GPIO_TypeDef *gpio;
@@ -58,10 +59,16 @@ typedef struct drv_pwm_config_s {
 #ifdef STM32F303xC
     bool useUART3;
 #endif
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
+    bool useUART2;
+    bool useUART6;
+#endif
     bool useVbat;
-    bool useOneshot;
+	bool useOneshot;
+    bool useFixedPWM;
     bool useOneshot42;
     bool useMultiShot;
+    bool usePwmRate;
     bool useSoftSerial;
     bool useLEDStrip;
 #ifdef SONAR
@@ -90,7 +97,8 @@ typedef enum {
   PWM_PF_SERVO = (1 << 1),
   PWM_PF_MOTOR_MODE_BRUSHED = (1 << 2),
   PWM_PF_OUTPUT_PROTOCOL_PWM = (1 << 3),
-  PWM_PF_OUTPUT_PROTOCOL_ONESHOT = (1 << 4)
+  PWM_PF_OUTPUT_PROTOCOL_ONESHOT = (1 << 4),
+  PWM_PF_OUTPUT_PROTOCOL_MULTISHOT = (1 << 5)
 } pwmPortFlags_e;
 
 
@@ -124,7 +132,11 @@ enum {
     PWM13,
     PWM14,
     PWM15,
-    PWM16
+    PWM16,
+    PWM17,
+    PWM18,
+    PWM19,
+    PWM20
 };
 
 pwmOutputConfiguration_t *pwmGetOutputConfiguration(void);

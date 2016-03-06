@@ -21,42 +21,29 @@
 #include <platform.h>
 
 #include "build_config.h"
-
-#include "gpio.h"
+#include "bus_i2c.h"
+#include "drivers/io.h"
 
 // Software I2C driver, using same pins as hardware I2C, with hw i2c module disabled.
 // Can be configured for I2C2 pinout (SCL: PB10, SDA: PB11) or I2C1 pinout (SCL: PB6, SDA: PB7)
 
 #ifdef SOFT_I2C
 
-#ifdef SOFT_I2C_PB1011
-#define SCL_H         GPIOB->BSRR = Pin_10
-#define SCL_L         GPIOB->BRR  = Pin_10
+static IO_t scl;
+static IO_t sda;
+static volatile uint16_t i2cErrorCount = 0;
 
-#define SDA_H         GPIOB->BSRR = Pin_11
-#define SDA_L         GPIOB->BRR  = Pin_11
+#define SCL_H         IOHi(scl)
+#define SCL_L         IOLo(scl)
 
-#define SCL_read      (GPIOB->IDR & Pin_10)
-#define SDA_read      (GPIOB->IDR & Pin_11)
-#define I2C_PINS      (Pin_10 | Pin_11)
-#define I2C_GPIO      GPIOB
-#endif
+#define SDA_H         IOHi(sda)
+#define SDA_L         IOLo(sda)
 
-#ifdef SOFT_I2C_PB67
-#define SCL_H         GPIOB->BSRR = Pin_6
-#define SCL_L         GPIOB->BRR  = Pin_6
+#define SCL_read      IORead(scl)
+#define SDA_read      IORead(sda)
 
-#define SDA_H         GPIOB->BSRR = Pin_7
-#define SDA_L         GPIOB->BRR  = Pin_7
-
-#define SCL_read      (GPIOB->IDR & Pin_6)
-#define SDA_read      (GPIOB->IDR & Pin_7)
-#define I2C_PINS      (Pin_6 | Pin_7)
-#define I2C_GPIO      GPIOB
-#endif
-
-#ifndef SCL_H
-#error Need to define SOFT_I2C_PB1011 or SOFT_I2C_PB67 (see board.h)
+#if !defined(SOFT_I2C_SCL) || !defined(SOFT_I2C_SDA)
+#error "Must define the software i2c pins (SOFT_I2C_SCL and SOFT_I2C_SDA) in target.h"
 #endif
 
 static void I2C_delay(void)
@@ -176,20 +163,22 @@ static uint8_t I2C_ReceiveByte(void)
     return byte;
 }
 
-void i2cInit(I2C_TypeDef * I2C)
+void i2cInit(I2CDevice device)
 {
-    gpio_config_t gpio;
+    UNUSED(device);
 
-    gpio.pin = I2C_PINS;
-    gpio.speed = Speed_2MHz;
-    gpio.mode = Mode_Out_OD;
-    gpioInit(I2C_GPIO, &gpio);
+    scl = IOGetByTag(IO_TAG(SOFT_I2C_SCL));
+    sda = IOGetByTag(IO_TAG(SOFT_I2C_SDA));
+
+    IOConfigGPIO(scl, IOCFG_OUT_OD);
+    IOConfigGPIO(sda, IOCFG_OUT_OD);
 }
 
-bool i2cWriteBuffer(uint8_t addr, uint8_t reg, uint8_t len, uint8_t * data)
+bool i2cWriteBuffer(I2CDevice device, uint8_t addr, uint8_t reg, uint8_t len, uint8_t * data)
 {
     int i;
     if (!I2C_Start()) {
+        i2cErrorCount++;
 	    return false;
 	}
     I2C_SendByte(addr << 1 | I2C_Direction_Transmitter);
@@ -203,6 +192,7 @@ bool i2cWriteBuffer(uint8_t addr, uint8_t reg, uint8_t len, uint8_t * data)
         I2C_SendByte(data[i]);
         if (!I2C_WaitAck()) {
             I2C_Stop();
+            i2cErrorCount++;
             return false;
         }
     }
@@ -210,7 +200,7 @@ bool i2cWriteBuffer(uint8_t addr, uint8_t reg, uint8_t len, uint8_t * data)
     return true;
 }
 
-bool i2cWrite(uint8_t addr, uint8_t reg, uint8_t data)
+bool i2cWrite(I2CDevice device, uint8_t addr, uint8_t reg, uint8_t data)
 {
     if (!I2C_Start()) {
 	    return false;
@@ -218,6 +208,7 @@ bool i2cWrite(uint8_t addr, uint8_t reg, uint8_t data)
     I2C_SendByte(addr << 1 | I2C_Direction_Transmitter);
     if (!I2C_WaitAck()) {
         I2C_Stop();
+        i2cErrorCount++;
         return false;
     }
     I2C_SendByte(reg);
@@ -228,7 +219,7 @@ bool i2cWrite(uint8_t addr, uint8_t reg, uint8_t data)
     return true;
 }
 
-bool i2cRead(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
+bool i2cRead(I2CDevice device, uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
 {
     if (!I2C_Start()) {
 	    return false;
@@ -236,6 +227,7 @@ bool i2cRead(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
     I2C_SendByte(addr << 1 | I2C_Direction_Transmitter);
     if (!I2C_WaitAck()) {
         I2C_Stop();
+        i2cErrorCount++;
         return false;
     }
     I2C_SendByte(reg);
@@ -259,8 +251,7 @@ bool i2cRead(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
 
 uint16_t i2cGetErrorCounter(void)
 {
-    // TODO maybe fix this, but since this is test code, doesn't matter.
-    return 0;
+    return i2cErrorCount;
 }
 
 #endif

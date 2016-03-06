@@ -26,7 +26,7 @@
 
 #include "system.h"
 #include "exti.h"
-#include "gpio.h"
+#include "io.h"
 #include "bus_spi.h"
 
 #include "sensor.h"
@@ -35,19 +35,41 @@
 #include "accgyro_mpu6500.h"
 #include "accgyro_spi_mpu6500.h"
 
-#define DISABLE_MPU6500       GPIO_SetBits(MPU6500_CS_GPIO,   MPU6500_CS_PIN)
-#define ENABLE_MPU6500        GPIO_ResetBits(MPU6500_CS_GPIO, MPU6500_CS_PIN)
+#define DISABLE_MPU6500       IOHi(mpuSpi6500CsPin)
+#define ENABLE_MPU6500        IOLo(mpuSpi6500CsPin)
 
+static IO_t mpuSpi6500CsPin = IO_NONE;
 extern uint16_t acc_1G;
 
 bool mpu6500WriteRegister(uint8_t reg, uint8_t data)
 {
     ENABLE_MPU6500;
+    delayMicroseconds(1);
     spiTransferByte(MPU6500_SPI_INSTANCE, reg);
     spiTransferByte(MPU6500_SPI_INSTANCE, data);
     DISABLE_MPU6500;
+    delayMicroseconds(1);
 
     return true;
+}
+
+bool verifympu6500WriteRegister(uint8_t reg, uint8_t data) {
+
+    uint8_t in;
+    uint8_t attemptsRemaining = 20;
+    mpu6500WriteRegister(reg, data);
+    delayMicroseconds(100);
+
+    do {
+        mpu6500SlowReadRegister(reg, 1, &in);
+        if (in == data) {
+            return true;
+        } else {
+            mpu6500WriteRegister(reg, data);
+            delayMicroseconds(100);
+        }
+    } while (attemptsRemaining--);
+    return true; //returning false here causes a usage fault
 }
 
 bool mpu6500ReadRegister(uint8_t reg, uint8_t length, uint8_t *data)
@@ -55,6 +77,18 @@ bool mpu6500ReadRegister(uint8_t reg, uint8_t length, uint8_t *data)
     ENABLE_MPU6500;
     spiTransferByte(MPU6500_SPI_INSTANCE, reg | 0x80); // read transaction
     spiTransfer(MPU6500_SPI_INSTANCE, data, NULL, length);
+    DISABLE_MPU6500;
+
+    return true;
+}
+
+bool mpu6500SlowReadRegister(uint8_t reg, uint8_t length, uint8_t *data)
+{
+    ENABLE_MPU6500;
+    delayMicroseconds(1);
+    spiTransferByte(MPU6500_SPI_INSTANCE, reg | 0x80); // read transaction
+    spiTransfer(MPU6500_SPI_INSTANCE, data, NULL, length);
+    delayMicroseconds(1);
     DISABLE_MPU6500;
 
     return true;
@@ -68,33 +102,15 @@ static void mpu6500SpiInit(void)
         return;
     }
 
-#ifdef STM32F303xC
-    RCC_AHBPeriphClockCmd(MPU6500_CS_GPIO_CLK_PERIPHERAL, ENABLE);
+	mpuSpi6500CsPin = IOGetByTag(IO_TAG(MPU6500_CS_PIN));
+    IOInit(mpuSpi6500CsPin, OWNER_SYSTEM, RESOURCE_SPI);
+	IOConfigGPIO(mpuSpi6500CsPin, SPI_IO_CS_CFG);
 
-    GPIO_InitTypeDef GPIO_InitStructure;
-    GPIO_InitStructure.GPIO_Pin = MPU6500_CS_PIN;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-
-    GPIO_Init(MPU6500_CS_GPIO, &GPIO_InitStructure);
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
+    spiSetDivisor(MPU6500_SPI_INSTANCE, SPI_SLOW_CLOCK);
+#else
+    spiSetDivisor(MPU6500_SPI_INSTANCE, SPI_STANDARD_CLOCK);
 #endif
-
-#ifdef STM32F10X
-    RCC_APB2PeriphClockCmd(MPU6500_CS_GPIO_CLK_PERIPHERAL, ENABLE);
-
-    gpio_config_t gpio;
-    // CS as output
-    gpio.mode = Mode_Out_PP;
-    gpio.pin = MPU6500_CS_PIN;
-    gpio.speed = Speed_50MHz;
-    gpioInit(MPU6500_CS_GPIO, &gpio);
-#endif
-
-    GPIO_SetBits(MPU6500_CS_GPIO,   MPU6500_CS_PIN);
-
-    spiSetDivisor(MPU6500_SPI_INSTANCE, SPI_9MHZ_CLOCK_DIVIDER);
 
     hardwareInitialised = true;
 }

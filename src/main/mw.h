@@ -18,6 +18,7 @@
 #pragma once
 
 extern int16_t magHold;
+extern int32_t reading_flash_timer;
 
 void applyAndSaveAccelerometerTrimsDelta(rollAndPitchTrims_t *rollAndPitchTrimsDelta);
 void handleInflightCalibrationStickPosition();

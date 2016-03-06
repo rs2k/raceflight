@@ -23,4 +23,6 @@ bool mpu6500SpiAccDetect(acc_t *acc);
 bool mpu6500SpiGyroDetect(gyro_t *gyro);
 
 bool mpu6500WriteRegister(uint8_t reg, uint8_t data);
+bool verifympu6500WriteRegister(uint8_t reg, uint8_t data);
 bool mpu6500ReadRegister(uint8_t reg, uint8_t length, uint8_t *data);
+bool mpu6500SlowReadRegister(uint8_t reg, uint8_t length, uint8_t *data);

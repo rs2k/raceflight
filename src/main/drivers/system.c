@@ -30,72 +30,8 @@
 #include "nvic.h"
 
 #include "system.h"
+#include "debug.h"
 
-#ifndef EXTI_CALLBACK_HANDLER_COUNT
-#define EXTI_CALLBACK_HANDLER_COUNT 1
-#endif
-
-typedef struct extiCallbackHandlerConfig_s {
-    IRQn_Type irqn;
-    extiCallbackHandlerFunc* fn;
-} extiCallbackHandlerConfig_t;
-
-static extiCallbackHandlerConfig_t extiHandlerConfigs[EXTI_CALLBACK_HANDLER_COUNT];
-
-void registerExtiCallbackHandler(IRQn_Type irqn, extiCallbackHandlerFunc *fn)
-{
-    for (int index = 0; index < EXTI_CALLBACK_HANDLER_COUNT; index++) {
-        extiCallbackHandlerConfig_t *candidate = &extiHandlerConfigs[index];
-        if (!candidate->fn) {
-            candidate->fn = fn;
-            candidate->irqn = irqn;
-            return;
-        }
-    }
-    failureMode(FAILURE_DEVELOPER); // EXTI_CALLBACK_HANDLER_COUNT is too low for the amount of handlers required.
-}
-
-void unregisterExtiCallbackHandler(IRQn_Type irqn, extiCallbackHandlerFunc *fn)
-{
-    for (int index = 0; index < EXTI_CALLBACK_HANDLER_COUNT; index++) {
-        extiCallbackHandlerConfig_t *candidate = &extiHandlerConfigs[index];
-        if (candidate->fn == fn && candidate->irqn == irqn) {
-            candidate->fn = NULL;
-            candidate->irqn = 0;
-            return;
-        }
-    }
-}
-
-static void extiHandler(IRQn_Type irqn)
-{
-    for (int index = 0; index < EXTI_CALLBACK_HANDLER_COUNT; index++) {
-        extiCallbackHandlerConfig_t *candidate = &extiHandlerConfigs[index];
-        if (candidate->fn && candidate->irqn == irqn) {
-            candidate->fn();
-        }
-    }
-
-}
-
-void EXTI15_10_IRQHandler(void)
-{
-    extiHandler(EXTI15_10_IRQn);
-}
-
-#if defined(CC3D)
-void EXTI3_IRQHandler(void)
-{
-    extiHandler(EXTI3_IRQn);
-}
-#endif
-
-#if defined(COLIBRI_RACE) || defined(LUX_RACE)
-void EXTI9_5_IRQHandler(void)
-{
-    extiHandler(EXTI9_5_IRQn);
-}
-#endif
 
 // cycles per microsecond
 static uint32_t usTicks = 0;
@@ -108,7 +44,7 @@ static void cycleCounterInit(void)
 {
     RCC_ClocksTypeDef clocks;
     RCC_GetClocksFreq(&clocks);
-    usTicks = clocks.SYSCLK_Frequency / 1000000;
+    usTicks = SystemCoreClock / 1000000;
 }
 
 // SysTick
@@ -157,6 +93,12 @@ void systemInit(void)
 
     // cache RCC->CSR value to use it in isMPUSoftreset() and others
     cachedRccCsrValue = RCC->CSR;
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
+    /* Accounts for OP Bootloader, set the Vector Table base address as specified in .ld file */
+    extern void *isr_vector_table_base;
+    NVIC_SetVectorTable((uint32_t)&isr_vector_table_base, 0x0);
+    RCC_AHB2PeriphClockCmd( RCC_AHB2Periph_OTG_FS, DISABLE);
+#endif
     RCC_ClearFlag();
 
     enableGPIOPowerUsageAndNoiseReductions();
@@ -180,8 +122,6 @@ void systemInit(void)
     // Init cycle counter
     cycleCounterInit();
 
-
-    memset(extiHandlerConfigs, 0x00, sizeof(extiHandlerConfigs));
     // SysTick
     SysTick_Config(SystemCoreClock / 1000);
 }

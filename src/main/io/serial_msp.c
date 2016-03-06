@@ -41,6 +41,7 @@
 #include "drivers/gpio.h"
 #include "drivers/timer.h"
 #include "drivers/pwm_rx.h"
+#include "drivers/sdcard.h"
 #include "drivers/gyro_sync.h"
 #include "drivers/sdcard.h"
 #include "drivers/buf_writer.h"
@@ -101,7 +102,9 @@ extern uint16_t cycleTime; // FIXME dependency on mw.c
 extern uint16_t rssi; // FIXME dependency on mw.c
 extern void resetPidProfile(pidProfile_t *pidProfile);
 
+void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, escAndServoConfig_t *escAndServoConfigToUse, pidProfile_t *pidProfileToUse);
 
+const char * const flightControllerIdentifier = RACEFLIGHT_IDENTIFIER; // 4 UPPER CASE alpha numeric characters that identify the flight controller.
 void setGyroSamplingSpeed(uint16_t looptime) {
     uint16_t gyroSampleRate = 1000;
     uint8_t maxDivider = 1;
@@ -170,14 +173,17 @@ void setGyroSamplingSpeed(uint16_t looptime) {
             masterConfig.pid_process_denom = 1;
         }
 #endif
-
         if (!(masterConfig.use_multiShot || masterConfig.use_oneshot42) && ((masterConfig.gyro_sync_denom * gyroSampleRate) == 125)) masterConfig.pid_process_denom = 3;
+            masterConfig.force_motor_pwm_rate = 1;
+            if (masterConfig.use_multiShot || masterConfig.use_oneshot42) {
+                masterConfig.motor_pwm_rate = 4200;
+            } else {
+                masterConfig.motor_pwm_rate = 2700;
+            }
+        } else {
+            masterConfig.force_motor_pwm_rate = 0;
     }
 }
-
-void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, escAndServoConfig_t *escAndServoConfigToUse, pidProfile_t *pidProfileToUse);
-
-const char * const flightControllerIdentifier = BETAFLIGHT_IDENTIFIER; // 4 UPPER CASE alpha numeric characters that identify the flight controller.
 
 typedef struct box_e {
     const uint8_t boxId;         // see boxId_e
@@ -217,6 +223,9 @@ static const box_t boxes[CHECKBOX_ITEM_COUNT + 1] = {
     { BOXFAILSAFE, "FAILSAFE;", 27 },
     { BOXAIRMODE, "AIR MODE;", 28 },
     { BOXACROPLUS, "ACRO PLUS;", 29 },
+    { BOXALWAYSSTABILIZED, "ALWAYS STABILIZED;", 30 },
+    { BOXTEST1, "TEST 1;", 31 },
+    { BOXTEST2, "TEST 2;", 32 },
     { CHECKBOX_ITEM_COUNT, NULL, 0xFF }
 };
 
@@ -249,7 +258,6 @@ typedef enum {
     MSP_SDCARD_STATE_FS_INIT     = 3,
     MSP_SDCARD_STATE_READY       = 4
 } mspSDCardState_e;
-
 
 STATIC_UNIT_TESTED mspPort_t mspPorts[MAX_MSP_PORT_COUNT];
 
@@ -321,12 +329,14 @@ static void tailSerialReply(void)
     serialEndWrite(mspSerialPort);
 }
 
+#ifdef USE_SERVOS
 static void s_struct(uint8_t *cb, uint8_t siz)
 {
     headSerialReply(siz);
     while (siz--)
         serialize8(*cb++);
 }
+#endif
 
 static void serializeNames(const char *s)
 {
@@ -542,13 +552,19 @@ void mspInit(serialConfig_t *serialConfig)
         activeBoxIds[activeBoxIdCount++] = BOXHORIZON;
     }
 
-    activeBoxIds[activeBoxIdCount++] = BOXAIRMODE;
+#ifdef BARO
     activeBoxIds[activeBoxIdCount++] = BOXACROPLUS;
-
 
     if (sensors(SENSOR_BARO)) {
         activeBoxIds[activeBoxIdCount++] = BOXBARO;
     }
+#endif
+
+    activeBoxIds[activeBoxIdCount++] = BOXAIRMODE;
+    activeBoxIds[activeBoxIdCount++] = BOXACROPLUS;
+    activeBoxIds[activeBoxIdCount++] = BOXALWAYSSTABILIZED;
+    activeBoxIds[activeBoxIdCount++] = BOXTEST1;
+    activeBoxIds[activeBoxIdCount++] = BOXTEST2;
 
     if (sensors(SENSOR_ACC) || sensors(SENSOR_MAG)) {
         activeBoxIds[activeBoxIdCount++] = BOXMAG;
@@ -566,7 +582,7 @@ void mspInit(serialConfig_t *serialConfig)
     }
 #endif
 
-    if (masterConfig.mixerMode == MIXER_FLYING_WING || masterConfig.mixerMode == MIXER_AIRPLANE)
+    if (masterConfig.mixerMode == MIXER_FLYING_WING || masterConfig.mixerMode == MIXER_AIRPLANE || masterConfig.mixerMode == MIXER_CUSTOM_AIRPLANE)
         activeBoxIds[activeBoxIdCount++] = BOXPASSTHRU;
 
     activeBoxIds[activeBoxIdCount++] = BOXBEEPERON;
@@ -582,8 +598,10 @@ void mspInit(serialConfig_t *serialConfig)
 
     activeBoxIds[activeBoxIdCount++] = BOXOSD;
 
+#ifdef TELEMETRY
     if (feature(FEATURE_TELEMETRY) && masterConfig.telemetryConfig.telemetry_switch)
         activeBoxIds[activeBoxIdCount++] = BOXTELEMETRY;
+#endif
 
     if (feature(FEATURE_SONAR)){
         activeBoxIds[activeBoxIdCount++] = BOXSONAR;
@@ -649,15 +667,18 @@ static uint32_t packFlightModeFlags(void)
         IS_ENABLED(ARMING_FLAG(ARMED)) << BOXARM |
         IS_ENABLED(IS_RC_MODE_ACTIVE(BOXBLACKBOX)) << BOXBLACKBOX |
         IS_ENABLED(FLIGHT_MODE(FAILSAFE_MODE)) << BOXFAILSAFE |
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXAIRMODE)) << BOXAIRMODE |
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXACROPLUS)) << BOXACROPLUS;
+        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXAIRMODE)) << BOXAIRMODE|
+        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXACROPLUS)) << BOXACROPLUS|
+		IS_ENABLED(IS_RC_MODE_ACTIVE(BOXALWAYSSTABILIZED)) << BOXALWAYSSTABILIZED|
+       	IS_ENABLED(IS_RC_MODE_ACTIVE(BOXTEST1)) << BOXTEST1|
+        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXTEST2)) << BOXTEST2;
 
     for (i = 0; i < activeBoxIdCount; i++) {
         int flag = (tmp & (1 << activeBoxIds[i]));
         if (flag)
             junk |= 1 << i;
     }
-
+    
     return junk;
 }
 
@@ -742,7 +763,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         break;
 
     case MSP_STATUS_EX:
-        headSerialReply(12);
+        headSerialReply(14);
         serialize16(cycleTime);
 #ifdef USE_I2C
         serialize16(i2cGetErrorCounter());
@@ -752,7 +773,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize16(sensors(SENSOR_ACC) | sensors(SENSOR_BARO) << 1 | sensors(SENSOR_MAG) << 2 | sensors(SENSOR_GPS) << 3 | sensors(SENSOR_SONAR) << 4);
         serialize32(packFlightModeFlags());
         serialize8(masterConfig.current_profile_index);
-        //serialize16(averageSystemLoadPercent);
+        serialize16(averageSystemLoadPercent);
         break;
 
     case MSP_STATUS:
@@ -811,7 +832,10 @@ static bool processOutCommand(uint8_t cmdMSP)
         break;
 #endif
     case MSP_MOTOR:
-        s_struct((uint8_t *)motor, 16);
+        headSerialReply(16);
+        for (i = 0; i < 8; i++) {
+            serialize16(i < MAX_SUPPORTED_MOTORS ? motor[i] : 0);
+        }
         break;
     case MSP_RC:
         headSerialReply(2 * rxRuntimeConfig.channelCount);
@@ -861,7 +885,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize16((uint16_t)targetLooptime);
         break;
     case MSP_RC_TUNING:
-        headSerialReply(11);
+        headSerialReply(16);
         serialize8(currentControlRateProfile->rcRate8);
         serialize8(currentControlRateProfile->rcExpo8);
         for (i = 0 ; i < 3; i++) {
@@ -872,10 +896,17 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize8(currentControlRateProfile->thrExpo8);
         serialize16(currentControlRateProfile->tpa_breakpoint);
         serialize8(currentControlRateProfile->rcYawExpo8);
+        serialize8(currentControlRateProfile->AcroPlusFactor);
+        serialize8(masterConfig.rcControlsConfig.deadband);
+	    serialize8(masterConfig.rcControlsConfig.yaw_deadband);
+	    serialize8(0);
+//        serialize8(currentProfile->pidProfile.gyro_lpf_hz);
+        serialize8(currentProfile->pidProfile.dterm_lpf_hz);
+//        serialize8(currentProfile->pidProfile.yaw_pterm_cut_hz);
         break;
     case MSP_PID:
         headSerialReply(3 * PID_ITEM_COUNT);
-        if (IS_PID_CONTROLLER_FP_BASED(currentProfile->pidProfile.pidController)) { // convert float stuff into uint8_t to keep backwards compatability with all 8-bit shit with new pid
+        if (IS_PID_CONTROLLER_FP_BASED(currentProfile->pidProfile.pidController)) { // convert float stuff into uint8_t to keep backwards compatability with all 8-bit crap with new pid
             for (i = 0; i < 3; i++) {
                 serialize8(constrain(lrintf(currentProfile->pidProfile.P_f[i] * 10.0f), 0, 255));
                 serialize8(constrain(lrintf(currentProfile->pidProfile.I_f[i] * 100.0f), 0, 255));
@@ -952,7 +983,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         }
         break;
     case MSP_MISC:
-        headSerialReply(2 * 5 + 3 + 3 + 2 + 4);
+        headSerialReply(2 * 5 + 3 + 3 + 2 + 4 + 3 + 3);
         serialize16(masterConfig.rxConfig.midrc);
 
         serialize16(masterConfig.escAndServoConfig.minthrottle);
@@ -980,6 +1011,13 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize8(masterConfig.batteryConfig.vbatmincellvoltage);
         serialize8(masterConfig.batteryConfig.vbatmaxcellvoltage);
         serialize8(masterConfig.batteryConfig.vbatwarningcellvoltage);
+
+        serialize8(masterConfig.rf_loop_ctrl);
+        serialize16(masterConfig.motor_pwm_rate);
+        
+        serialize8(masterConfig.acc_hardware);
+        serialize8(masterConfig.baro_hardware);
+        serialize8(masterConfig.mag_hardware);
         break;
 
     case MSP_MOTOR_PINS:
@@ -1195,6 +1233,8 @@ static bool processOutCommand(uint8_t cmdMSP)
 #ifdef USE_FLASHFS
     case MSP_DATAFLASH_READ:
         {
+            reading_flash_timer = micros();
+
             uint32_t readAddress = read32();
 
             serializeDataflashReadReply(readAddress, 128);
@@ -1265,6 +1305,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize8(masterConfig.sensorAlignmentConfig.acc_align);
         serialize8(masterConfig.sensorAlignmentConfig.mag_align);
         break;
+
 
     default:
         return false;
@@ -1412,6 +1453,15 @@ static bool processInCommand(void)
             if (currentPort->dataSize >= 11) {
                 currentControlRateProfile->rcYawExpo8 = read8();
             }
+            if (currentPort->dataSize >= 12) {
+                currentControlRateProfile->AcroPlusFactor = read8();
+                masterConfig.rcControlsConfig.deadband = read8();
+                masterConfig.rcControlsConfig.yaw_deadband = read8();
+                read8();
+//                currentProfile->pidProfile.gyro_lpf_hz = read8();
+    			currentProfile->pidProfile.dterm_lpf_hz = read8();
+//    			currentProfile->pidProfile.yaw_pterm_cut_hz = read8();
+            }
         } else {
             headSerialError(0);
         }
@@ -1446,10 +1496,21 @@ static bool processInCommand(void)
         masterConfig.batteryConfig.vbatmincellvoltage = read8();  // vbatlevel_warn1 in MWC2.3 GUI
         masterConfig.batteryConfig.vbatmaxcellvoltage = read8();  // vbatlevel_warn2 in MWC2.3 GUI
         masterConfig.batteryConfig.vbatwarningcellvoltage = read8();  // vbatlevel when buzzer starts to alert
+        if (currentPort->dataSize >= 24) {
+            masterConfig.rf_loop_ctrl = read8();
+            masterConfig.motor_pwm_rate = read16();
+            masterConfig.acc_hardware = read8();
+            masterConfig.baro_hardware = read8();
+            masterConfig.mag_hardware = read8();
+        }
         break;
     case MSP_SET_MOTOR:
-        for (i = 0; i < 8; i++) // FIXME should this use MAX_MOTORS or MAX_SUPPORTED_MOTORS instead of 8
-            motor_disarmed[i] = read16();
+        for (i = 0; i < 8; i++) {
+            const int16_t disarmed = read16();
+            if (i < MAX_SUPPORTED_MOTORS) {
+                motor_disarmed[i] = disarmed;
+            }
+        }
         break;
     case MSP_SET_SERVO_CONFIGURATION:
 #ifdef USE_SERVOS
@@ -1520,14 +1581,17 @@ static bool processInCommand(void)
             readEEPROM();
         }
         break;
+
     case MSP_ACC_CALIBRATION:
         if (!ARMING_FLAG(ARMED))
             accSetCalibrationCycles(CALIBRATING_ACC_CYCLES);
         break;
+
     case MSP_MAG_CALIBRATION:
         if (!ARMING_FLAG(ARMED))
             ENABLE_STATE(CALIBRATE_MAG);
         break;
+
     case MSP_EEPROM_WRITE:
         if (ARMING_FLAG(ARMED)) {
             headSerialError(0);

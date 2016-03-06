@@ -18,20 +18,16 @@
 #pragma once
 
 #define TARGET_BOARD_IDENTIFIER "MOTO" // MotoLab
+
+#define USBD_PRODUCT_STRING "Motolab"
+
 #define USE_CLI
+#define USE_EXTI
 
-#define LED0_GPIO   GPIOB
-#define LED0_PIN    Pin_5 // Blue LEDs - PB5
-#define LED0_PERIPHERAL RCC_AHBPeriph_GPIOB
-#define LED1_GPIO   GPIOB
-#define LED1_PIN    Pin_9  // Green LEDs - PB9
-#define LED1_PERIPHERAL RCC_AHBPeriph_GPIOB
-
-#define BEEP_GPIO   GPIOA
-#define BEEP_PIN    Pin_0
-#define BEEP_PERIPHERAL RCC_AHBPeriph_GPIOA
+#define LED0    PB5
+#define LED1    PB9
+#define BEEPER  PA0
 #define BEEPER_INVERTED
-#define BEEPER
 
 #define USABLE_TIMER_CHANNEL_COUNT 9
 
@@ -39,6 +35,7 @@
 #define EXTI15_10_CALLBACK_HANDLER_COUNT 1 // MPU data ready
 #define USE_MPU_DATA_READY_SIGNAL
 //#define ENSURE_MPU_DATA_READY_IS_LOW
+#define MPU_INT_EXTI    PA15
 
 #define GYRO
 #define ACC
@@ -56,7 +53,7 @@
 #define ACC_MPU6000_ALIGN CW180_DEG
 
 #define MPU6000_CS_GPIO GPIOB
-#define MPU6000_CS_PIN GPIO_Pin_12
+#define MPU6000_CS_PIN PB12
 #define MPU6000_SPI_INSTANCE SPI2
 
 //#define BARO
@@ -64,8 +61,6 @@
 
 //#define MAG
 //#define USE_MAG_HMC5883
-
-#define LED0
 
 #define USE_VCP
 #define USE_USART1
@@ -97,22 +92,18 @@
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_2) // SDA (PA10/AF4), SCL (PA9/AF4)
 
-#define I2C2_SCL_GPIO        GPIOA
-#define I2C2_SCL_GPIO_AF     GPIO_AF_4
-#define I2C2_SCL_PIN         GPIO_Pin_9
-#define I2C2_SCL_PIN_SOURCE  GPIO_PinSource9
-#define I2C2_SCL_CLK_SOURCE  RCC_AHBPeriph_GPIOA
-#define I2C2_SDA_GPIO        GPIOA
-#define I2C2_SDA_GPIO_AF     GPIO_AF_4
-#define I2C2_SDA_PIN         GPIO_Pin_10
-#define I2C2_SDA_PIN_SOURCE  GPIO_PinSource10
-#define I2C2_SDA_CLK_SOURCE  RCC_AHBPeriph_GPIOA
+#define I2C2_SCL                PA9
+#define I2C2_SDA                PA10
 
 #define USE_SPI
 #define USE_SPI_DEVICE_2
 
-#define M25P16_CS_GPIO        GPIOB
-#define M25P16_CS_PIN         GPIO_Pin_12
+#define SPI2_NSS_PIN            PB12
+#define SPI2_SCK_PIN            PB13
+#define SPI2_MISO_PIN           PB14
+#define SPI2_MOSI_PIN           PB15
+
+#define M25P16_CS_PIN         PB12
 #define M25P16_SPI_INSTANCE   SPI2
 
 //#define SENSORS_SET (SENSOR_ACC | SENSOR_BARO | SENSOR_GPS | SENSOR_MAG)
@@ -135,16 +126,13 @@
 #define ADC_DMA_CHANNEL             DMA2_Channel1
 #define ADC_AHB_PERIPHERAL          RCC_AHBPeriph_DMA2
 
-#define VBAT_ADC_GPIO               GPIOA
-#define VBAT_ADC_GPIO_PIN           GPIO_Pin_5
+#define VBAT_ADC_PIN                PA5
 #define VBAT_ADC_CHANNEL            ADC_Channel_2
 
-//#define CURRENT_METER_ADC_GPIO      GPIOA
-//#define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_5
+//#define CURRENT_METER_ADC_PIN  PA5
 //#define CURRENT_METER_ADC_CHANNEL   ADC_Channel_2
 
-#define RSSI_ADC_GPIO               GPIOB
-#define RSSI_ADC_GPIO_PIN           GPIO_Pin_2
+#define RSSI_ADC_PIN                PB2
 #define RSSI_ADC_CHANNEL            ADC_Channel_12
 
 #define LED_STRIP
@@ -195,3 +183,7 @@
 #define S1W_RX_GPIO         GPIOB
 #define S1W_RX_PIN          GPIO_Pin_7
 
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTF 0xffff

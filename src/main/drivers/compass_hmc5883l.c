@@ -32,6 +32,7 @@
 #include "gpio.h"
 #include "bus_i2c.h"
 #include "light_led.h"
+#include "drivers/exti.h"
 
 #include "sensor.h"
 #include "compass.h"
@@ -102,6 +103,10 @@
  *              1  |  1   |  Sleep Mode
  */
 
+#ifndef HMC5883L_I2C_INSTANCE
+#define HMC5883L_I2C_INSTANCE I2C_DEVICE
+#endif
+
 #define MAG_ADDRESS 0x1E
 #define MAG_DATA_REGISTER 0x03
 
@@ -120,13 +125,14 @@ static float magGain[3] = { 1.0f, 1.0f, 1.0f };
 
 static const hmc5883Config_t *hmc5883Config = NULL;
 
-void MAG_DATA_READY_EXTI_Handler(void)
-{
-    if (EXTI_GetITStatus(hmc5883Config->exti_line) == RESET) {
-        return;
-    }
+#ifdef USE_MAG_DATA_READY_SIGNAL
 
-    EXTI_ClearITPendingBit(hmc5883Config->exti_line);
+static IO_t intIO;
+static extiCallbackRec_t hmc5883_extiCallbackRec;
+
+void hmc5883_extiHandler(extiCallbackRec_t* cb)
+{
+    UNUSED(cb);
 
 #ifdef DEBUG_MAG_DATA_READY_INTERRUPT
     // Measure the delta between calls to the interrupt handler
@@ -143,59 +149,7 @@ void MAG_DATA_READY_EXTI_Handler(void)
     lastCalledAt = now;
 #endif
 }
-
-static void hmc5883lConfigureDataReadyInterruptHandling(void)
-{
-#ifdef USE_MAG_DATA_READY_SIGNAL
-
-    if (!(hmc5883Config->exti_port_source && hmc5883Config->exti_pin_source)) {
-        return;
-    }
-#ifdef STM32F10X
-    // enable AFIO for EXTI support
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 #endif
-
-#ifdef STM32F303xC
-    /* Enable SYSCFG clock otherwise the EXTI irq handlers are not called */
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-#endif
-
-#ifdef STM32F10X
-    gpioExtiLineConfig(hmc5883Config->exti_port_source, hmc5883Config->exti_pin_source);
-#endif
-
-#ifdef STM32F303xC
-    gpioExtiLineConfig(hmc5883Config->exti_port_source, hmc5883Config->exti_pin_source);
-#endif
-
-#ifdef ENSURE_MAG_DATA_READY_IS_HIGH
-    uint8_t status = GPIO_ReadInputDataBit(hmc5883Config->gpioPort, hmc5883Config->gpioPin);
-    if (!status) {
-        return;
-    }
-#endif
-
-    registerExtiCallbackHandler(hmc5883Config->exti_irqn, MAG_DATA_READY_EXTI_Handler);
-
-    EXTI_ClearITPendingBit(hmc5883Config->exti_line);
-
-    EXTI_InitTypeDef EXTIInit;
-    EXTIInit.EXTI_Line = hmc5883Config->exti_line;
-    EXTIInit.EXTI_Mode = EXTI_Mode_Interrupt;
-    EXTIInit.EXTI_Trigger = EXTI_Trigger_Falling;
-    EXTIInit.EXTI_LineCmd = ENABLE;
-    EXTI_Init(&EXTIInit);
-
-    NVIC_InitTypeDef NVIC_InitStructure;
-
-    NVIC_InitStructure.NVIC_IRQChannel = hmc5883Config->exti_irqn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_MAG_DATA_READY);
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_SUB(NVIC_PRIO_MAG_DATA_READY);
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
-#endif
-}
 
 bool hmc5883lDetect(mag_t* mag, const hmc5883Config_t *hmc5883ConfigToUse)
 {
@@ -204,7 +158,7 @@ bool hmc5883lDetect(mag_t* mag, const hmc5883Config_t *hmc5883ConfigToUse)
 
     hmc5883Config = hmc5883ConfigToUse;
 
-    ack = i2cRead(MAG_ADDRESS, 0x0A, 1, &sig);
+    ack = i2cRead(HMC5883L_I2C_INSTANCE, MAG_ADDRESS, 0x0A, 1, &sig);
     if (!ack || sig != 'H')
         return false;
 
@@ -221,35 +175,23 @@ void hmc5883lInit(void)
     int32_t xyz_total[3] = { 0, 0, 0 }; // 32 bit totals so they won't overflow.
     bool bret = true;           // Error indicator
 
-    gpio_config_t gpio;
-
-    if (hmc5883Config) {
-#ifdef STM32F303
-        if (hmc5883Config->gpioAHBPeripherals) {
-            RCC_AHBPeriphClockCmd(hmc5883Config->gpioAHBPeripherals, ENABLE);
-        }
-#endif
-#ifdef STM32F10X
-        if (hmc5883Config->gpioAPB2Peripherals) {
-            RCC_APB2PeriphClockCmd(hmc5883Config->gpioAPB2Peripherals, ENABLE);
-        }
-#endif
-        gpio.pin = hmc5883Config->gpioPin;
-        gpio.speed = Speed_2MHz;
-        gpio.mode = Mode_IN_FLOATING;
-        gpioInit(hmc5883Config->gpioPort, &gpio);
+#ifdef USE_MAG_DATA_READY_SIGNAL
+    if (hmc5883Config && hmc5883Config->io) {
+        intIO = IOGetByTag(hmc5883Config->io);
+        IOInit(intIO, OWNER_SYSTEM, RESOURCE_INPUT | RESOURCE_EXTI);
+        IOConfigGPIO(intIO, IOCFG_IN_FLOATING);
     }
-
+#endif
     delay(50);
-    i2cWrite(MAG_ADDRESS, HMC58X3_R_CONFA, 0x010 + HMC_POS_BIAS);   // Reg A DOR = 0x010 + MS1, MS0 set to pos bias
+    i2cWrite(HMC5883L_I2C_INSTANCE, MAG_ADDRESS, HMC58X3_R_CONFA, 0x010 + HMC_POS_BIAS);   // Reg A DOR = 0x010 + MS1, MS0 set to pos bias
     // Note that the  very first measurement after a gain change maintains the same gain as the previous setting.
     // The new gain setting is effective from the second measurement and on.
-    i2cWrite(MAG_ADDRESS, HMC58X3_R_CONFB, 0x60); // Set the Gain to 2.5Ga (7:5->011)
+    i2cWrite(HMC5883L_I2C_INSTANCE, MAG_ADDRESS, HMC58X3_R_CONFB, 0x60); // Set the Gain to 2.5Ga (7:5->011)
     delay(100);
     hmc5883lRead(magADC);
 
     for (i = 0; i < 10; i++) {  // Collect 10 samples
-        i2cWrite(MAG_ADDRESS, HMC58X3_R_MODE, 1);
+        i2cWrite(HMC5883L_I2C_INSTANCE, MAG_ADDRESS, HMC58X3_R_MODE, 1);
         delay(50);
         hmc5883lRead(magADC);       // Get the raw values in case the scales have already been changed.
 
@@ -267,9 +209,9 @@ void hmc5883lInit(void)
     }
 
     // Apply the negative bias. (Same gain)
-    i2cWrite(MAG_ADDRESS, HMC58X3_R_CONFA, 0x010 + HMC_NEG_BIAS);   // Reg A DOR = 0x010 + MS1, MS0 set to negative bias.
+    i2cWrite(HMC5883L_I2C_INSTANCE, MAG_ADDRESS, HMC58X3_R_CONFA, 0x010 + HMC_NEG_BIAS);   // Reg A DOR = 0x010 + MS1, MS0 set to negative bias.
     for (i = 0; i < 10; i++) {
-        i2cWrite(MAG_ADDRESS, HMC58X3_R_MODE, 1);
+        i2cWrite(HMC5883L_I2C_INSTANCE, MAG_ADDRESS, HMC58X3_R_MODE, 1);
         delay(50);
         hmc5883lRead(magADC);               // Get the raw values in case the scales have already been changed.
 
@@ -291,9 +233,9 @@ void hmc5883lInit(void)
     magGain[Z] = fabsf(660.0f * HMC58X3_Z_SELF_TEST_GAUSS * 2.0f * 10.0f / xyz_total[Z]);
 
     // leave test mode
-    i2cWrite(MAG_ADDRESS, HMC58X3_R_CONFA, 0x70);   // Configuration Register A  -- 0 11 100 00  num samples: 8 ; output rate: 15Hz ; normal measurement mode
-    i2cWrite(MAG_ADDRESS, HMC58X3_R_CONFB, 0x20);   // Configuration Register B  -- 001 00000    configuration gain 1.3Ga
-    i2cWrite(MAG_ADDRESS, HMC58X3_R_MODE, 0x00);    // Mode register             -- 000000 00    continuous Conversion Mode
+    i2cWrite(HMC5883L_I2C_INSTANCE, MAG_ADDRESS, HMC58X3_R_CONFA, 0x70);   // Configuration Register A  -- 0 11 100 00  num samples: 8 ; output rate: 15Hz ; normal measurement mode
+    i2cWrite(HMC5883L_I2C_INSTANCE, MAG_ADDRESS, HMC58X3_R_CONFB, 0x20);   // Configuration Register B  -- 001 00000    configuration gain 1.3Ga
+    i2cWrite(HMC5883L_I2C_INSTANCE, MAG_ADDRESS, HMC58X3_R_MODE, 0x00);    // Mode register             -- 000000 00    continuous Conversion Mode
     delay(100);
 
     if (!bret) {                // Something went wrong so get a best guess
@@ -301,15 +243,27 @@ void hmc5883lInit(void)
         magGain[Y] = 1.0f;
         magGain[Z] = 1.0f;
     }
-
-    hmc5883lConfigureDataReadyInterruptHandling();
+    
+#ifdef USE_MAG_DATA_READY_SIGNAL
+    do {
+        if (!(hmc5883Config && intIO))
+            break;
+# ifdef ENSURE_MAG_DATA_READY_IS_HIGH
+        if (!IORead(intIO))
+            break;
+# endif
+        EXTIHandlerInit(&hmc5883_extiCallbackRec, hmc5883_extiHandler);
+        EXTIConfig(intIO, &hmc5883_extiCallbackRec, NVIC_PRIO_MAG_INT_EXTI, EXTI_Trigger_Rising);
+        EXTIEnable(intIO, true);
+    } while (0);
+#endif
 }
 
 bool hmc5883lRead(int16_t *magData)
 {
     uint8_t buf[6];
 
-    bool ack = i2cRead(MAG_ADDRESS, MAG_DATA_REGISTER, 6, buf);
+    bool ack = i2cRead(HMC5883L_I2C_INSTANCE, MAG_ADDRESS, MAG_DATA_REGISTER, 6, buf);
     if (!ack) {
         return false;
     }

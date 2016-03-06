@@ -20,7 +20,6 @@
 #include <stdlib.h>
 
 #include "platform.h"
-#include "build_config.h"
 
 #include "common/axis.h"
 #include "common/maths.h"
@@ -31,11 +30,20 @@
 #include "gyro_sync.h"
 
 #include "sensor.h"
+#include "debug.h"
 #include "accgyro.h"
 #include "accgyro_mpu.h"
 #include "accgyro_mpu6500.h"
 
 extern uint16_t acc_1G;
+
+#define BIT_I2C_IF_DIS              0x10
+
+void resetGyro (void) {
+    // Device Reset
+    mpuConfiguration.write(MPU_RA_PWR_MGMT_1, MPU6500_BIT_RESET);
+    delay(100);
+}
 
 bool mpu6500AccDetect(acc_t *acc)
 {
@@ -92,29 +100,49 @@ void mpu6500GyroInit(uint8_t lpf)
     mpuIntExtiInit();
 
     mpuConfiguration.write(MPU_RA_PWR_MGMT_1, MPU6500_BIT_RESET);
-    delay(100);
-    mpuConfiguration.write(MPU_RA_SIGNAL_PATH_RESET, 0x07);
-    delay(100);
-    mpuConfiguration.write(MPU_RA_PWR_MGMT_1, 0);
-    delay(100);
+	delay(50);
+
     mpuConfiguration.write(MPU_RA_PWR_MGMT_1, INV_CLK_PLL);
-    delay(15);
-    mpuConfiguration.write(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3);
+    delayMicroseconds(1);
+
+    mpuConfiguration.write(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_DISABLED); //Fchoice_b defaults to 00 which makes fchoice 11
     delay(15);
     mpuConfiguration.write(MPU_RA_ACCEL_CONFIG, INV_FSR_16G << 3);
     delay(15);
-    mpuConfiguration.write(MPU_RA_CONFIG, lpf);
+
+    if (lpf == 4) {
+    	mpuConfiguration.write(MPU_RA_CONFIG, 1); //1KHz, 184DLPF
+    } else if (lpf < 4) {
+    	mpuConfiguration.write(MPU_RA_CONFIG, 7); //8KHz, 3600DLPF
+    } else if (lpf > 4) {
+    	mpuConfiguration.write(MPU_RA_CONFIG, 0); //8KHz, 250DLPF
+    }
+
     delay(15);
     mpuConfiguration.write(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops()); // Get Divider Drops
-    delay(100);
+    delay(15);
 
-    // Data ready interrupt configuration
-#ifdef USE_MPU9250_MAG
     mpuConfiguration.write(MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 1 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 0 << 0);  // INT_ANYRD_2CLEAR, BYPASS_EN
-#else
-    mpuConfiguration.write(MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 1 << 4 | 0 << 3 | 0 << 2 | 0 << 1 | 0 << 0);  // INT_ANYRD_2CLEAR, BYPASS_EN
+    delayMicroseconds(1);
+
+#if defined(USE_MPU_DATA_READY_SIGNAL)
+    mpuConfiguration.write(MPU_RA_INT_ENABLE, 0x01); //this resets register MPU_RA_PWR_MGMT_1 and won't read back correctly.
+    delayMicroseconds(1);
 #endif
-#ifdef USE_MPU_DATA_READY_SIGNAL
-    mpuConfiguration.write(MPU_RA_INT_ENABLE, 0x01); // RAW_RDY_EN interrupt enable
-#endif
+
+
+    //uint8_t in;
+    //mpu6500SlowReadRegister(MPU_RA_CONFIG, 1, &in);
+    //debug[0]= 7;
+    //debug[1]= in;
+    //delayMicroseconds(1);
+    //mpu6500SlowReadRegister(MPU_RA_INT_PIN_CFG, 1, &in);
+    //debug[2]= INV_FSR_2000DPS << 3 | FCB_3600_32;
+    //debug[3]= in;
+
+    //correct
+    //MPU_RA_PWR_MGMT_1
+    //MPU_RA_ACCEL_CONFIG
+    //MPU_RA_CONFIG
+    //MPU_RA_GYRO_CONFIG
 }

@@ -22,6 +22,7 @@
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
+#include <stdio.h>
 
 #include "platform.h"
 #include "scheduler.h"
@@ -156,6 +157,7 @@ static void cliMixer(char *cmdline);
 static void cliFlashInfo(char *cmdline);
 static void cliFlashErase(char *cmdline);
 #ifdef USE_FLASH_TOOLS
+static void cliFlashFill(char *cmdline);
 static void cliFlashWrite(char *cmdline);
 static void cliFlashRead(char *cmdline);
 #endif
@@ -191,7 +193,8 @@ static const char * const featureNames[] = {
     "SERVO_TILT", "SOFTSERIAL", "GPS", "FAILSAFE",
     "SONAR", "TELEMETRY", "CURRENT_METER", "3D", "RX_PARALLEL_PWM",
     "RX_MSP", "RSSI_ADC", "LED_STRIP", "DISPLAY", "ONESHOT125",
-    "BLACKBOX", "CHANNEL_FORWARDING", NULL
+    "BLACKBOX", "CHANNEL_FORWARDING", "ONESHOT42", "USE_PWM_RATE",
+    "MULTISHOT", "TX_STYLE_EXPO", "SBUS_INVERTER", NULL
 };
 
 // sync this with rxFailsafeChannelMode_e
@@ -210,11 +213,11 @@ static const char * const sensorTypeNames[] = {
 
 #define SENSOR_NAMES_MASK (SENSOR_GYRO | SENSOR_ACC | SENSOR_BARO | SENSOR_MAG)
 
-static const char * const sensorHardwareNames[4][11] = {
-    { "", "None", "MPU6050", "L3G4200D", "MPU3050", "L3GD20", "MPU6000", "MPU6500", "FAKE", NULL },
-    { "", "None", "ADXL345", "MPU6050", "MMA845x", "BMA280", "LSM303DLHC", "MPU6000", "MPU6500", "FAKE", NULL },
+static const char * const sensorHardwareNames[4][12] = {
+    { "", "None", "MPU6050", "L3G4200D", "MPU3050", "L3GD20", "MPU6000", "MPU6500", "MPU9250", "FAKE", NULL },
+    { "", "None", "ADXL345", "MPU6050", "MMA845x", "BMA280", "LSM303DLHC", "MPU6000", "MPU6500", "MPU9250", "FAKE", NULL },
     { "", "None", "BMP085", "MS5611", "BMP280", NULL },
-    { "", "None", "HMC5883", "AK8975", "AK8963", NULL }
+    { "", "None", "HMC5883", "AK8975", "AK8963", "MPU9250", NULL }
 };
 #endif
 
@@ -261,6 +264,7 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("flash_erase", "erase flash chip", NULL, cliFlashErase),
     CLI_COMMAND_DEF("flash_info", "show flash chip info", NULL, cliFlashInfo),
 #ifdef USE_FLASH_TOOLS
+    CLI_COMMAND_DEF("flash_fill", NULL, "<length> <address>", cliFlashFill),
     CLI_COMMAND_DEF("flash_read", NULL, "<length> <address>", cliFlashRead),
     CLI_COMMAND_DEF("flash_write", NULL, "<address> <message>", cliFlashWrite),
 #endif
@@ -384,6 +388,18 @@ static const char * const lookupTableSerialRX[] = {
     "JETIEXBUS"
 };
 
+static const char * const lookupTableRFLoopCtrl[] = {
+    "H1",
+    "H2",
+    "H4",
+    "H8",
+	"L1",
+	"M1",
+	"M2",
+	"M4",
+	"M8"
+};
+
 static const char * const lookupTableGyroLpf[] = {
     "OFF",
     "188HZ",
@@ -458,7 +474,7 @@ typedef enum {
     TABLE_GIMBAL_MODE,
     TABLE_PID_CONTROLLER,
     TABLE_SERIAL_RX,
-    TABLE_GYRO_LPF,
+	TABLE_RF_LOOP_CTRL,
     TABLE_ACC_HARDWARE,
     TABLE_BARO_HARDWARE,
     TABLE_MAG_HARDWARE,
@@ -481,6 +497,7 @@ static const lookupTableEntry_t lookupTables[] = {
     { lookupTableGimbalMode, sizeof(lookupTableGimbalMode) / sizeof(char *) },
     { lookupTablePidController, sizeof(lookupTablePidController) / sizeof(char *) },
     { lookupTableSerialRX, sizeof(lookupTableSerialRX) / sizeof(char *) },
+    { lookupTableRFLoopCtrl, sizeof(lookupTableRFLoopCtrl) / sizeof(char *) },
     { lookupTableGyroLpf, sizeof(lookupTableGyroLpf) / sizeof(char *) },
     { lookupTableAccHardware, sizeof(lookupTableAccHardware) / sizeof(char *) },
     { lookupTableBaroHardware, sizeof(lookupTableBaroHardware) / sizeof(char *) },
@@ -562,6 +579,7 @@ const clivalue_t valueTable[] = {
     { "3d_neutral",                 VAR_UINT16 | MASTER_VALUE,  &masterConfig.flight3DConfig.neutral3d, .config.minmax = { PWM_RANGE_ZERO,  PWM_RANGE_MAX } },
     { "3d_deadband_throttle",       VAR_UINT16 | MASTER_VALUE,  &masterConfig.flight3DConfig.deadband3d_throttle, .config.minmax = { PWM_RANGE_ZERO,  PWM_RANGE_MAX } },
 
+    { "force_motor_pwm_rate",       VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.force_motor_pwm_rate, .config.lookup = { TABLE_OFF_ON } },
     { "use_oneshot42",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.use_oneshot42, .config.lookup = { TABLE_OFF_ON } },
     { "use_multishot",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.use_multiShot, .config.lookup = { TABLE_OFF_ON } },
 #ifdef CC3D
@@ -647,7 +665,7 @@ const clivalue_t valueTable[] = {
 
     { "max_angle_inclination",      VAR_UINT16 | MASTER_VALUE,  &masterConfig.max_angle_inclination, .config.minmax = { 100,  900 } },
 
-    { "gyro_lpf",                   VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.gyro_lpf, .config.lookup = { TABLE_GYRO_LPF } },
+    { "rf_loop_ctrl",               VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.rf_loop_ctrl, .config.lookup = { TABLE_RF_LOOP_CTRL } },
     { "gyro_sync_denom",            VAR_UINT8  | MASTER_VALUE,  &masterConfig.gyro_sync_denom, .config.minmax = { 1,  8 } },
     { "gyro_soft_lpf",              VAR_FLOAT  | MASTER_VALUE,  &masterConfig.gyro_soft_lpf_hz, .config.minmax = { 0,  500 } },
     { "moron_threshold",            VAR_UINT8  | MASTER_VALUE,  &masterConfig.gyroConfig.gyroMovementCalibrationThreshold, .config.minmax = { 0,  128 } },
@@ -695,6 +713,7 @@ const clivalue_t valueTable[] = {
 
     { "rx_min_usec",                VAR_UINT16 | MASTER_VALUE,  &masterConfig.rxConfig.rx_min_usec, .config.minmax = { PWM_PULSE_MIN,  PWM_PULSE_MAX } },
     { "rx_max_usec",                VAR_UINT16 | MASTER_VALUE,  &masterConfig.rxConfig.rx_max_usec, .config.minmax = { PWM_PULSE_MIN,  PWM_PULSE_MAX } },
+    { "max_aux_channels",            VAR_UINT8  | MASTER_VALUE,  &masterConfig.rxConfig.max_aux_channels, .config.minmax = { 0, 99 } },
 
 #ifdef USE_SERVOS
     { "gimbal_mode",                VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, &masterConfig.gimbalConfig.mode, .config.lookup = { TABLE_GIMBAL_MODE } },
@@ -708,14 +727,18 @@ const clivalue_t valueTable[] = {
     { "acc_trim_pitch",             VAR_INT16  | MASTER_VALUE, &masterConfig.accelerometerTrims.values.pitch, .config.minmax = { -300,  300 } },
     { "acc_trim_roll",              VAR_INT16  | MASTER_VALUE, &masterConfig.accelerometerTrims.values.roll, .config.minmax = { -300,  300 } },
 
-    { "baro_tab_size",              VAR_UINT8  | MASTER_VALUE, &masterConfig.barometerConfig.baro_sample_count, .config.minmax = { 0,  BARO_SAMPLE_COUNT_MAX } },
+#ifdef BARO
+    { "baro_tab_size",              VAR_UINT8  | PROFILE_VALUE, &masterConfig.barometerConfig.baro_sample_count, .config.minmax = { 0,  BARO_SAMPLE_COUNT_MAX } },
     { "baro_noise_lpf",             VAR_FLOAT  | MASTER_VALUE, &masterConfig.barometerConfig.baro_noise_lpf, .config.minmax = { 0 , 1 } },
     { "baro_cf_vel",                VAR_FLOAT  | MASTER_VALUE, &masterConfig.barometerConfig.baro_cf_vel, .config.minmax = { 0 , 1 } },
     { "baro_cf_alt",                VAR_FLOAT  | MASTER_VALUE, &masterConfig.barometerConfig.baro_cf_alt, .config.minmax = { 0 , 1 } },
     { "baro_hardware",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.baro_hardware, .config.lookup = { TABLE_BARO_HARDWARE } },
+#endif
 
-    { "mag_hardware",               VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.mag_hardware, .config.lookup = { TABLE_MAG_HARDWARE } },
+#ifdef MAG
     { "mag_declination",            VAR_INT16  | MASTER_VALUE, &masterConfig.mag_declination, .config.minmax = { -18000,  18000 } },
+#endif
+
     { "pid_delta_method",           VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, &masterConfig.profile[0].pidProfile.deltaMethod, .config.lookup = { TABLE_DELTA_METHOD } },
     { "dterm_lpf_hz",               VAR_FLOAT  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.dterm_lpf_hz, .config.minmax = {0, 500 } },
     { "dterm_average_count",        VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.dterm_average_count, .config.minmax = {2, 12 } },
@@ -759,6 +782,10 @@ const clivalue_t valueTable[] = {
     { "i_vel",                      VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.I8[PIDVEL], .config.minmax = { 0,  200 } },
     { "d_vel",                      VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.D8[PIDVEL], .config.minmax = { 0,  200 } },
 
+//    { "gyro_lpf_hz",                VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.gyro_lpf_hz, .config.minmax = {0, 255 } },
+    { "dterm_lpf_hz",               VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.dterm_lpf_hz, .config.minmax = {0, 255 } },
+//    { "yaw_pterm_cut_hz",           VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].pidProfile.yaw_pterm_cut_hz, .config.minmax = {0, 255 } },
+
 #ifdef BLACKBOX
     { "blackbox_rate_num",          VAR_UINT8  | MASTER_VALUE,  &masterConfig.blackbox_rate_num, .config.minmax = { 1,  32 } },
     { "blackbox_rate_denom",        VAR_UINT8  | MASTER_VALUE,  &masterConfig.blackbox_rate_denom, .config.minmax = { 1,  32 } },
@@ -781,7 +808,7 @@ typedef union {
 static void cliSetVar(const clivalue_t *var, const int_float_value_t value);
 static void cliPrintVar(const clivalue_t *var, uint32_t full);
 static void cliPrint(const char *str);
-static void cliPrintf(const char *fmt, ...);
+static void cliPrintf(const char *fmt, ...); 
 static void cliWrite(uint8_t ch);
 
 static void cliPrompt(void)
@@ -1709,6 +1736,26 @@ static void cliFlashErase(char *cmdline)
 
 #ifdef USE_FLASH_TOOLS
 
+static void cliFlashFill(char *cmdline)
+{
+	(void)(cmdline);
+	uint32_t i = 1;
+    uint32_t address = 1;
+    char *text = "Raceflight FTW!";
+    const flashGeometry_t *layout = flashfsGetGeometry();
+
+    while (i < (layout->totalSize / 1024)) {
+		i++;
+		flashfsSeekAbs(address * i * 1024);
+		flashfsWrite((uint8_t*)text, strlen(text), true);
+		flashfsFlushSync();
+
+    }
+
+    cliPrintf("Your Flash is now full of goodness.\r\n", strlen(text), address);
+
+}
+
 static void cliFlashWrite(char *cmdline)
 {
     uint32_t address = atoi(cmdline);
@@ -1777,9 +1824,13 @@ static void dumpValues(uint16_t valueSection)
             continue;
         }
 
-        cliPrintf("set %s = ", valueTable[i].name);
-        cliPrintVar(value, 0);
-        cliPrint("\r\n");
+        delayMicroseconds(1000);
+
+        if ( !strcmp( valueTable[i].name, "giant_green_catfish") == 0 ) {
+        	cliPrintf("set %s = ", valueTable[i].name);
+        	cliPrintVar(value, 0);
+        	cliPrint("\r\n");
+        }
     }
 }
 
@@ -1977,17 +2028,6 @@ static void cliDump(char *cmdline)
 
         dumpValues(PROFILE_RATE_VALUE);
     }
-    if (dumpMask & DUMP_RATES) {		
-        cliPrint("\r\n# dump rates\r\n");		
-
-        cliPrint("\r\n# rateprofile\r\n");		
-        cliRateProfile("");		
-
-        printSectionBreak();		
- 
-        dumpValues(PROFILE_RATE_VALUE);
- }
-    
 }
 
 void cliEnter(serialPort_t *serialPort)
@@ -2372,7 +2412,7 @@ static void cliRateProfile(char *cmdline) {
 }
 
 static void cliReboot(void) {
-    cliPrint("\r\nRebooting");
+    cliPrint("\r\nRebooting^");
     bufWriterFlush(cliWriter);
     waitForSerialPortToFinishTransmitting(cliPort);
     stopMotors();
@@ -2401,6 +2441,7 @@ static void cliDefaults(char *cmdline)
 
 static void cliPrint(const char *str)
 {
+    serialBeginWrite(cliPort);
     while (*str)
         bufWriterAppend(cliWriter, *str++);
 }
@@ -2527,6 +2568,9 @@ static void cliSet(char *cmdline)
             cliPrintf("%s = ", valueTable[i].name);
             cliPrintVar(val, len); // when len is 1 (when * is passed as argument), it will print min/max values as well, for gui
             cliPrint("\r\n");
+#ifdef STM32F4
+            delayMicroseconds(1000);
+#endif
         }
     } else if ((eqptr = strstr(cmdline, "=")) != NULL) {
         // has equals
@@ -2549,7 +2593,7 @@ static void cliSet(char *cmdline)
             if (strncasecmp(cmdline, valueTable[i].name, strlen(valueTable[i].name)) == 0 && variableNameLength == strlen(valueTable[i].name)) {
 
                 bool changeValue = false;
-                int_float_value_t tmp;
+                int_float_value_t tmp = { 0 };
                 switch (valueTable[i].type & VALUE_MODE_MASK) {
                     case MODE_DIRECT: {
                             int32_t value = 0;
@@ -2726,10 +2770,11 @@ static void cliTasks(char *cmdline)
 static void cliVersion(char *cmdline)
 {
     UNUSED(cmdline);
-
-    cliPrintf("# BetaFlight/%s %s %s / %s (%s)",
+    printf("# RaceFlight %s%s - %s /%s %s / %s (%s)",
+	FC_VERSION_STRING,
+	FC_VERSION_LETTER,
+	FC_VERSION_COMMENT,
         targetName,
-        FC_VERSION_STRING,
         buildDate,
         buildTime,
         shortGitRevision

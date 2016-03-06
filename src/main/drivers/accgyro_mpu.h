@@ -122,6 +122,8 @@ typedef struct mpuConfiguration_s {
     uint8_t gyroReadXRegister; // Y and Z must registers follow this, 2 words each
     mpuReadRegisterFunc read;
     mpuWriteRegisterFunc write;
+    mpuReadRegisterFunc slowread;
+    mpuWriteRegisterFunc verifywrite;
 } mpuConfiguration_t;
 
 extern mpuConfiguration_t mpuConfiguration;
@@ -132,6 +134,11 @@ enum gyro_fsr_e {
     INV_FSR_1000DPS,
     INV_FSR_2000DPS,
     NUM_GYRO_FSR
+};
+enum fchoice_b {
+	FCB_DISABLED = 0,
+    FCB_8800_32,
+	FCB_3600_32
 };
 enum clock_sel_e {
     INV_CLK_INTERNAL = 0,
@@ -152,7 +159,8 @@ typedef enum {
     MPU_60x0,
     MPU_60x0_SPI,
     MPU_65xx_I2C,
-    MPU_65xx_SPI
+    MPU_65xx_SPI,
+    MPU_9250_SPI
 } detectedMPUSensor_e;
 
 typedef enum {
@@ -170,6 +178,7 @@ extern mpuDetectionResult_t mpuDetectionResult;
 void configureMPUDataReadyInterruptHandling(void);
 void mpuIntExtiInit(void);
 bool mpuAccRead(int16_t *accData);
+bool mpuGyroReadCollect(void);
 bool mpuGyroRead(int16_t *gyroADC);
 mpuDetectionResult_t *detectMpu(const extiConfig_t *configToUse);
 void checkMPUDataReady(bool *mpuDataReadyPtr);

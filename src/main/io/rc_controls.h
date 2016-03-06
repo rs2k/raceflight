@@ -50,7 +50,11 @@ typedef enum {
     BOXFAILSAFE,
     BOXAIRMODE,
 	BOXACROPLUS,
-    CHECKBOX_ITEM_COUNT
+	BOXALWAYSSTABILIZED,
+	BOXTEST1,
+	BOXTEST2,
+	BOXTEST3,
+	CHECKBOX_ITEM_COUNT
 } boxId_e;
 
 extern uint32_t rcModeActivationMask;
@@ -143,6 +147,7 @@ typedef struct controlRateConfig_s {
     uint8_t dynThrPID;
     uint8_t rcYawExpo8;
     uint16_t tpa_breakpoint;                // Breakpoint where TPA is activated
+    uint8_t AcroPlusFactor;
 } controlRateConfig_t;
 
 extern int16_t rcCommand[4];

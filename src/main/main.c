@@ -52,6 +52,8 @@
 #include "drivers/flash_m25p16.h"
 #include "drivers/sonar_hcsr04.h"
 #include "drivers/gyro_sync.h"
+#include "drivers/exti.h"
+#include "drivers/io.h"
 #include "drivers/usb_io.h"
 #include "drivers/transponder_ir.h"
 #include "drivers/sdcard.h"
@@ -141,6 +143,14 @@ void SetSysClock(void);
 // from system_stm32f10x.c
 void SetSysClock(bool overclock);
 #endif
+#ifdef STM32F40_41xxx
+// from system_stm32f4xx.c
+void SetSysClock(void);
+#endif
+#ifdef STM32F411xE
+// from system_stm32f4xx.c
+void SetSysClock(void);
+#endif
 
 typedef enum {
     SYSTEM_STATE_INITIALISING   = 0,
@@ -180,6 +190,9 @@ void init(void)
     // Configure the Flash Latency cycles and enable prefetch buffer
     SetSysClock(masterConfig.emf_avoidance);
 #endif
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
+    SetSysClock();
+#endif
     //i2cSetOverclock(masterConfig.i2c_overclock);
 
     systemInit();
@@ -193,16 +206,11 @@ void init(void)
     // Latch active features to be used for feature() in the remainder of init().
     latchActiveFeatures();
 
-#ifdef ALIENFLIGHTF3
-    if (hardwareRevision == AFF3_REV_1) {
-        ledInit(false);
-    } else {
-        ledInit(true);
-    }
-#else
-    ledInit(false);
-#endif
-
+    // initialize IO (needed for all IO operations)
+    IOInitGlobal();
+	
+    ledInit();
+    
 #ifdef SPRACINGF3MINI
     gpio_config_t buttonAGpioConfig = {
         BUTTON_A_PIN,
@@ -237,7 +245,11 @@ void init(void)
         } while (bothButtonsHeld);
     }
 #endif
-
+   
+#ifdef USE_EXTI
+    EXTIInit();
+#endif
+    
 #ifdef SPEKTRUM_BIND
     if (feature(FEATURE_RX_SERIAL)) {
         switch (masterConfig.rxConfig.serialrx_provider) {
@@ -291,6 +303,12 @@ void init(void)
 #ifdef STM32F303xC
     pwm_params.useUART3 = doesConfigurationUsePort(SERIAL_PORT_USART3);
 #endif
+#if defined(USE_USART2) && defined(STM32F40_41xxx)
+    pwm_params.useUART2 = doesConfigurationUsePort(SERIAL_PORT_USART2);
+#endif
+#if defined(USE_USART6) && defined(STM32F40_41xxx)
+    pwm_params.useUART6 = doesConfigurationUsePort(SERIAL_PORT_USART6);
+#endif
     pwm_params.useVbat = feature(FEATURE_VBAT);
     pwm_params.useSoftSerial = feature(FEATURE_SOFTSERIAL);
     pwm_params.useParallelPWM = feature(FEATURE_RX_PARALLEL_PWM);
@@ -311,7 +329,9 @@ void init(void)
     pwm_params.servoPwmRate = masterConfig.servo_pwm_rate;
 #endif
 
-    pwm_params.useOneshot = feature(FEATURE_ONESHOT125);
+	pwm_params.useOneshot = feature(FEATURE_ONESHOT125);
+    pwm_params.useFixedPWM = masterConfig.force_motor_pwm_rate ? true : false;
+	pwm_params.usePwmRate = feature(FEATURE_USE_PWM_RATE);
     if (masterConfig.use_oneshot42) {
         pwm_params.useOneshot42 = masterConfig.use_oneshot42 ? true : false;
         masterConfig.use_multiShot = false;
@@ -320,78 +340,71 @@ void init(void)
     }
     pwm_params.motorPwmRate = masterConfig.motor_pwm_rate;
     pwm_params.idlePulse = masterConfig.escAndServoConfig.mincommand;
-    if (feature(FEATURE_3D))
+    if (feature(FEATURE_3D)) {
         pwm_params.idlePulse = masterConfig.flight3DConfig.neutral3d;
-    if (pwm_params.motorPwmRate > 500)
-        pwm_params.idlePulse = 0; // brushed motors
-#ifdef CC3D
-    pwm_params.useBuzzerP6 = masterConfig.use_buzzer_p6 ? true : false;
-#endif
-    pwmRxInit(masterConfig.inputFilteringMode);
+    } else {
+        if ((pwm_params.motorPwmRate > 500  && !masterConfig.force_motor_pwm_rate) && !feature(FEATURE_USE_PWM_RATE)) {
+            pwm_params.idlePulse = 0; // brushed motors
+        } else {
+        	if (feature(FEATURE_USE_PWM_RATE)) {
+        		pwm_params.idlePulse = (uint16_t)((float)(masterConfig.escAndServoConfig.mincommand-1000) / 4.1666f)+60;
+        	} else {
+        		pwm_params.idlePulse = (uint16_t)((float)masterConfig.escAndServoConfig.mincommand*1.5f);
+        	}
+        }
+    }    
 
     pwmOutputConfiguration_t *pwmOutputConfiguration = pwmInit(&pwm_params);
 
     mixerUsePWMOutputConfiguration(pwmOutputConfiguration);
 
-    if (!feature(FEATURE_ONESHOT125))
+    if (!feature(FEATURE_ONESHOT125) && !feature(FEATURE_MULTISHOT))
         motorControlEnable = true;
 
     systemState |= SYSTEM_STATE_MOTORS_READY;
 
 #ifdef BEEPER
     beeperConfig_t beeperConfig = {
-        .gpioPeripheral = BEEP_PERIPHERAL,
-        .gpioPin = BEEP_PIN,
-        .gpioPort = BEEP_GPIO,
+        .ioTag = IO_TAG(BEEPER),
 #ifdef BEEPER_INVERTED
-        .gpioMode = Mode_Out_PP,
+        .isOD = false,
         .isInverted = true
 #else
-        .gpioMode = Mode_Out_OD,
+        .isOD = true,
         .isInverted = false
 #endif
     };
 #ifdef AFROMINI
-    beeperConfig.gpioMode = Mode_Out_PP;   // AFROMINI override
+    beeperConfig.isOD = false;   // AFROMINI override
     beeperConfig.isInverted = true;
 #endif
 #ifdef NAZE
-    if (hardwareRevision >= NAZE32_REV5) {
+    if (hardwareRevision < NAZE32_REV5) {
         // naze rev4 and below used opendrain to PNP for buzzer. Rev5 and above use PP to NPN.
-        beeperConfig.gpioMode = Mode_Out_PP;
+        beeperConfig.isOD = true;
         beeperConfig.isInverted = true;
     }
 #endif
 #ifdef CC3D
     if (masterConfig.use_buzzer_p6 == 1)
-        beeperConfig.gpioPin = Pin_2;
+        beeperConfig.ioTag = IO_TAG(PA2);
 #endif
 
     beeperInit(&beeperConfig);
 #endif
 
 #ifdef INVERTER
-    initInverter();
+    initInverter(feature(FEATURE_SBUS_INVERTER));
 #endif
 
 #ifdef USE_BST
     bstInit(BST_DEVICE);
 #endif
 
-
-
 #ifdef USE_SPI
-    spiInit(SPI1);
-    spiInit(SPI2);
-#ifdef STM32F303xC
-#ifdef ALIENFLIGHTF3
-    if (hardwareRevision == AFF3_REV_2) {
-        spiInit(SPI3);
-    }
-#else
-    spiInit(SPI3);
-#endif
-#endif
+    spiInit(SPIDEV_1);
+    spiInit(SPIDEV_2);
+    spiInit(SPIDEV_3);
 #endif
 
 #ifdef USE_HARDWARE_REVISION_DETECTION
@@ -418,7 +431,6 @@ void init(void)
     }
 #endif
 
-
 #ifdef USE_I2C
 #if defined(NAZE)
     if (hardwareRevision != NAZE32_SP) {
@@ -434,6 +446,11 @@ void init(void)
     }
 #else
     i2cInit(I2C_DEVICE);
+#if defined(I2C_DEVICE_EXT)
+    if (!doesConfigurationUsePort(SERIAL_PORT_USART3)) {
+        i2cInit(I2C_DEVICE_EXT);
+    }
+#endif
 #endif
 #endif
 
@@ -454,7 +471,6 @@ void init(void)
 
     adcInit(&adc_params);
 #endif
-
 
     initBoardAlignment(&masterConfig.boardAlignment);
 
@@ -499,6 +515,7 @@ void init(void)
 
     failsafeInit(&masterConfig.rxConfig, masterConfig.flight3DConfig.deadband3d_throttle);
 
+    masterConfig.rxConfig.rxSerialInverted = feature(FEATURE_SBUS_INVERTER);
     rxInit(&masterConfig.rxConfig, masterConfig.modeActivationConditions);
 
 #ifdef GPS
@@ -661,6 +678,7 @@ void processLoopback(void) {
 #endif
 
 int main(void) {
+  
     init();
 
     /* Setup scheduler */
@@ -669,8 +687,12 @@ int main(void) {
     setTaskEnabled(TASK_GYROPID, true);
 
     if(sensors(SENSOR_ACC)) {
+    	uint32_t accTargetLooptime = 0;
         setTaskEnabled(TASK_ACCEL, true);
         switch(targetLooptime) {  // Switch statement kept in place to change acc rates in the future
+        	case(62):
+				accTargetLooptime = 10000;
+                break;
              case(500):
              case(375):
              case(250):
@@ -735,13 +757,13 @@ int main(void) {
     }
 }
 
-void HardFault_Handler(void)
-{
+void HardFault_Handler(void) {
     // fall out of the sky
     uint8_t requiredStateForMotors = SYSTEM_STATE_CONFIG_LOADED | SYSTEM_STATE_MOTORS_READY;
     if ((systemState & requiredStateForMotors) == requiredStateForMotors) {
-        stopMotors();
+       stopMotorsNoDelay();
     }
+    
 #ifdef TRANSPONDER
     // prevent IR LEDs from burning out.
     uint8_t requiredStateForTransponder = SYSTEM_STATE_CONFIG_LOADED | SYSTEM_STATE_TRANSPONDER_ENABLED;
@@ -749,6 +771,14 @@ void HardFault_Handler(void)
         transponderIrDisable();
     }
 #endif
+    
+    LED1_OFF;
+    LED0_OFF;
 
-    while (1);
+    while(1) {
+#ifdef LED2
+        delay(5);
+        LED2_TOGGLE;
+#endif
+    }
 }

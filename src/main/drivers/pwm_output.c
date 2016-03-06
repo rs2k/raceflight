@@ -127,7 +127,7 @@ static pwmOutputPort_t *pwmOutConfig(const timerHardware_t *timerHardware, uint8
 
 static void pwmWriteBrushed(uint8_t index, uint16_t value)
 {
-    *motors[index]->ccr = (value - 1000) * motors[index]->period / 1000;
+    *motors[index]->ccr = (uint16_t)((float)((value - 1000) * motors[index]->period / 1000)*1.5f); //Expecting 8MHz timer, multiply by 1.5 to scale to 12MHz timer
 }
 
 static void pwmWriteStandard(uint8_t index, uint16_t value)
@@ -182,12 +182,12 @@ void pwmCompleteOneshotMotorUpdate(uint8_t motorCount)
     uint8_t index;
     TIM_TypeDef *lastTimerPtr = NULL;
 
-    for(index = 0; index < motorCount; index++){
-
+    for(index = 0; index < motorCount; index++)
+    {
         // Force the timer to overflow if it's the first motor to output, or if we change timers
-        if(motors[index]->tim != lastTimerPtr){
+        if(motors[index]->tim != lastTimerPtr)
+        {
             lastTimerPtr = motors[index]->tim;
-
             timerForceOverflow(motors[index]->tim);
         }
 
@@ -216,6 +216,17 @@ void pwmBrushlessMotorConfig(const timerHardware_t *timerHardware, uint8_t motor
     motors[motorIndex]->pwmWritePtr = pwmWriteStandard;
 }
 
+void pwmOneshotPwmRateMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, uint16_t motorPwmRate, uint16_t idlePulse, uint8_t useOneshot42)
+{
+    uint32_t hz = ONESHOT_TIMER_MHZ * 1000000;
+    motors[motorIndex] = pwmOutConfig(timerHardware, ONESHOT_TIMER_MHZ, hz / motorPwmRate, idlePulse);
+    if (useOneshot42) {
+        motors[motorIndex]->pwmWritePtr = pwmWriteOneshot42;
+    } else {
+        motors[motorIndex]->pwmWritePtr = pwmWriteOneshot125;
+    }
+}
+
 void pwmOneshotMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, uint8_t useOneshot42)
 {
     motors[motorIndex] = pwmOutConfig(timerHardware, ONESHOT_TIMER_MHZ, 0xFFFF, 0);
@@ -224,6 +235,14 @@ void pwmOneshotMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIn
     } else {
         motors[motorIndex]->pwmWritePtr = pwmWriteOneshot125;
     }
+
+}
+
+void pwmMultiShotPwmRateMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, uint16_t motorPwmRate, uint16_t idlePulse)
+{
+    uint32_t hz = MULTISHOT_TIMER_MHZ * 1000000;
+    motors[motorIndex] = pwmOutConfig(timerHardware, MULTISHOT_TIMER_MHZ, hz / motorPwmRate, idlePulse);
+    motors[motorIndex]->pwmWritePtr = pwmWriteMultiShot;
 }
 
 void pwmMultiShotMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex)

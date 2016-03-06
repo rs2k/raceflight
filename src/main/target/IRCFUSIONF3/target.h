@@ -19,6 +19,9 @@
 
 #define TARGET_BOARD_IDENTIFIER "IFF3"
 
+#define LED0 PB3
+#define BEEPER PC15
+
 #define LED0_GPIO   GPIOB
 #define LED0_PIN    Pin_3
 #define LED0_PERIPHERAL RCC_AHBPeriph_GPIOB
@@ -34,6 +37,7 @@
 
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
+#define USE_EXTI
 
 #define USE_MAG_DATA_READY_SIGNAL
 #define ENSURE_MAG_DATA_READY_IS_HIGH
@@ -60,8 +64,6 @@
 #define USE_FLASH_M25P16
 
 #define SONAR
-#define BEEPER
-#define LED0
 
 #define USE_USART1
 #define USE_USART2
@@ -108,8 +110,13 @@
 #define USE_SPI
 #define USE_SPI_DEVICE_2 // PB12,13,14,15 on AF5
 
+#define SPI2_NSS_PIN            PB12
+#define SPI2_SCK_PIN            PB13
+#define SPI2_MISO_PIN           PB14
+#define SPI2_MOSI_PIN           PB15
+
 #define M25P16_CS_GPIO          GPIOB
-#define M25P16_CS_PIN           GPIO_Pin_12
+#define M25P16_CS_PIN           PB12
 #define M25P16_SPI_INSTANCE     SPI2
 
 #define USE_ADC
@@ -120,16 +127,13 @@
 #define ADC_DMA_CHANNEL             DMA2_Channel1
 #define ADC_AHB_PERIPHERAL          RCC_AHBPeriph_DMA2
 
-#define VBAT_ADC_GPIO               GPIOA
-#define VBAT_ADC_GPIO_PIN           GPIO_Pin_4
+#define VBAT_ADC_PIN                PA4
 #define VBAT_ADC_CHANNEL            ADC_Channel_1
 
-#define CURRENT_METER_ADC_GPIO      GPIOA
-#define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_5
+#define CURRENT_METER_ADC_PIN       PA5
 #define CURRENT_METER_ADC_CHANNEL   ADC_Channel_2
 
-#define RSSI_ADC_GPIO               GPIOB
-#define RSSI_ADC_GPIO_PIN           GPIO_Pin_2
+#define RSSI_ADC_PIN                PB2
 #define RSSI_ADC_CHANNEL            ADC_Channel_12
 
 #define LED_STRIP
@@ -145,13 +149,11 @@
 #define WS2811_TIMER_APB2_PERIPHERAL    RCC_APB2Periph_TIM1
 #define WS2811_DMA_CHANNEL              DMA1_Channel2
 #define WS2811_IRQ                      DMA1_Channel2_IRQn
-#define WS2811_DMA_TC_FLAG              DMA1_FLAG_TC2
-#define WS2811_DMA_HANDLER_IDENTIFER    DMA1_CH2_HANDLER
 
 #define BLACKBOX
 #define DISPLAY
 #define GPS
-//#define GTUNE
+#define GTUNE
 #define SERIAL_RX
 #define TELEMETRY
 #define USE_SERVOS
@@ -167,3 +169,8 @@
 #define S1W_TX_PIN          GPIO_Pin_9
 #define S1W_RX_GPIO         GPIOA
 #define S1W_RX_PIN          GPIO_Pin_10
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTF 0xffff

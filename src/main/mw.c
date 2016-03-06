@@ -18,6 +18,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <math.h>
 
 #include "platform.h"
@@ -102,8 +103,9 @@ enum {
 #define GYRO_WATCHDOG_DELAY 80 //  delay for gyro sync
 
 uint16_t cycleTime = 0;         // this is the number in micro second to achieve a full loop, it can differ a little and is taken into account in the PID loop
-
 float dT;
+
+int32_t reading_flash_timer;
 
 int16_t magHold;
 int16_t headFreeModeHold;
@@ -171,36 +173,38 @@ bool isCalibrating()
 }
 
 void filterRc(void){
-    static int16_t lastCommand[4] = { 0, 0, 0, 0 };
-    static int16_t deltaRC[4] = { 0, 0, 0, 0 };
-    static int16_t factor, rcInterpolationFactor;
-    uint16_t rxRefreshRate;
+	static int16_t lastCommand[4] = { 0, 0, 0, 0 };
+	static int16_t deltaRC[4] = { 0, 0, 0, 0 };
+	static int16_t factor, rcInterpolationFactor;
+	uint16_t rxRefreshRate;
 
-    // Set RC refresh rate for sampling and channels to filter
-    initRxRefreshRate(&rxRefreshRate);
+	    // Set RC refresh rate for sampling and channels to filter
+	initRxRefreshRate(&rxRefreshRate);
 
-    rcInterpolationFactor = rxRefreshRate / targetPidLooptime + 1;
+	rcInterpolationFactor = rxRefreshRate / targetPidLooptime + 1;
 
-    if (isRXDataNew) {
-        for (int channel=0; channel < 4; channel++) {
-            deltaRC[channel] = rcCommand[channel] -  (lastCommand[channel] - deltaRC[channel] * factor / rcInterpolationFactor);
-            lastCommand[channel] = rcCommand[channel];
-        }
+	if (isRXDataNew) {
+		for (int channel = 0; channel < 4; channel++) {
+			deltaRC[channel] = rcCommand[channel] -  (lastCommand[channel] - deltaRC[channel] * factor / rcInterpolationFactor);
+			lastCommand[channel] = rcCommand[channel];
+		}
 
-        isRXDataNew = false;
-        factor = rcInterpolationFactor - 1;
-    } else {
-        factor--;
-    }
+		isRXDataNew = false;
+		factor = rcInterpolationFactor - 1;
+	}
+	else {
+		factor--;
+	}
 
-    // Interpolate steps of rcCommand
-    if (factor > 0) {
-        for (int channel=0; channel < 4; channel++) {
-            rcCommand[channel] = lastCommand[channel] - deltaRC[channel] * factor/rcInterpolationFactor;
-         }
-    } else {
-        factor = 0;
-    }
+	    // Interpolate steps of rcCommand
+	if (factor > 0) {
+		for (int channel = 0; channel < 4; channel++) {
+			rcCommand[channel] = lastCommand[channel] - deltaRC[channel] * factor / rcInterpolationFactor;
+		}
+	}
+	else {
+		factor = 0;
+	}
 }
 
 void scaleRcCommandToFpvCamAngle(void) {
@@ -213,6 +217,7 @@ void scaleRcCommandToFpvCamAngle(void) {
 void annexCode(void)
 {
     int32_t tmp, tmp2;
+    float tmp3, tmp4;
     int32_t axis, prop1 = 0, prop2;
 
     // PITCH & ROLL only dynamic PID adjustment,  depending on throttle value
@@ -237,8 +242,15 @@ void annexCode(void)
                 }
             }
 
-            tmp2 = tmp / 100;
-            rcCommand[axis] = lookupPitchRollRC[tmp2] + (tmp - tmp2 * 100) * (lookupPitchRollRC[tmp2 + 1] - lookupPitchRollRC[tmp2]) / 100;
+
+            if (feature(FEATURE_TX_STYLE_EXPO)) {
+            	tmp3 = (float)tmp / 500.0f; //0-1
+            	tmp4 = (float)currentControlRateProfile->rcExpo8 / 100.0f;
+                rcCommand[axis] = tmp*( tmp4*(tmp3*tmp3*tmp3) + tmp3*(1-tmp4) );
+            } else {
+            	tmp2 = tmp / 100;
+                rcCommand[axis] = lookupPitchRollRC[tmp2] + (tmp - tmp2 * 100) * (lookupPitchRollRC[tmp2 + 1] - lookupPitchRollRC[tmp2]) / 100;
+            }
             prop1 = 100 - (uint16_t)currentControlRateProfile->rates[axis] * tmp / 500;
             prop1 = (uint16_t)prop1 * prop2 / 100;
         } else if (axis == YAW) {
@@ -249,8 +261,14 @@ void annexCode(void)
                     tmp = 0;
                 }
             }
-            tmp2 = tmp / 100;
-            rcCommand[axis] = (lookupYawRC[tmp2] + (tmp - tmp2 * 100) * (lookupYawRC[tmp2 + 1] - lookupYawRC[tmp2]) / 100) * -masterConfig.yaw_control_direction;
+            if (feature(FEATURE_TX_STYLE_EXPO)) {
+            	tmp3 = (float)tmp / 500.0f; //0-1
+            	tmp4 = (float)currentControlRateProfile->rcYawExpo8 / 100.0f;
+                rcCommand[axis] = tmp*( tmp4*(tmp3*tmp3*tmp3) + tmp3*(1-tmp4) ) * -masterConfig.yaw_control_direction;
+            } else {
+                tmp2 = tmp / 100;
+                rcCommand[axis] = (lookupYawRC[tmp2] + (tmp - tmp2 * 100) * (lookupYawRC[tmp2 + 1] - lookupYawRC[tmp2]) / 100) * -masterConfig.yaw_control_direction;
+            }
             prop1 = 100 - (uint16_t)currentControlRateProfile->rates[axis] * ABS(tmp) / 500;
         }
         // FIXME axis indexes into pids.  use something like lookupPidIndex(rc_alias_e alias) to reduce coupling.
@@ -636,19 +654,19 @@ void processRx(void)
 static bool haveProcessedAnnexCodeOnce = false;
 #endif
 
+#define debugESCwriteFrequency
+
 void taskMainPidLoop(void)
 {
-
     // PID - note this is function pointer set by setPIDController()
-    pid_controller(
-        &currentProfile->pidProfile,
-        currentControlRateProfile,
-        masterConfig.max_angle_inclination,
-        &masterConfig.accelerometerTrims,
-        &masterConfig.rxConfig
-    );
+	pid_controller(
+	    &currentProfile->pidProfile,
+		currentControlRateProfile,
+		masterConfig.max_angle_inclination,
+		&masterConfig.accelerometerTrims,
+		&masterConfig.rxConfig);
 
-    mixTable();
+	mixTable();
 }
 
 void subTasksMainPidLoop(void) {
@@ -739,6 +757,10 @@ void taskMotorUpdate(void) {
     if (motorControlEnable) {
         writeMotors();
     }
+#ifdef USE_SDCARD
+        afatfs_poll();
+#endif
+
 }
 
 // Check for oneshot125 protection. With fast looptimes oneshot125 pulse duration gets more near the pid looptime
@@ -761,12 +783,12 @@ void taskMainPidLoopCheck(void) {
 
     cycleTime = micros() - previousTime;
     previousTime = micros();
-
+    
     if (debugMode == DEBUG_CYCLETIME) {
         debug[0] = cycleTime;
         debug[1] = averageSystemLoadPercent;
     }
-
+    
     while (true) {
         if (gyroSyncCheckUpdate() || ((currentDeltaTime + (micros() - previousTime)) >= (targetLooptime + GYRO_WATCHDOG_DELAY))) {
             static uint8_t pidUpdateCountdown;

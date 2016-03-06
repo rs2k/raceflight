@@ -31,6 +31,7 @@
 #include "gpio.h"
 #include "exti.h"
 #include "bus_i2c.h"
+#include "bus_spi.h"
 
 #include "sensors/boardalignment.h"
 #include "sensors/sensors.h"
@@ -40,10 +41,13 @@
 
 #include "accgyro.h"
 #include "accgyro_mpu.h"
-#include "accgyro_spi_mpu6500.h"
+#include "accgyro_spi_mpu9250.h"
 #include "compass_ak8963.h"
 
 // This sensor is available in MPU-9250.
+#ifndef AK8963_I2C_INSTANCE
+#define AK8963_I2C_INSTANCE I2C_DEVICE
+#endif
 
 // AK8963, mag sensor address
 #define AK8963_MAG_I2C_ADDRESS          0x0C
@@ -94,23 +98,33 @@ static float magGain[3] = { 1.0f, 1.0f, 1.0f };
 #ifdef USE_SPI
 bool ak8963SPIRead(uint8_t addr_, uint8_t reg_, uint8_t len_, uint8_t *buf)
 {
-    mpu6500WriteRegister(MPU_RA_I2C_SLV0_ADDR, addr_ | READ_FLAG);   // set I2C slave address for read
-    mpu6500WriteRegister(MPU_RA_I2C_SLV0_REG, reg_);                 // set I2C slave register
-    mpu6500WriteRegister(MPU_RA_I2C_SLV0_CTRL, len_ | 0x80);         // read number of bytes
+    verifympu9250WriteRegister(MPU_RA_I2C_SLV0_ADDR, addr_ | READ_FLAG);   // set I2C slave address for read
+    verifympu9250WriteRegister(MPU_RA_I2C_SLV0_REG, reg_);                 // set I2C slave register
+    verifympu9250WriteRegister(MPU_RA_I2C_SLV0_CTRL, len_ | 0x80);         // read number of bytes
     delay(8);
     __disable_irq();
-    mpu6500ReadRegister(MPU_RA_EXT_SENS_DATA_00, len_, buf);         // read I2C
+    mpu9250ReadRegister(MPU_RA_EXT_SENS_DATA_00, len_, buf);               // read I2C
     __enable_irq();
     return true;
 }
 
 bool ak8963SPIWrite(uint8_t addr_, uint8_t reg_, uint8_t data)
 {
-    mpu6500WriteRegister(MPU_RA_I2C_SLV0_ADDR, addr_);               // set I2C slave address for write
-    mpu6500WriteRegister(MPU_RA_I2C_SLV0_REG, reg_);                 // set I2C slave register
-    mpu6500WriteRegister(MPU_RA_I2C_SLV0_DO, data);                  // set I2C salve value
-    mpu6500WriteRegister(MPU_RA_I2C_SLV0_CTRL, 0x81);                // write 1 byte
+    verifympu9250WriteRegister(MPU_RA_I2C_SLV0_ADDR, addr_);               // set I2C slave address for write
+    verifympu9250WriteRegister(MPU_RA_I2C_SLV0_REG, reg_);                 // set I2C slave register
+    verifympu9250WriteRegister(MPU_RA_I2C_SLV0_DO, data);                  // set I2C salve value
+    verifympu9250WriteRegister(MPU_RA_I2C_SLV0_CTRL, 0x81);                // write 1 byte
     return true;
+}
+#endif
+
+#ifdef USE_I2C
+bool c_i2cWrite(uint8_t addr_, uint8_t reg_, uint8_t data) {
+    return i2cWrite(AK8963_I2C_INSTANCE, addr_, reg_, data);
+}
+
+bool c_i2cRead(uint8_t addr_, uint8_t reg_, uint8_t len, uint8_t* buf) {
+    return i2cRead(AK8963_I2C_INSTANCE, addr_, reg_, len, buf);
 }
 #endif
 
@@ -121,11 +135,11 @@ bool ak8963Detect(mag_t *mag)
 
 #ifdef USE_I2C
     // check for AK8963 on I2C bus
-    ack = i2cRead(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_WHO_AM_I, 1, &sig);
+    ack = c_i2cRead(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_WHO_AM_I, 1, &sig);
     if (ack && sig == AK8963_Device_ID) // 0x48 / 01001000 / 'H'
     {
-        ak8963config.read = i2cRead;
-        ak8963config.write = i2cWrite;
+        ak8963config.read = c_i2cRead;
+        ak8963config.write = c_i2cWrite;
         mag->init = ak8963Init;
         mag->read = ak8963Read;
 
@@ -136,13 +150,13 @@ bool ak8963Detect(mag_t *mag)
 #ifdef USE_SPI
     // check for AK8963 on I2C master via SPI bus (as part of MPU9250)
 
-    ack = mpu6500WriteRegister(MPU_RA_INT_PIN_CFG, 0x10);            // INT_ANYRD_2CLEAR
+    ack = verifympu9250WriteRegister(MPU_RA_INT_PIN_CFG, 0x10);               // INT_ANYRD_2CLEAR
     delay(10);
 
-    ack = mpu6500WriteRegister(MPU_RA_I2C_MST_CTRL, 0x0D);           // I2C multi-master / 400kHz
+    ack = verifympu9250WriteRegister(MPU_RA_I2C_MST_CTRL, 0x0D);              // I2C multi-master / 400kHz
     delay(10);
 
-    ack = mpu6500WriteRegister(MPU_RA_USER_CTRL, 0x30);              // I2C master mode, SPI mode only
+    ack = verifympu9250WriteRegister(MPU_RA_USER_CTRL, 0x30);                 // I2C master mode, SPI mode only
     delay(10);
 
     ack = ak8963SPIRead(AK8963_MAG_I2C_ADDRESS, AK8963_MAG_REG_WHO_AM_I, 1, &sig);

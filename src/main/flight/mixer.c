@@ -633,17 +633,18 @@ void writeServos(void)
 }
 #endif
 
-void writeMotors(void)
+void writeMotors()
 {
     uint8_t i;
 
     for (i = 0; i < motorCount; i++)
         pwmWriteMotor(i, motor[i]);
 
-
-    if (feature(FEATURE_ONESHOT125)) {
-        pwmCompleteOneshotMotorUpdate(motorCount);
-    }
+	if (feature(FEATURE_MULTISHOT) || feature(FEATURE_ONESHOT125)) {
+		if (!feature(FEATURE_USE_PWM_RATE)) {
+			pwmCompleteOneshotMotorUpdate(motorCount);
+		}
+	}
 }
 
 void writeAllMotors(int16_t mc)
@@ -661,6 +662,11 @@ void stopMotors(void)
     writeAllMotors(feature(FEATURE_3D) ? flight3DConfig->neutral3d : escAndServoConfig->mincommand);
 
     delay(50); // give the timers and ESCs a chance to react.
+}
+
+void stopMotorsNoDelay(void)
+{
+    writeAllMotors(feature(FEATURE_3D) ? flight3DConfig->neutral3d : escAndServoConfig->mincommand);
 }
 
 void StopPwmAllMotors()
@@ -780,7 +786,7 @@ void acroPlusApply(void) {
 void mixTable(void)
 {
     uint32_t i;
-    fix12_t vbatCompensationFactor;
+    fix12_t vbatCompensationFactor = 0;
     static fix12_t mixReduction;
 
     bool isFailsafeActive = failsafeIsActive(); // TODO - Find out if failsafe checks are really needed here in mixer code

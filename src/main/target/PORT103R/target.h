@@ -19,6 +19,11 @@
 
 #define TARGET_BOARD_IDENTIFIER "103R"
 
+#define LED0    PB3
+#define LED1    PB4
+#define LED2    PB5
+#define BEEPER  PA12
+
 #define LED0_GPIO   GPIOB
 #define LED0_PIN    Pin_3 // PB3 (LED)
 #define LED0_PERIPHERAL RCC_APB2Periph_GPIOB
@@ -36,11 +41,13 @@
 #define BEEP_PERIPHERAL RCC_APB2Periph_GPIOA
 
 #define BARO_XCLR_GPIO   GPIOC
-#define BARO_XCLR_PIN    Pin_13
+#define BARO_XCLR_PIN    PC13
 #define BARO_EOC_GPIO    GPIOC
-#define BARO_EOC_PIN     Pin_14
+#define BARO_EOC_PIN     PC14
 #define BARO_APB2_PERIPHERALS RCC_APB2Periph_GPIOC
+#define USE_EXTI
 
+#define INVERTER PB2
 #define INVERTER_PIN Pin_2 // PB2 (BOOT1) abused as inverter select GPIO
 #define INVERTER_GPIO GPIOB
 #define INVERTER_PERIPHERAL RCC_APB2Periph_GPIOB
@@ -51,7 +58,7 @@
 
 #define PORT103R_SPI_INSTANCE     SPI2
 #define PORT103R_SPI_CS_GPIO      GPIOB
-#define PORT103R_SPI_CS_PIN       GPIO_Pin_12
+#define PORT103R_SPI_CS_PIN       PB12
 
 // We either have this 16mbit flash chip on SPI or the MPU6500 acc/gyro depending on board revision:
 #define M25P16_CS_GPIO        PORT103R_SPI_CS_GPIO
@@ -99,11 +106,6 @@
 #define USE_FLASH_M25P16
 
 #define SONAR
-#define BEEPER
-#define LED0
-#define LED1
-#define LED2
-#define INVERTER
 #define DISPLAY
 
 #define USE_USART1
@@ -144,8 +146,6 @@
 #define EXTERNAL1_ADC_GPIO_PIN      GPIO_Pin_5
 #define EXTERNAL1_ADC_CHANNEL       ADC_Channel_5
 
-#define LED0
-
 #define LED_STRIP
 #define LED_STRIP_TIMER TIM3
 
@@ -156,3 +156,7 @@
 #define TELEMETRY
 #define USE_SERVOS
 #define USE_CLI
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff

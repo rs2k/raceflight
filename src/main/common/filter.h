@@ -15,17 +15,18 @@
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-typedef struct filterStatePt1_s {
-	float state;
-	float RC;
-	float constdT;
-} filterStatePt1_t;
 
 /* this holds the data required to update samples thru a filter */
 typedef struct biquad_s {
     float b0, b1, b2, a1, a2;
     float x1, x2, y1, y2;
 } biquad_t;
+
+typedef struct filterStatePt1_s {
+	float state;
+	float RC;
+	float constdT;
+} filterStatePt1_t;
 
 float applyBiQuadFilter(float sample, biquad_t *state);
 float filterApplyPt1(float input, filterStatePt1_t *filter, float f_cut, float dt);

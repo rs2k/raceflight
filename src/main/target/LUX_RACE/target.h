@@ -15,48 +15,34 @@
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #pragma once
 
 #define TARGET_BOARD_IDENTIFIER "LUX"
 #define BOARD_HAS_VOLTAGE_DIVIDER
 
-#define LED0_GPIO   GPIOC
-#define LED0_PIN    Pin_15
-#define LED0_PERIPHERAL RCC_AHBPeriph_GPIOC
+#define LED0 PC15
+#define LED1 PC14
+#define LED2 PC13
 
-#define LED1_GPIO   GPIOC
-#define LED1_PIN    Pin_14
-#define LED1_PERIPHERAL RCC_AHBPeriph_GPIOC
-
-#define LED2_GPIO   GPIOC
-#define LED2_PIN    Pin_13
-#define LED2_PERIPHERAL RCC_AHBPeriph_GPIOC
-
-#define BEEP_GPIO   GPIOB
-#define BEEP_PIN    Pin_13
-#define BEEP_PERIPHERAL RCC_AHBPeriph_GPIOB
+#define BEEPER PB13
 #define BEEPER_INVERTED
 
-#define MPU6500_CS_GPIO_CLK_PERIPHERAL   RCC_AHBPeriph_GPIOA
-#define MPU6500_CS_GPIO                  GPIOA
-#define MPU6500_CS_PIN                   GPIO_Pin_4
+#define MPU6500_CS_PIN                   PA4
 #define MPU6500_SPI_INSTANCE             SPI1
 
+#define USE_EXTI
+#define MPU_INT_EXTI PA5
+ 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 
-#define SPI1_GPIO               GPIOB
-#define SPI1_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOB
-#define SPI1_SCK_PIN            GPIO_Pin_3
-#define SPI1_SCK_PIN_SOURCE     GPIO_PinSource3
-#define SPI1_MISO_PIN           GPIO_Pin_4
-#define SPI1_MISO_PIN_SOURCE    GPIO_PinSource4
-#define SPI1_MOSI_PIN           GPIO_Pin_5
-#define SPI1_MOSI_PIN_SOURCE    GPIO_PinSource5
+#define SPI1_NSS_PIN            PA4
+#define SPI1_SCK_PIN            PB3
+#define SPI1_MISO_PIN           PB4
+#define SPI1_MOSI_PIN           PB5
 
 #define USABLE_TIMER_CHANNEL_COUNT 11
-
-#define EXTI_CALLBACK_HANDLER_COUNT 1 // MPU data ready
 
 #define GYRO
 #define USE_GYRO_MPU6500
@@ -68,11 +54,20 @@
 #define USE_ACC_SPI_MPU6500
 #define ACC_MPU6500_ALIGN CW270_DEG
 
-#define BEEPER
-#define LED0
-#define LED1
-#define LED2
+// MPU6500 interrupt
+//#define DEBUG_MPU_DATA_READY_INTERRUPT
+#define USE_MPU_DATA_READY_SIGNAL
+#define ENSURE_MPU_DATA_READY_IS_LOW
 
+// External I2C BARO
+//#define BARO
+//#define USE_BARO_MS5611
+
+// External I2C MAG
+//#define MAG
+//#define USE_MAG_HMC5883
+//#define USE_MAG_AK8975
+//#define MAG_AK8975_ALIGN CW0_DEG_FLIP
 #define USB_IO
 
 #define USE_VCP
@@ -102,6 +97,11 @@
 #define UART3_TX_PINSOURCE  GPIO_PinSource10
 #define UART3_RX_PINSOURCE  GPIO_PinSource11
 
+#define SERIAL_PORT_COUNT 4
+
+#define USE_ESCSERIAL
+#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+
 #define USE_I2C
 #define I2C_DEVICE (I2CDEV_2)
 
@@ -111,20 +111,16 @@
 #define ADC_AHB_PERIPHERAL          RCC_AHBPeriph_DMA1
 #define ADC_DMA_CHANNEL             DMA1_Channel1
 
-#define VBAT_ADC_GPIO               GPIOC
-#define VBAT_ADC_GPIO_PIN           GPIO_Pin_0
+#define VBAT_ADC_PIN                PC0
 #define VBAT_ADC_CHANNEL            ADC_Channel_6
 
-#define CURRENT_METER_ADC_GPIO      GPIOC
-#define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_1
+#define CURRENT_METER_ADC_PIN       PC1
 #define CURRENT_METER_ADC_CHANNEL   ADC_Channel_7
 
-#define RSSI_ADC_GPIO               GPIOC
-#define RSSI_ADC_GPIO_PIN           GPIO_Pin_2
+#define RSSI_ADC_PIN                PC2
 #define RSSI_ADC_CHANNEL            ADC_Channel_8
 
-#define EXTERNAL1_ADC_GPIO          GPIOC
-#define EXTERNAL1_ADC_GPIO_PIN      GPIO_Pin_3
+#define EXTERNAL1_ADC_PIN           PC3
 #define EXTERNAL1_ADC_CHANNEL       ADC_Channel_9
 
 #define BLACKBOX
@@ -134,6 +130,7 @@
 
 #define LED_STRIP_TIMER TIM16
 
+#define USE_LED_STRIP_ON_DMA1_CHANNEL3
 #define WS2811_GPIO                     GPIOA
 #define WS2811_GPIO_AHB_PERIPHERAL      RCC_AHBPeriph_GPIOA
 #define WS2811_GPIO_AF                  GPIO_AF_1
@@ -168,3 +165,10 @@
 #define S1W_TX_PIN          GPIO_Pin_10
 #define S1W_RX_GPIO         GPIOB
 #define S1W_RX_PIN          GPIO_Pin_11
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTD 0xffff
+#define TARGET_IO_PORTE 0xffff
+#define TARGET_IO_PORTF 0xffff

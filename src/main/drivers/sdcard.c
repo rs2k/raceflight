@@ -15,8 +15,6 @@
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "sdcard.h"
-
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -24,11 +22,12 @@
 #include "platform.h"
 
 #include "nvic.h"
-#include "gpio.h"
+#include "io.h"
 
 #include "drivers/bus_spi.h"
 #include "drivers/system.h"
 
+#include "sdcard.h"
 #include "sdcard_standard.h"
 
 #ifdef USE_SDCARD
@@ -37,8 +36,8 @@
     #define SDCARD_PROFILING
 #endif
 
-#define SET_CS_HIGH          GPIO_SetBits(SDCARD_SPI_CS_GPIO,   SDCARD_SPI_CS_PIN)
-#define SET_CS_LOW           GPIO_ResetBits(SDCARD_SPI_CS_GPIO, SDCARD_SPI_CS_PIN)
+#define SET_CS_HIGH          IOHi(sdCardCsPin)
+#define SET_CS_LOW           IOLo(sdCardCsPin)
 
 #define SDCARD_INIT_NUM_DUMMY_BYTES 10
 #define SDCARD_MAXIMUM_BYTE_DELAY_FOR_CMD_REPLY 8
@@ -108,6 +107,14 @@ typedef struct sdcard_t {
 
 static sdcard_t sdcard;
 
+#ifdef SDCARD_SPI_CS_PIN
+static IO_t sdCardCsPin = IO_NONE;
+#endif
+#ifdef SDCARD_DETECT_PIN
+static IO_t sdCardDetctPin = IO_NONE;
+#endif
+
+
 #ifdef SDCARD_DMA_CHANNEL_TX
     static bool useDMAForTx;
 #else
@@ -120,22 +127,18 @@ STATIC_ASSERT(sizeof(sdcardCSD_t) == 16, sdcard_csd_bitfields_didnt_pack_properl
 void sdcardInsertionDetectDeinit(void)
 {
 #ifdef SDCARD_DETECT_PIN
-    GPIO_InitTypeDef  GPIO_InitStructure;
-
-    GPIO_InitStructure.GPIO_Pin = SDCARD_DETECT_PIN;
-    GPIO_Init(SDCARD_DETECT_GPIO_PORT, &GPIO_InitStructure);
+    sdCardDetctPin = IOGetByTag(IO_TAG(SDCARD_DETECT_PIN));
+    IOInit(sdCardDetctPin, OWNER_SYSTEM, RESOURCE_INPUT);
+    IOConfigGPIO(sdCardDetctPin, IOCFG_IN_FLOATING);
 #endif
 }
 
 void sdcardInsertionDetectInit(void)
 {
 #ifdef SDCARD_DETECT_PIN
-    GPIO_InitTypeDef  GPIO_InitStructure;
-
-    GPIO_InitStructure.GPIO_Pin = SDCARD_DETECT_PIN;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
-    GPIO_Init(SDCARD_DETECT_GPIO_PORT, &GPIO_InitStructure);
+    sdCardDetctPin = IOGetByTag(IO_TAG(SDCARD_DETECT_PIN));
+    IOInit(sdCardDetctPin, OWNER_SYSTEM, RESOURCE_INPUT);
+    IOConfigGPIO(sdCardDetctPin, IOCFG_IPU);
 #endif
 }
 
@@ -148,7 +151,7 @@ bool sdcard_isInserted(void)
 
 #ifdef SDCARD_DETECT_PIN
 
-    result = (GPIO_ReadInputData(SDCARD_DETECT_GPIO_PORT) & SDCARD_DETECT_PIN) != 0;
+    result = IORead(sdCardDetctPin) != 0;
 
 #ifdef SDCARD_DETECT_INVERTED
     result = !result;
@@ -407,22 +410,32 @@ static void sdcard_sendDataBlockBegin(uint8_t *buffer, bool multiBlockWrite)
     spiTransferByte(SDCARD_SPI_INSTANCE, multiBlockWrite ? SDCARD_MULTIPLE_BLOCK_WRITE_START_TOKEN : SDCARD_SINGLE_BLOCK_WRITE_START_TOKEN);
 
     if (useDMAForTx) {
+#ifdef SDCARD_DMA_CHANNEL_TX
         // Queue the transmission of the sector payload
+#ifdef SDCARD_DMA_CLK
+        RCC_AHB1PeriphClockCmd (SDCARD_DMA_CLK, ENABLE);
+#endif
         DMA_InitTypeDef DMA_InitStructure;
 
         DMA_StructInit(&DMA_InitStructure);
+#ifdef SDCARD_DMA_CHANNEL
+        DMA_InitStructure.DMA_Channel = SDCARD_DMA_CHANNEL;
+        DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t) buffer;
+        DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
+#else
+        DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
+        DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t) buffer;
+        DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
+#endif
         DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t) &SDCARD_SPI_INSTANCE->DR;
         DMA_InitStructure.DMA_Priority = DMA_Priority_Low;
-        DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
         DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
         DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
 
         DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-        DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t) buffer;
         DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
 
         DMA_InitStructure.DMA_BufferSize = SDCARD_BLOCK_SIZE;
-        DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
         DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
 
         DMA_DeInit(SDCARD_DMA_CHANNEL_TX);
@@ -431,6 +444,7 @@ static void sdcard_sendDataBlockBegin(uint8_t *buffer, bool multiBlockWrite)
         DMA_Cmd(SDCARD_DMA_CHANNEL_TX, ENABLE);
 
         SPI_I2S_DMACmd(SDCARD_SPI_INSTANCE, SPI_I2S_DMAReq_Tx, ENABLE);
+#endif
     } else {
         // Send the first chunk now
         spiTransfer(SDCARD_SPI_INSTANCE, NULL, buffer, SDCARD_NON_DMA_CHUNK_SIZE);
@@ -530,6 +544,11 @@ void sdcard_init(bool useDMA)
 #else
     // DMA is not available
     (void) useDMA;
+#endif
+#ifdef SDCARD_SPI_CS_PIN
+    sdCardCsPin = IOGetByTag(IO_TAG(SDCARD_SPI_CS_PIN));
+    IOInit(sdCardCsPin, OWNER_SYSTEM, RESOURCE_SPI);
+    IOConfigGPIO(sdCardCsPin, SPI_IO_CS_CFG);
 #endif
 
     // Max frequency is initially 400kHz
@@ -699,8 +718,14 @@ bool sdcard_poll(void)
             // Have we finished sending the write yet?
             sendComplete = false;
 
+#ifdef SDCARD_DMA_CHANNEL_TX
+#ifdef SDCARD_DMA_CHANNEL
+            if (useDMAForTx && DMA_GetFlagStatus(SDCARD_DMA_CHANNEL_TX, SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG) == SET) {
+                DMA_ClearFlag(SDCARD_DMA_CHANNEL_TX, SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG);
+#else
             if (useDMAForTx && DMA_GetFlagStatus(SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG) == SET) {
                 DMA_ClearFlag(SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG);
+#endif
 
                 DMA_Cmd(SDCARD_DMA_CHANNEL_TX, DISABLE);
 
@@ -717,6 +742,7 @@ bool sdcard_poll(void)
 
                 sendComplete = true;
             }
+#endif
 
             if (!useDMAForTx) {
                 // Send another chunk

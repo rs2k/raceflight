@@ -237,7 +237,7 @@ void gpsInit(serialConfig_t *initialSerialConfig, gpsConfig_t *initialGpsConfig)
 
     portMode_t mode = MODE_RXTX;
     // only RX is needed for NMEA-style GPS
-#if !defined(COLIBRI_RACE) || !defined(LUX_RACE)
+#if !defined(COLIBRI_RACE) && !defined(LUX_RACE)
     if (gpsConfig->provider == GPS_NMEA)
 	    mode &= ~MODE_TX;
 #endif

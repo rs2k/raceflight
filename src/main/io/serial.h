@@ -44,7 +44,7 @@ typedef enum {
     BAUD_57600,
     BAUD_115200,
     BAUD_230400,
-    BAUD_250000,
+    BAUD_250000
 } baudRate_e;
 
 extern const uint32_t baudRates[];
@@ -56,6 +56,8 @@ typedef enum {
     SERIAL_PORT_USART2,
     SERIAL_PORT_USART3,
     SERIAL_PORT_USART4,
+    SERIAL_PORT_USART5,
+    SERIAL_PORT_USART6,
     SERIAL_PORT_USB_VCP = 20,
     SERIAL_PORT_SOFTSERIAL1 = 30,
     SERIAL_PORT_SOFTSERIAL2,
@@ -94,7 +96,6 @@ typedef struct serialConfig_s {
 } serialConfig_t;
 
 typedef void serialConsumer(uint8_t);
-
 //
 // configuration
 //
@@ -111,7 +112,6 @@ portSharing_e determinePortSharing(serialPortConfig_t *portConfig, serialPortFun
 bool isSerialPortShared(serialPortConfig_t *portConfig, uint16_t functionMask, serialPortFunction_e sharedWithFunction);
 
 serialPortUsage_t *findSerialPortUsageByIdentifier(serialPortIdentifier_e identifier);
-
 //
 // runtime
 //
@@ -123,12 +123,11 @@ serialPort_t *openSerialPort(
     portMode_t mode,
     portOptions_t options
 );
-void closeSerialPort(serialPort_t *serialPort);
 
+void closeSerialPort(serialPort_t *serialPort);
 void waitForSerialPortToFinishTransmitting(serialPort_t *serialPort);
 
 baudRate_e lookupBaudRateIndex(uint32_t baudRate);
-
 
 //
 // msp/cli/bootloader

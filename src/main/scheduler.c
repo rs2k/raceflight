@@ -38,11 +38,8 @@ static uint32_t totalWaitingTasksSamples;
 
 uint32_t currentTime = 0;
 uint16_t averageSystemLoadPercent = 0;
-
-
 static int taskQueuePos = 0;
 static int taskQueueSize = 0;
-// No need for a linked list for the queue, since items are only inserted at startup
 
 static cfTask_t* taskQueueArray[TASK_COUNT + 1]; // extra item for NULL pointer at end of queue
 
@@ -100,6 +97,14 @@ cfTask_t *queueFirst(void)
     return taskQueueArray[0]; // guaranteed to be NULL if queue is empty
 }
 
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
+#define REALTIME_GUARD_INTERVAL_MIN     1
+#define REALTIME_GUARD_INTERVAL_MAX     100
+#else
+#define REALTIME_GUARD_INTERVAL_MIN     10
+#define REALTIME_GUARD_INTERVAL_MAX     300
+#endif
+
 /*
  * Returns next item in queue or NULL if at end of queue
  */
@@ -137,7 +142,11 @@ void rescheduleTask(cfTaskId_e taskId, uint32_t newPeriodMicros)
 {
     if (taskId == TASK_SELF || taskId < TASK_COUNT) {
         cfTask_t *task = taskId == TASK_SELF ? currentTask : &cfTasks[taskId];
+#if defined(STM32F40_41xxx) || defined (STM32F411xE)
+        task->desiredPeriod = MAX(10, newPeriodMicros);  // Limit delay to 10us (100 kHz) to prevent scheduler clogging
+#else
         task->desiredPeriod = MAX(100, newPeriodMicros);  // Limit delay to 100us (10 kHz) to prevent scheduler clogging
+#endif
     }
 }
 

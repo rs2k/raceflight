@@ -22,18 +22,16 @@
 // early prototype had slightly different pin mappings.
 //#define SPRACINGF3MINI_MKII_REVA
 
-#define LED0_GPIO   GPIOB
-#define LED0_PIN    Pin_3
-#define LED0_PERIPHERAL RCC_AHBPeriph_GPIOB
+#define LED0 PB3
 
-#define BEEP_GPIO   GPIOC
-#define BEEP_PIN    Pin_15
-#define BEEP_PERIPHERAL RCC_AHBPeriph_GPIOC
+#define BEEPER PC15
 #define BEEPER_INVERTED
 
 #define USABLE_TIMER_CHANNEL_COUNT 12 // 8 Outputs; PPM; LED Strip; 2 additional PWM pins also on UART3 RX/TX pins.
 
+#define USE_EXTI
 #define EXTI15_10_CALLBACK_HANDLER_COUNT 2 // MPU_INT, SDCardDetect
+#define MPU_INT_EXTI PC13
 
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
@@ -64,8 +62,6 @@
 #define MAG_AK8975_ALIGN CW90_DEG_FLIP
 
 #define SONAR
-#define BEEPER
-#define LED0
 
 #define USB_IO
 #define USB_CABLE_DETECTION
@@ -116,30 +112,17 @@
 #define USE_SPI
 #define USE_SPI_DEVICE_2 // PB12,13,14,15 on AF5
 
-#define SPI2_GPIO               GPIOB
-#define SPI2_GPIO_PERIPHERAL    RCC_AHBPeriph_GPIOB
-#define SPI2_NSS_PIN            Pin_12
-#define SPI2_NSS_PIN_SOURCE     GPIO_PinSource12
-#define SPI2_SCK_PIN            Pin_13
-#define SPI2_SCK_PIN_SOURCE     GPIO_PinSource13
-#define SPI2_MISO_PIN           Pin_14
-#define SPI2_MISO_PIN_SOURCE    GPIO_PinSource14
-#define SPI2_MOSI_PIN           Pin_15
-#define SPI2_MOSI_PIN_SOURCE    GPIO_PinSource15
+#define SPI2_NSS_PIN            PB12
+#define SPI2_SCK_PIN            PB13
+#define SPI2_MISO_PIN           PB14
+#define SPI2_MOSI_PIN           PB15
 
 #define USE_SDCARD
 #define USE_SDCARD_SPI2
 
 #define SDCARD_DETECT_INVERTED
 
-#define SDCARD_DETECT_PIN                   GPIO_Pin_14
-#define SDCARD_DETECT_EXTI_LINE             EXTI_Line14
-#define SDCARD_DETECT_EXTI_PIN_SOURCE       EXTI_PinSource14
-#define SDCARD_DETECT_GPIO_PORT             GPIOC
-#define SDCARD_DETECT_GPIO_CLK              RCC_AHBPeriph_GPIOC
-#define SDCARD_DETECT_EXTI_PORT_SOURCE      EXTI_PortSourceGPIOC
-#define SDCARD_DETECT_EXTI_IRQn             EXTI15_10_IRQn
-
+#define SDCARD_DETECT_PIN                   PC14
 #define SDCARD_SPI_INSTANCE                 SPI2
 #define SDCARD_SPI_CS_GPIO                  SPI2_GPIO
 #define SDCARD_SPI_CS_PIN                   SPI2_NSS_PIN
@@ -164,14 +147,17 @@
 #define ADC_DMA_CHANNEL             DMA2_Channel1
 #define ADC_AHB_PERIPHERAL          RCC_AHBPeriph_DMA2
 
+#define VBAT_ADC_PIN           		PA4
 #define VBAT_ADC_GPIO               GPIOA
 #define VBAT_ADC_GPIO_PIN           GPIO_Pin_4
 #define VBAT_ADC_CHANNEL            ADC_Channel_1
 
+#define CURRENT_METER_ADC_PIN  		PA5
 #define CURRENT_METER_ADC_GPIO      GPIOA
 #define CURRENT_METER_ADC_GPIO_PIN  GPIO_Pin_5
 #define CURRENT_METER_ADC_CHANNEL   ADC_Channel_2
 
+#define RSSI_ADC_PIN           		PB2
 #define RSSI_ADC_GPIO               GPIOB
 #define RSSI_ADC_GPIO_PIN           GPIO_Pin_2
 #define RSSI_ADC_CHANNEL            ADC_Channel_12
@@ -238,3 +224,9 @@
 #define S1W_TX_PIN          UART1_TX_PIN
 #define S1W_RX_GPIO         UART1_GPIO
 #define S1W_RX_PIN          UART1_RX_PIN
+
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTF 0xffff

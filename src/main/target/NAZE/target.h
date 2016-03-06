@@ -22,26 +22,14 @@
 
 #define BOARD_HAS_VOLTAGE_DIVIDER
 
-#define LED0_GPIO   GPIOB
-#define LED0_PIN    Pin_3 // PB3 (LED)
-#define LED0_PERIPHERAL RCC_APB2Periph_GPIOB
-#define LED1_GPIO   GPIOB
-#define LED1_PIN    Pin_4 // PB4 (LED)
-#define LED1_PERIPHERAL RCC_APB2Periph_GPIOB
+#define LED0 PB3
+#define LED1 PB4
+#define BEEPER PA12
 
-#define BEEP_GPIO   GPIOA
-#define BEEP_PIN    Pin_12 // PA12 (Beeper)
-#define BEEP_PERIPHERAL RCC_APB2Periph_GPIOA
+#define BARO_XCLR_PIN    PC13
+#define BARO_EOC_PIN     PC14
 
-#define BARO_XCLR_GPIO   GPIOC
-#define BARO_XCLR_PIN    Pin_13
-#define BARO_EOC_GPIO    GPIOC
-#define BARO_EOC_PIN     Pin_14
-#define BARO_APB2_PERIPHERALS RCC_APB2Periph_GPIOC
-
-#define INVERTER_PIN Pin_2 // PB2 (BOOT1) abused as inverter select GPIO
-#define INVERTER_GPIO GPIOB
-#define INVERTER_PERIPHERAL RCC_APB2Periph_GPIOB
+#define INVERTER PB2
 #define INVERTER_USART USART2
 
 // SPI2
@@ -54,17 +42,11 @@
 #define USE_SPI_DEVICE_2
 
 #define NAZE_SPI_INSTANCE     SPI2
-#define NAZE_SPI_CS_GPIO      GPIOB
-#define NAZE_SPI_CS_PIN       GPIO_Pin_12
-#define NAZE_CS_GPIO_CLK_PERIPHERAL RCC_APB2Periph_GPIOB
+#define NAZE_SPI_CS_PIN       PB12
 
 // We either have this 16mbit flash chip on SPI or the MPU6500 acc/gyro depending on board revision:
-#define M25P16_CS_GPIO        NAZE_SPI_CS_GPIO
 #define M25P16_CS_PIN         NAZE_SPI_CS_PIN
 #define M25P16_SPI_INSTANCE   NAZE_SPI_INSTANCE
-
-#define MPU6500_CS_GPIO_CLK_PERIPHERAL   NAZE_CS_GPIO_CLK_PERIPHERAL
-#define MPU6500_CS_GPIO                  NAZE_SPI_CS_GPIO
 #define MPU6500_CS_PIN                   NAZE_SPI_CS_PIN
 #define MPU6500_SPI_INSTANCE             NAZE_SPI_INSTANCE
 
@@ -74,6 +56,7 @@
 #define USE_FLASH_M25P16
 
 #define EXTI_CALLBACK_HANDLER_COUNT 3 // MPU data ready, MAG data ready, BMP085 EOC
+#define USE_EXTI
 
 //#define DEBUG_MPU_DATA_READY_INTERRUPT
 #define USE_MPU_DATA_READY_SIGNAL
@@ -86,7 +69,6 @@
 #define USE_GYRO_MPU6050
 #define USE_GYRO_MPU6500
 #define USE_GYRO_SPI_MPU6500
-
 
 #define GYRO_MPU3050_ALIGN CW0_DEG
 #define GYRO_MPU6050_ALIGN CW0_DEG
@@ -117,10 +99,6 @@
 #define MAG_HMC5883_ALIGN CW180_DEG
 
 #define SONAR
-#define BEEPER
-#define LED0
-#define LED1
-#define INVERTER
 #define DISPLAY
 
 #define USE_USART1
@@ -198,13 +176,22 @@
 #define S1W_RX_PIN          GPIO_Pin_10
 
 // alternative defaults for AlienWii32 F1 target
-#ifdef ALIENWII32
+#ifdef ALIENFLIGHTF1
 #undef TARGET_BOARD_IDENTIFIER
 #define TARGET_BOARD_IDENTIFIER "AWF1" // AlienWii32 F1.
 #undef BOARD_HAS_VOLTAGE_DIVIDER
+
+#define CONFIG_SERIALRX_PROVIDER SERIALRX_SPEKTRUM2048
+#define CONFIG_FEATURE_RX_SERIAL
+#define CONFIG_RX_SERIAL_PORT 1
+
 #define HARDWARE_BIND_PLUG
 
 // Hardware bind plug at PB5 (Pin 41)
 #define BINDPLUG_PORT  GPIOB
 #define BINDPLUG_PIN   Pin_5
 #endif
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC (BIT(13)|BIT(14)|BIT(15))

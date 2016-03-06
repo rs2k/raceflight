@@ -99,6 +99,8 @@
 #define  EP6_OUT_Callback   NOP_Process
 #define  EP7_OUT_Callback   NOP_Process
 
+#define USB_MAX_STR_DESC_SIZ 50
+
 #endif /* __USB_CONF_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
