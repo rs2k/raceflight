@@ -135,9 +135,10 @@ void setGyroSamplingSpeed(uint16_t looptime) {
                 masterConfig.mag_hardware = 1;
                 masterConfig.pid_process_denom = 2;
             }
+            masterConfig.gyro_sync_denom = constrain(looptime / gyroSampleRate, 1, maxDivider);
         } else {
-            masterConfig.gyro_lpf = 1;
-            masterConfig.pid_process_denom = 1;
+            masterConfig.gyro_lpf = 0;
+            masterConfig.gyro_sync_denom = 8;
             masterConfig.acc_hardware = 0;
             masterConfig.baro_hardware = 0;
             masterConfig.mag_hardware = 0;
@@ -161,15 +162,17 @@ void setGyroSamplingSpeed(uint16_t looptime) {
                     masterConfig.pid_process_denom = 2;
                 }
             }
+            masterConfig.gyro_sync_denom = constrain(looptime / gyroSampleRate, 1, maxDivider);
         } else {
-            masterConfig.gyro_lpf = 1;
+            masterConfig.gyro_lpf = 0;
+
+            masterConfig.gyro_sync_denom = 8;
             masterConfig.acc_hardware = 0;
             masterConfig.baro_hardware = 0;
             masterConfig.mag_hardware = 0;
             masterConfig.pid_process_denom = 1;
         }
 #endif
-        masterConfig.gyro_sync_denom = constrain(looptime / gyroSampleRate, 1, maxDivider);
         if (!(masterConfig.use_multiShot || masterConfig.use_oneshot42) && ((masterConfig.gyro_sync_denom * gyroSampleRate) == 125)) masterConfig.pid_process_denom = 3;
             masterConfig.force_motor_pwm_rate = 1;
             if (masterConfig.use_multiShot || masterConfig.use_oneshot42) {

@@ -788,15 +788,8 @@ void mixTable(void)
     uint32_t i;
     fix12_t vbatCompensationFactor = 0;
     static fix12_t mixReduction;
-    uint8_t axis;
 
     bool isFailsafeActive = failsafeIsActive(); // TODO - Find out if failsafe checks are really needed here in mixer code
-
-    if (motorLimitReached) {
-        uint8_t pidAttenuation = constrain(qPercent(mixReduction), 30, 100);
-        for (axis = 0; axis < 2; axis++) axisPID[axis] *= pidAttenuation / 100;
-        if (debugMode == DEBUG_AIRMODE) debug[0] = pidAttenuation;
-    }
 
     if (IS_RC_MODE_ACTIVE(BOXACROPLUS)) {
         acroPlusApply();

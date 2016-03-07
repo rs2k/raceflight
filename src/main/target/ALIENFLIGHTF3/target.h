@@ -17,13 +17,18 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "AWF3" // AlienWii32 F3.
+#define TARGET_BOARD_IDENTIFIER "AFF3" // AlienFlightF3.
 
+#define USE_HARDWARE_REVISION_DETECTION
+#define HW_GPIO     GPIOB
+#define HW_PIN      Pin_2
+#define HW_PERIPHERAL RCC_AHBPeriph_GPIOB
+    
 #define CONFIG_SERIALRX_PROVIDER SERIALRX_SPEKTRUM2048
 #define CONFIG_FEATURE_RX_SERIAL
 #define CONFIG_RX_SERIAL_PORT 2
 
-#define USBD_PRODUCT_STRING "AlienWii32 F3"
+#define USBD_PRODUCT_STRING "AlienFlightF3"
 
 #define LED0    PB4 // Blue LEDs - PB4
 #define LED1    PB5  // Green LEDs - PB5
@@ -39,23 +44,30 @@
 // Using MPU6050 for the moment.
 #define GYRO
 #define USE_GYRO_MPU6050
+#define USE_GYRO_SPI_MPU9250
 
 #define GYRO_MPU6050_ALIGN CW270_DEG
+#define GYRO_MPU9250_ALIGN CW270_DEG
 
 #define ACC
 #define USE_ACC_MPU6050
+#define USE_ACC_MPU9250
+#define USE_ACC_SPI_MPU9250
 
 #define ACC_MPU6050_ALIGN CW270_DEG
+#define ACC_MPU6500_ALIGN CW270_DEG
 
+#define USE_SPI
+#define USE_SPI_DEVICE_3
+#define MPU9250_CS_PIN                   PA15
+#define MPU9250_SPI_INSTANCE             SPI3
 // No baro support.
 //#define BARO
 //#define USE_BARO_MS5611
 
-// No mag support for now (option to use MPU9150 in the future).
-//#define MAG
-//#define USE_MAG_AK8975
-
-#define MAG_AK8975_ALIGN CW0_DEG_FLIP
+#define MAG
+#define USE_MAG_AK8963
+#define MAG_AK8963_ALIGN CW0_DEG_FLIP
 
 #define USE_VCP
 #define USE_USART1 // Not connected - TX (PB6) RX PB7 (AF7)
@@ -115,8 +127,8 @@
 #define BIND_PORT  GPIOA
 #define BIND_PIN   Pin_3
 
-// alternative defaults for AlienWii32 F3 target
-#define ALIENWII32
+// alternative defaults for AlienFlight F3 target
+#define ALIENFLIGHT
 #define HARDWARE_BIND_PLUG
 
 // Hardware bind plug at PB12 (Pin 25)
