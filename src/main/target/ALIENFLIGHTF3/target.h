@@ -44,23 +44,23 @@
 // Using MPU6050 for the moment.
 #define GYRO
 #define USE_GYRO_MPU6050
-#define USE_GYRO_SPI_MPU6500
+#define USE_GYRO_SPI_MPU9250
 
 #define GYRO_MPU6050_ALIGN CW270_DEG
-#define GYRO_MPU6500_ALIGN CW270_DEG
+#define GYRO_MPU9250_ALIGN CW270_DEG
 
 #define ACC
 #define USE_ACC_MPU6050
-#define USE_ACC_MPU6500
-#define USE_ACC_SPI_MPU6500
+#define USE_ACC_MPU9250
+#define USE_ACC_SPI_MPU9250
 
 #define ACC_MPU6050_ALIGN CW270_DEG
 #define ACC_MPU6500_ALIGN CW270_DEG
 
 #define USE_SPI
 #define USE_SPI_DEVICE_3
-#define MPU6500_CS_PIN                   PA15
-#define MPU6500_SPI_INSTANCE             SPI3
+#define MPU9250_CS_PIN                   PA15
+#define MPU9250_SPI_INSTANCE             SPI3
 // No baro support.
 //#define BARO
 //#define USE_BARO_MS5611
@@ -127,7 +127,7 @@
 #define BIND_PORT  GPIOA
 #define BIND_PIN   Pin_3
 
-// alternative defaults for AlienWii32 F3 target
+// alternative defaults for AlienFlight F3 target
 #define ALIENFLIGHT
 #define HARDWARE_BIND_PLUG
 

@@ -401,7 +401,7 @@ static void pidMultiWii23(pidProfile_t *pidProfile, controlRateConfig_t *control
 
     //YAW
     rc = (int32_t)rcCommand[FD_YAW] * (2 * controlRateConfig->rates[FD_YAW] + 30)  >> 5;
-#ifdef ALIENWII32
+#ifdef ALIENFLIGHT
     error = rc - gyroADC[FD_YAW];
 #else
     error = rc - (gyroADC[FD_YAW] / 4);

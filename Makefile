@@ -314,7 +314,7 @@ TARGET_SRC = $(notdir $(wildcard $(TARGET_DIR)/*.c))
 
 ifeq ($(TARGET),ALIENFLIGHTF1)
 # ALIENFLIGHTF1 is a VARIANT of NAZE
-TARGET_FLAGS := $(TARGET_FLAGS) -DNAZE -DALIENFLIGHT32
+TARGET_FLAGS := $(TARGET_FLAGS) -DNAZE -DALIENFLIGHT
 TARGET_DIR = $(ROOT)/src/main/target/NAZE
 endif
 
@@ -842,8 +842,7 @@ ALIENFLIGHTF3_SRC = \
 		   drivers/display_ug2864hsweg01.c \
 		   drivers/accgyro_mpu.c \
 		   drivers/accgyro_mpu6050.c \
-		   drivers/accgyro_mpu6500.c \
-		   drivers/accgyro_spi_mpu6500.c \
+		   drivers/accgyro_spi_mpu9250.c \
 		   drivers/compass_ak8963.c \
 		   drivers/serial_usb_vcp.c \
 		   drivers/sonar_hcsr04.c \
