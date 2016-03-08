@@ -173,10 +173,10 @@
 #define S1W_RX_GPIO         GPIOA
 #define S1W_RX_PIN          GPIO_Pin_10
 
-// alternative defaults for ALIENFLIGHT F1 target
+// alternative defaults for AlienFlight F1 target
 #ifdef ALIENFLIGHT
 #undef TARGET_BOARD_IDENTIFIER
-#define TARGET_BOARD_IDENTIFIER "AWF1" // ALIENFLIGHT F1.
+#define TARGET_BOARD_IDENTIFIER "AFF1" // ALIENFLIGHT F1.
 #undef BOARD_HAS_VOLTAGE_DIVIDER
 
 #define CONFIG_SERIALRX_PROVIDER SERIALRX_SPEKTRUM2048

@@ -693,11 +693,17 @@ static void resetConf(void)
     // alternative defaults settings for ALIENFLIGHTF1 and ALIENFLIGHTF3 targets
 #ifdef ALIENFLIGHT
     featureSet(FEATURE_MOTOR_STOP);
+    featureClear(FEATURE_ONESHOT125);
+#ifdef ALIENFLIGHTF3
+    masterConfig.batteryConfig.vbatscale = 20;
+    masterConfig.mag_hardware = MAG_NONE;            // disabled by default
+#endif
     masterConfig.rxConfig.spektrum_sat_bind = 5;
     masterConfig.escAndServoConfig.minthrottle = 1000;
     masterConfig.escAndServoConfig.maxthrottle = 2000;
     masterConfig.motor_pwm_rate = 32000;
     currentProfile->pidProfile.pidController = 2;
+#ifdef ALIENFLIGHTF4
     currentProfile->pidProfile.P_f[ROLL] = 5.000f;
     currentProfile->pidProfile.I_f[ROLL] = 1.000f;
     currentProfile->pidProfile.D_f[ROLL] = 0.020f;
@@ -707,6 +713,7 @@ static void resetConf(void)
     currentProfile->pidProfile.P_f[YAW] = 8.400f;
     currentProfile->pidProfile.I_f[YAW] = 1.500f;
     currentProfile->pidProfile.D_f[YAW] = 0.020f;
+#endif
     masterConfig.failsafeConfig.failsafe_delay = 2;
     masterConfig.failsafeConfig.failsafe_off_delay = 0;
     currentControlRateProfile->rcRate8 = 100;

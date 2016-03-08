@@ -36,7 +36,7 @@
 #define GPIO_AF_SPI2    GPIO_AF_5
 #endif
 #ifndef GPIO_AF_SPI3
-#define GPIO_AF_SPI3	GPIO_AF_5
+#define GPIO_AF_SPI3	GPIO_AF_6
 #endif
 #endif 
 
@@ -79,7 +79,7 @@ static spiDevice_t spiHardwareMap[] = {
     { .dev = SPI1, .nss = IO_TAG(SPI1_NSS_PIN), .sck = IO_TAG(SPI1_SCK_PIN), .miso = IO_TAG(SPI1_MISO_PIN), .mosi = IO_TAG(SPI1_MOSI_PIN), .rcc = RCC_APB2(SPI1), .af = GPIO_AF_SPI1, false },
     { .dev = SPI2, .nss = IO_TAG(SPI2_NSS_PIN), .sck = IO_TAG(SPI2_SCK_PIN), .miso = IO_TAG(SPI2_MISO_PIN), .mosi = IO_TAG(SPI2_MOSI_PIN), .rcc = RCC_APB1(SPI2), .af = GPIO_AF_SPI2, false },
 #endif
-#if defined(STM32F40_41xxx) || defined(STM32F411xE)
+#if defined(STM32F303xC) || defined(STM32F40_41xxx) || defined(STM32F411xE)
     { .dev = SPI3, .nss = IO_TAG(SPI3_NSS_PIN), .sck = IO_TAG(SPI3_SCK_PIN), .miso = IO_TAG(SPI3_MISO_PIN), .mosi = IO_TAG(SPI3_MOSI_PIN), .rcc = RCC_APB1(SPI3), .af = GPIO_AF_SPI3, false }
 #endif
 };
@@ -109,7 +109,7 @@ void spiInitDevice(SPIDevice device)
         spi->sdcard = true;
 #endif
 
-    // Enable SPI1 clock 
+    // Enable SPI clock
     RCC_ClockCmd(spi->rcc, ENABLE);
     RCC_ResetCmd(spi->rcc, ENABLE);
 
@@ -139,7 +139,7 @@ void spiInitDevice(SPIDevice device)
         IOConfigGPIO(IOGetByTag(spi->nss), SPI_IO_CS_CFG);
 #endif
     
-    // Init SPI1 hardware
+    // Init SPI hardware
     SPI_I2S_DeInit(spi->dev);
 
     spiInit.SPI_Mode = SPI_Mode_Master;

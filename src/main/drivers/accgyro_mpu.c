@@ -146,6 +146,7 @@ static bool detectSPISensorsAndUpdateDetectionResult(void)
         mpuConfiguration.slowread = mpu6500SlowReadRegister;
         mpuConfiguration.verifywrite = verifympu6500WriteRegister;
         mpuConfiguration.write = mpu6500WriteRegister;
+        mpuConfiguration.reset = mpu6500ResetGyro;
         return true;
     }
 #endif
@@ -158,6 +159,7 @@ static bool detectSPISensorsAndUpdateDetectionResult(void)
         mpuConfiguration.slowread = mpu6000SlowReadRegister;
         mpuConfiguration.verifywrite = verifympu6000WriteRegister;
         mpuConfiguration.write = mpu6000WriteRegister;
+        mpuConfiguration.reset = mpu6000ResetGyro;
         return true;
     }
 #endif
@@ -170,6 +172,7 @@ static bool detectSPISensorsAndUpdateDetectionResult(void)
         mpuConfiguration.slowread = mpu9250SlowReadRegister;
         mpuConfiguration.verifywrite = verifympu9250WriteRegister;
         mpuConfiguration.write = mpu9250WriteRegister;
+        mpuConfiguration.reset = mpu9250ResetGyro;
         return true;
     }
 #endif
