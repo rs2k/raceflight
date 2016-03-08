@@ -686,6 +686,8 @@ SPARKY2_SRC = \
 
 ALIENFLIGHTF4_SRC = \
            $(STM32F4xx_COMMON_SRC) \
+		   drivers/accgyro_mpu6500.c \
+		   drivers/accgyro_spi_mpu6500.c \
 		   drivers/accgyro_spi_mpu9250.c \
 		   drivers/barometer_bmp280.c \
 		   drivers/barometer_ms5611.c \
@@ -736,8 +738,11 @@ AQ32_V2_SRC = \
 
 VRCORE_SRC = \
            $(STM32F4xx_COMMON_SRC) \
+		   drivers/accgyro_spi_mpu9250.c \
 		   drivers/barometer_ms5611.c \
 		   drivers/compass_hmc5883l.c \
+		   drivers/light_ws2811strip.c \
+		   drivers/light_ws2811strip_stm32f4xx.c \
 		   drivers/sdcard.c \
 		   drivers/sdcard_standard.c \
 		   io/asyncfatfs/asyncfatfs.c \
@@ -844,6 +849,8 @@ ALIENFLIGHTF3_SRC = \
 		   drivers/display_ug2864hsweg01.c \
 		   drivers/accgyro_mpu.c \
 		   drivers/accgyro_mpu6050.c \
+		   drivers/accgyro_mpu6500.c \
+		   drivers/accgyro_spi_mpu6500.c \
 		   drivers/accgyro_spi_mpu9250.c \
 		   drivers/compass_ak8963.c \
 		   drivers/serial_usb_vcp.c \

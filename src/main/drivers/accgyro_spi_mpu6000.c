@@ -102,7 +102,7 @@ static bool mpuSpi6000InitDone = false;
 
 static IO_t mpuSpi6000CsPin = IO_NONE;
 
-void resetGyro (void) {
+void mpu6000ResetGyro (void) {
     // Device Reset
     mpu6000WriteRegister(MPU_RA_PWR_MGMT_1, BIT_H_RESET);
     delay(150);

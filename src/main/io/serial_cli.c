@@ -736,6 +736,7 @@ const clivalue_t valueTable[] = {
 #endif
 
 #ifdef MAG
+    { "mag_hardware",               VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, &masterConfig.mag_hardware, .config.lookup = { TABLE_MAG_HARDWARE } },
     { "mag_declination",            VAR_INT16  | MASTER_VALUE, &masterConfig.mag_declination, .config.minmax = { -18000,  18000 } },
 #endif
 

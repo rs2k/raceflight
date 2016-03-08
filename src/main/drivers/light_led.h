@@ -17,6 +17,8 @@
 
 #pragma once
 
+#define LED_NUMBER 3
+
 // Helpful macros
 #ifdef LED0
 # define LED0_TOGGLE              ledToggle(0)
@@ -48,6 +50,6 @@
 # define LED2_ON                  do {} while(0)
 #endif
 
-void ledInit(void);
+void ledInit(bool alternative_led);
 void ledToggle(int led);
 void ledSet(int led, bool state);

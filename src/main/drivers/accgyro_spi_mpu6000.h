@@ -19,7 +19,7 @@
 // RF = Register Flag
 #define MPU_RF_DATA_RDY_EN (1 << 0)
 
-void resetGyro(void);
+void mpu6000ResetGyro(void);
 
 bool mpu6000SpiDetect(void);
 

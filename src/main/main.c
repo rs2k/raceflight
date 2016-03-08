@@ -209,7 +209,15 @@ void init(void)
     // initialize IO (needed for all IO operations)
     IOInitGlobal();
 	
-    ledInit();
+#ifdef ALIENFLIGHTF3
+    if (hardwareRevision == AFF3_REV_1) {
+        ledInit(false);
+    } else {
+        ledInit(true);
+    }
+#else
+    ledInit(false);
+#endif
     
 #ifdef SPRACINGF3MINI
     gpio_config_t buttonAGpioConfig = {
@@ -404,7 +412,13 @@ void init(void)
 #ifdef USE_SPI
     spiInit(SPIDEV_1);
     spiInit(SPIDEV_2);
+#ifdef ALIENFLIGHTF3
+    if (hardwareRevision == AFF3_REV_2) {
+        spiInit(SPIDEV_3);
+    }
+#else
     spiInit(SPIDEV_3);
+#endif
 #endif
 
 #ifdef USE_HARDWARE_REVISION_DETECTION
