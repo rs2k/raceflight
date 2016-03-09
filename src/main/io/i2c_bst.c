@@ -65,7 +65,7 @@
 #include "config/config_master.h"
 
 #include "version.h"
-#ifdef NAZE
+#ifdef USE_HARDWARE_REVISION_DETECTION
 #include "hardware_revision.h"
 #endif
 

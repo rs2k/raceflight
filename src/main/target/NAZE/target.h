@@ -176,7 +176,7 @@
 #define S1W_RX_PIN          GPIO_Pin_10
 
 // alternative defaults for AlienFlight F1 target
-#ifdef ALIENFLIGHTF1
+#ifdef ALIENFLIGHT
 #undef TARGET_BOARD_IDENTIFIER
 #define TARGET_BOARD_IDENTIFIER "AFF1" // AlienFlight F1.
 #undef BOARD_HAS_VOLTAGE_DIVIDER

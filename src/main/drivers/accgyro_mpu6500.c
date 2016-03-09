@@ -39,7 +39,7 @@ extern uint16_t acc_1G;
 
 #define BIT_I2C_IF_DIS              0x10
 
-void resetGyro (void) {
+void mpu6500ResetGyro (void) {
     // Device Reset
     mpuConfiguration.write(MPU_RA_PWR_MGMT_1, MPU6500_BIT_RESET);
     delay(100);

@@ -43,7 +43,24 @@ static const IO_t leds[] = {
     DEFIO_IO(LED2),
 #else
     DEFIO_IO(NONE),				  
-#endif 
+#endif
+#if defined(LED0_A) || defined(LED1_A) || defined(LED2_A)
+#ifdef LED0_A
+    DEFIO_IO(LED0_A),
+#else
+    DEFIO_IO(NONE),
+#endif
+#ifdef LED1_A
+    DEFIO_IO(LED1_A),
+#else
+    DEFIO_IO(NONE),
+#endif
+#ifdef LED2_A
+    DEFIO_IO(LED2_A),
+#else
+    DEFIO_IO(NONE),
+#endif
+#endif
 };
 
 uint8_t ledPolarity = 0
@@ -56,20 +73,38 @@ uint8_t ledPolarity = 0
 #ifdef LED2_INVERTED
     | BIT(2)
 #endif
+#ifdef LED0_A_INVERTED
+    | BIT(3)
+#endif
+#ifdef LED1_A_INVERTED
+    | BIT(4)
+#endif
+#ifdef LED2_A_INVERTED
+    | BIT(5)
+#endif
     ;
 
-void ledInit(void)
+uint8_t ledOffset = 0;
+
+void ledInit(bool alternative_led)
 {
 	uint32_t i;
+
+#if defined(LED0_A) || defined(LED1_A) || defined(LED2_A)
+	if (alternative_led)
+	    ledOffset = LED_NUMBER;
+#else
+	UNUSED(alternative_led);
+#endif
 
 	LED0_OFF;
 	LED1_OFF;
 	LED2_OFF;
 
-	for (i = 0; i < ARRAYLEN(leds); i++) {
-		if (leds[i]) {
-			IOInit(leds[i], OWNER_SYSTEM, RESOURCE_OUTPUT);
-			IOConfigGPIO(leds[i], IOCFG_OUT_PP);
+	for (i = 0; i < LED_NUMBER; i++) {
+		if (leds[i + ledOffset]) {
+			IOInit(leds[i + ledOffset], OWNER_SYSTEM, RESOURCE_OUTPUT);
+			IOConfigGPIO(leds[i + ledOffset], IOCFG_OUT_PP);
 		}
 	}
 
@@ -80,11 +115,11 @@ void ledInit(void)
 
 void ledToggle(int led)
 {
-	IOToggle(leds[led]);
+	IOToggle(leds[led + ledOffset]);
 }
 
 void ledSet(int led, bool on)
 {
-	bool inverted = (1 << led) & ledPolarity;
-	IOWrite(leds[led], on ? inverted : !inverted);
+	bool inverted = (1 << (led + ledOffset)) & ledPolarity;
+	IOWrite(leds[led + ledOffset], on ? inverted : !inverted);
 }
