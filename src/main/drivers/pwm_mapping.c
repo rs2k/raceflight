@@ -1333,7 +1333,7 @@ if (init->useBuzzerP6) {
                 ppmAvoidPWMTimerClash(timerHardwarePtr, TIM8);
             }
 #endif
-#ifdef REVONANO
+#if defined(REVONANO) || defined(SPARKY) || defined(ALIENFLIGHTF3)
             if (init->useMultiShot || init->useOneshot || isMotorBrushed(init->motorPwmRate)) {
                 ppmAvoidPWMTimerClash(timerHardwarePtr, TIM2);
             }
