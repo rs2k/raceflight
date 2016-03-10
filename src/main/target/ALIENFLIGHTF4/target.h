@@ -78,8 +78,8 @@
 //#define SDCARD_DETECT_INVERTED
 
 #define SDCARD_DETECT_PIN                   PB10
-#define SDCARD_DETECT_EXTI_LINE             EXTI_Line14
-#define SDCARD_DETECT_EXTI_PIN_SOURCE       EXTI_PinSource14
+#define SDCARD_DETECT_EXTI_LINE             EXTI_Line10
+#define SDCARD_DETECT_EXTI_PIN_SOURCE       EXTI_PinSource10
 #define SDCARD_DETECT_EXTI_PORT_SOURCE      EXTI_PortSourceGPIOB
 #define SDCARD_DETECT_EXTI_IRQn             EXTI15_10_IRQn
 
