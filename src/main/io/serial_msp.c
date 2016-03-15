@@ -223,9 +223,10 @@ static const box_t boxes[CHECKBOX_ITEM_COUNT + 1] = {
     { BOXFAILSAFE, "FAILSAFE;", 27 },
     { BOXAIRMODE, "AIR MODE;", 28 },
     { BOXACROPLUS, "ACRO PLUS;", 29 },
-    { BOXALWAYSSTABILIZED, "ALWAYS STABILIZED;", 30 },
-    { BOXTEST1, "TEST 1;", 31 },
-    { BOXTEST2, "TEST 2;", 32 },
+    { BOX3DDISABLESWITCH, "DISABLE 3D SWITCH;", 30},
+    { BOXALWAYSSTABILIZED, "ALWAYS STABILIZED;", 31 },
+    { BOXTEST1, "TEST 1;", 32 },
+    { BOXTEST2, "TEST 2;", 33 },
     { CHECKBOX_ITEM_COUNT, NULL, 0xFF }
 };
 
@@ -554,7 +555,7 @@ void mspInit(serialConfig_t *serialConfig)
 
 #ifdef BARO
     activeBoxIds[activeBoxIdCount++] = BOXACROPLUS;
-
+    activeBoxIds[activeBoxIdCount++] = BOX3DDISABLESWITCH;
     if (sensors(SENSOR_BARO)) {
         activeBoxIds[activeBoxIdCount++] = BOXBARO;
     }
