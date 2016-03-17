@@ -47,6 +47,7 @@
 #include "drivers/gpio.h"
 #include "drivers/timer.h"
 #include "drivers/serial.h"
+#include "drivers/pwm_mapping.h"
 #include "drivers/pwm_rx.h"
 
 #include "sensors/sensors.h"
