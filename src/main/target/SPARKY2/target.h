@@ -60,8 +60,7 @@
 #define BARO
 #define USE_BARO_MS5611
 
-#define M25P16_CS_GPIO        GPIOB
-#define M25P16_CS_PIN         GPIO_Pin_3
+#define M25P16_CS_PIN         PB3
 #define M25P16_SPI_INSTANCE   SPI3
 
 //#define RFM22B_CS_GPIO        GPIOA
@@ -104,12 +103,6 @@
 #define USART6_TX_PIN PC6 //inverter
 #define SERIAL_PORT_COUNT 4
 
-#define USE_SERIAL_1WIRE
-#define S1W_TX_GPIO         GPIOB
-#define S1W_TX_PIN          GPIO_Pin_10
-#define S1W_RX_GPIO         GPIOB
-#define S1W_RX_PIN          GPIO_Pin_11
-
 #define USE_SPI
 
 #define USE_SPI_DEVICE_1 //MPU9250
@@ -119,7 +112,6 @@
 #define SPI1_MOSI_PIN           PA7
 
 #define USE_SPI_DEVICE_3 //dataflash
-#define SPI3_NSS_GPIO           GPIOB
 #define SPI3_NSS_PIN            PB3
 #define SPI3_SCK_PIN            PC10
 #define SPI3_MISO_PIN           PC11
