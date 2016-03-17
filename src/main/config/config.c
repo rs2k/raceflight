@@ -73,7 +73,7 @@
 #include "config/config_master.h"
 
 #define BRUSHED_MOTORS_PWM_RATE 16000
-#define BRUSHLESS_MOTORS_PWM_RATE 400
+#define BRUSHLESS_MOTORS_PWM_RATE 4000
 
 void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, escAndServoConfig_t *escAndServoConfigToUse, pidProfile_t *pidProfileToUse);
 
@@ -193,20 +193,20 @@ static void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->I8[PIDVEL] = 45;
     pidProfile->D8[PIDVEL] = 1;
 
-    pidProfile->gyro_lpf_hz = 60;    // filtering ON by default
+    pidProfile->gyro_lpf_hz = 70;    // filtering ON by default
 
 #if defined(STM32F411xE) || defined(STM32F40_41xxx)
-    pidProfile->dterm_lpf_hz = 60;   // filtering ON by default
+    pidProfile->dterm_lpf_hz = 70;   // filtering ON by default
     pidProfile->yaw_pterm_cut_hz = 30;
-    pidProfile->P_f[ROLL] = 5.012f;     // new PID for raceflight. test carefully
-    pidProfile->I_f[ROLL] = 1.021f;
-    pidProfile->D_f[ROLL] = 0.020f;
-    pidProfile->P_f[PITCH] = 6.121f;
-    pidProfile->I_f[PITCH] = 1.400f;
-    pidProfile->D_f[PITCH] = 0.025f;
-    pidProfile->P_f[YAW] = 8.420f;
-    pidProfile->I_f[YAW] = 1.725f;
-    pidProfile->D_f[YAW] = 0.020f;
+    pidProfile->P_f[ROLL] = 5.000f;     // new PID for raceflight. test carefully
+    pidProfile->I_f[ROLL] = 1.000f;
+    pidProfile->D_f[ROLL] = 0.110f;
+    pidProfile->P_f[PITCH] = 6.500f;
+    pidProfile->I_f[PITCH] = 1.500f;
+    pidProfile->D_f[PITCH] = 0.140f;
+    pidProfile->P_f[YAW] = 9.300f;
+    pidProfile->I_f[YAW] = 1.750f;
+    pidProfile->D_f[YAW] = 0.000f;
     pidProfile->A_level = 3.000f;
     pidProfile->H_level = 3.000f;
     pidProfile->H_sensitivity = 100;
@@ -436,6 +436,7 @@ static void resetConf(void)
 
     featureSet(FEATURE_FAILSAFE);
     featureSet(FEATURE_ONESHOT125);
+    featureSet(FEATURE_USE_PWM_RATE);
     featureSet(FEATURE_SBUS_INVERTER);
 
     // global settings
@@ -469,7 +470,7 @@ static void resetConf(void)
 #else
     masterConfig.rxConfig.serialrx_provider = 0;
 #endif
-	masterConfig.rf_loop_ctrl = 4;                 // Low DLPF, 1KHz
+	masterConfig.rf_loop_ctrl = 2;                 // High DLPF, H4
 
 #if defined(CC3D)
     masterConfig.acc_hardware = 0;     // default/autodetect
