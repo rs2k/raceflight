@@ -75,7 +75,12 @@
 #include "config/config_master.h"
 
 #define BRUSHED_MOTORS_PWM_RATE 16000
+#ifdef STM32F4
+#define BRUSHLESS_MOTORS_PWM_RATE 2600
+#else
 #define BRUSHLESS_MOTORS_PWM_RATE 400
+#endif // STM32F4
+
 
 void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, escAndServoConfig_t *escAndServoConfigToUse, pidProfile_t *pidProfileToUse);
 
@@ -200,7 +205,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->dterm_lpf_hz = 0;    // filtering ON by default
     pidProfile->deltaMethod = DELTA_FROM_MEASUREMENT;
 
-#if defined(STM32F411xE) || defined(STM32F40_41xxx)
+#if defined(STM32F4)
     pidProfile->dterm_lpf_hz = 60;   // filtering ON by default
     pidProfile->P_f[ROLL] = 5.012f;     // new PID for raceflight. test carefully
     pidProfile->I_f[ROLL] = 1.021f;
@@ -451,6 +456,10 @@ static void resetConf(void)
     featureSet(FEATURE_FAILSAFE);
     featureSet(FEATURE_ONESHOT125);
     featureSet(FEATURE_SBUS_INVERTER);
+    
+#ifdef STM32F4
+    featureSet(FEATURE_USE_PWM_RATE);
+#endif
 
     // global settings
     masterConfig.current_profile_index = 0;     // default profile

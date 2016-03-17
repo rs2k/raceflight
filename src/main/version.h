@@ -15,6 +15,12 @@
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define FC_VERSION_MAJOR            16  // build year
+#define FC_VERSION_MINOR            03  // build month
+#define FC_VERSION_PATCH_LEVEL      15  // build day
+#define FC_VERSION_LETTER           "a" // build of day
+
+#define FC_VERSION_COMMENT          "RaceFlight Release 1 RC6.2 - New filters"
 
 
 // Example of __DATE__ string: "Jul 27 2012"
@@ -62,14 +68,6 @@
 
 #define BUILD_DAY_CH0 ((__DATE__[4] >= '0') ? (__DATE__[4]) : '0')
 #define BUILD_DAY_CH1 (__DATE__[ 5])
-
-
-#define FC_VERSION_MAJOR            16  // build year
-#define FC_VERSION_MINOR            02  // build month
-#define FC_VERSION_PATCH_LEVEL      15  // build day
-#define FC_VERSION_LETTER           "a" // build of day
-
-#define FC_VERSION_COMMENT          "RaceFlight Release 1 RC6.2 - New filters"
 
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
