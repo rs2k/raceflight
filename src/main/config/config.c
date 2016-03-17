@@ -80,7 +80,7 @@
 #define BRUSHLESS_MOTORS_PWM_RATE 2000
 #else
 #define BRUSHLESS_MOTORS_PWM_RATE 400
-#endif // STM32F4
+#endif
 
 void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, escAndServoConfig_t *escAndServoConfigToUse, pidProfile_t *pidProfileToUse);
 
@@ -200,11 +200,12 @@ void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->I8[PIDVEL] = 45;
     pidProfile->D8[PIDVEL] = 1;
 
-    pidProfile->gyro_lpf_hz = 60;    // filtering ON by default
+    pidProfile->gyro_lpf_hz = 70;    // filtering ON by default
 
 #ifdef STM32F4
     pidProfile->dterm_lpf_hz = 70;   // filtering ON by default
-    pidProfile->P_f[ROLL] = 5.000f;
+    pidProfile->yaw_pterm_cut_hz = 30;
+    pidProfile->P_f[ROLL] = 5.000f;     // new PID for raceflight. test carefully
     pidProfile->I_f[ROLL] = 1.000f;
     pidProfile->D_f[ROLL] = 0.110f;
     pidProfile->P_f[PITCH] = 6.500f;
@@ -445,6 +446,7 @@ static void resetConf(void)
 #endif
 
     featureSet(FEATURE_FAILSAFE);
+    featureSet(FEATURE_USE_PWM_RATE);
     featureSet(FEATURE_SBUS_INVERTER);
 
     // global settings
@@ -480,7 +482,7 @@ static void resetConf(void)
 #else
     masterConfig.rxConfig.serialrx_provider = SERIALRX_SPEKTRUM1024;
 #endif
-	masterConfig.rf_loop_ctrl = 4;                 // Low DLPF, 1KHz
+	masterConfig.rf_loop_ctrl = 2;                 // High DLPF, H4
 
 #if defined(CC3D)
     masterConfig.acc_hardware = 0;     // default/autodetect
