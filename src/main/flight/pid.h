@@ -85,6 +85,7 @@ extern float factor0;
 extern float factor1;
 extern float wow_factor0;
 extern float wow_factor1;
+extern float Throttle_p;
 
 void pidSetController(pidControllerType_e type);
 void pidResetErrorGyro(void);
