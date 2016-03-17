@@ -36,6 +36,7 @@
 #include "drivers/system.h"
 #include "drivers/gpio.h"
 #include "drivers/timer.h"
+#include "drivers/pwm_mapping.h"
 #include "drivers/pwm_rx.h"
 #include "drivers/serial.h"
 #include "drivers/gyro_sync.h"
@@ -75,7 +76,11 @@
 #include "config/config_master.h"
 
 #define BRUSHED_MOTORS_PWM_RATE 16000
+#ifdef STM32F4
+#define BRUSHLESS_MOTORS_PWM_RATE 2600
+#else
 #define BRUSHLESS_MOTORS_PWM_RATE 400
+#endif // STM32F4
 
 void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, escAndServoConfig_t *escAndServoConfigToUse, pidProfile_t *pidProfileToUse);
 
@@ -208,7 +213,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->P_f[YAW] = 9.300f;
     pidProfile->I_f[YAW] = 1.750f;
     pidProfile->D_f[YAW] = 0.000f;
-    
     pidProfile->A_level = 3.000f;
     pidProfile->H_level = 3.000f;
     pidProfile->H_sensitivity = 100;
@@ -694,6 +698,7 @@ static void resetConf(void)
 #ifdef ALIENFLIGHT
     featureSet(FEATURE_MOTOR_STOP);
     featureClear(FEATURE_ONESHOT125);
+    featureClear(FEATURE_USE_PWM_RATE);
 #ifdef ALIENFLIGHTF3
     masterConfig.batteryConfig.vbatscale = 20;
     masterConfig.mag_hardware = MAG_NONE;            // disabled by default
@@ -716,10 +721,11 @@ static void resetConf(void)
 #endif
     masterConfig.failsafeConfig.failsafe_delay = 2;
     masterConfig.failsafeConfig.failsafe_off_delay = 0;
+    masterConfig.mixerConfig.yaw_jump_prevention_limit = YAW_JUMP_PREVENTION_LIMIT_HIGH;
     currentControlRateProfile->rcRate8 = 100;
     currentControlRateProfile->rates[FD_PITCH] = 20;
     currentControlRateProfile->rates[FD_ROLL] = 20;
-    currentControlRateProfile->rates[FD_YAW] = 20;
+    currentControlRateProfile->rates[FD_YAW] = 30;
     parseRcChannels("TAER1234", &masterConfig.rxConfig);
 
     //  { 1.0f, -0.414178f,  1.0f, -1.0f },          // REAR_R

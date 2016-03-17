@@ -29,6 +29,7 @@
 #include "drivers/serial.h"
 #include "drivers/compass.h"
 #include "drivers/timer.h"
+#include "drivers/pwm_mapping.h"
 #include "drivers/pwm_rx.h"
 #include "drivers/accgyro.h"
 #include "drivers/light_led.h"

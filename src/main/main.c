@@ -302,21 +302,6 @@ void init(void)
     {
         pwm_params.idlePulse = masterConfig.flight3DConfig.neutral3d;
     }
-    else 
-    {
-        if ((pwm_params.motorPwmRate > 500 && !masterConfig.use_fast_pwm) && !feature(FEATURE_USE_PWM_RATE))
-        {
-            pwm_params.idlePulse = 0; // brushed motors
-        }
-        else
-        {
-        	if (feature(FEATURE_USE_PWM_RATE)) {
-        		pwm_params.idlePulse = (uint16_t)((float)(masterConfig.escAndServoConfig.mincommand-1000) / 4.1666f)+60;
-        	} else {
-        		pwm_params.idlePulse = (uint16_t)((float)masterConfig.escAndServoConfig.mincommand*1.5f);
-        	}
-        }
-    }    
 
     pwmOutputConfiguration_t *pwmOutputConfiguration = pwmInit(&pwm_params);
 
