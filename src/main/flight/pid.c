@@ -49,6 +49,7 @@
 #include "config/runtime_config.h"
 
 extern float dT;
+float Throttle_p;
 extern bool motorLimitReached;
 extern bool allowITermShrinkOnly;
 
@@ -240,8 +241,13 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
         // would be scaled by different dt each time. Division by dT fixes that.
         delta *= (1.0f / dT);
 
-
-        DTerm = constrainf(delta * (pidProfile->D_f[axis]/10) * PIDweight[axis] / 100, -300.0f, 300.0f);
+        float D_f = pidProfile->D_f[axis];
+        static float Kd_attenuation_break = 0.25f;
+        if (Throttle_p < Kd_attenuation_break) {
+        	float Kd_attenuation = constrainf((Throttle_p / Kd_attenuation_break) + 0.50, 0, 1);
+        	D_f = Kd_attenuation * D_f;
+        }
+        DTerm = constrainf(delta * (D_f/10) * PIDweight[axis] / 100, -300.0f, 300.0f);
 
 
         // -----calculate total PID output
