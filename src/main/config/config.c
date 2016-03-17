@@ -479,7 +479,7 @@ static void resetConf(void)
 #endif
 
 #ifdef CONFIG_SERIALRX_PROVIDER
-	masterConfig.rxConfig.serialrx_provider = CONFIG_SERIALRX_PROVIDER;
+    masterConfig.rxConfig.serialrx_provider = CONFIG_SERIALRX_PROVIDER;
 #else
     masterConfig.rxConfig.serialrx_provider = SERIALRX_SPEKTRUM1024;
 #endif
