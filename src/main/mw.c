@@ -40,6 +40,7 @@
 #include "drivers/system.h"
 #include "drivers/serial.h"
 #include "drivers/timer.h"
+#include "drivers/pwm_mapping.h"
 #include "drivers/pwm_rx.h"
 #include "drivers/gyro_sync.h"
 
