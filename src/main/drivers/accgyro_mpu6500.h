@@ -22,7 +22,7 @@
 
 #pragma once
 
-void resetGyro(void);
+void mpu6500ResetGyro(void);
 
 bool mpu6500AccDetect(acc_t *acc);
 bool mpu6500GyroDetect(gyro_t *gyro);
