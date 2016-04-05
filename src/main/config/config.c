@@ -197,18 +197,18 @@ void resetPidProfile(pidProfile_t *pidProfile)
 
     pidProfile->gyro_lpf_hz = 60;    // filtering ON by default
 
-#if defined(STM32F411xE) || defined(STM32F40_41xxx)
-    pidProfile->dterm_lpf_hz = 60;   // filtering ON by default
-    pidProfile->yaw_pterm_cut_hz = 30;
-    pidProfile->P_f[ROLL] = 5.012f;     // new PID for raceflight. test carefully
-    pidProfile->I_f[ROLL] = 1.021f;
-    pidProfile->D_f[ROLL] = 0.020f;
-    pidProfile->P_f[PITCH] = 6.121f;
-    pidProfile->I_f[PITCH] = 1.400f;
-    pidProfile->D_f[PITCH] = 0.025f;
-    pidProfile->P_f[YAW] = 8.420f;
-    pidProfile->I_f[YAW] = 1.725f;
-    pidProfile->D_f[YAW] = 0.020f;
+#ifdef STM32F4
+    pidProfile->dterm_lpf_hz = 70;   // filtering ON by default
+    pidProfile->P_f[ROLL] = 5.000f;
+    pidProfile->I_f[ROLL] = 1.000f;
+    pidProfile->D_f[ROLL] = 0.110f;
+    pidProfile->P_f[PITCH] = 6.500f;
+    pidProfile->I_f[PITCH] = 1.500f;
+    pidProfile->D_f[PITCH] = 0.140f;
+    pidProfile->P_f[YAW] = 9.300f;
+    pidProfile->I_f[YAW] = 1.750f;
+    pidProfile->D_f[YAW] = 0.000f;
+    
     pidProfile->A_level = 3.000f;
     pidProfile->H_level = 3.000f;
     pidProfile->H_sensitivity = 100;
