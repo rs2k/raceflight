@@ -38,8 +38,8 @@
 
 void systemReset(void)
 {
-    if (mpuConfiguration.reset)
-        mpuConfiguration.reset();
+
+	resetGyro();
 
 #if defined(OPBL) && !defined(REVONANO)
 	*((uint32_t *)0x2001FFFC) = 0x08020000; // 128KB SRAM STM32F4XX
@@ -54,8 +54,7 @@ void systemReset(void)
 void systemResetToBootloader(void) {
 
 
-    if (mpuConfiguration.reset)
-        mpuConfiguration.reset();
+	resetGyro();
 
 	*((uint32_t *)0x2001FFFC) = 0xDEADBEEF; // 128KB SRAM STM32F4XX
 

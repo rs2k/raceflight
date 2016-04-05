@@ -102,7 +102,7 @@ static bool mpuSpi6000InitDone = false;
 
 static IO_t mpuSpi6000CsPin = IO_NONE;
 
-void mpu6000ResetGyro (void) {
+void resetGyro (void) {
     // Device Reset
     mpu6000WriteRegister(MPU_RA_PWR_MGMT_1, BIT_H_RESET);
     delay(150);
@@ -166,7 +166,7 @@ void mpu6000SpiAccInit(void)
 {
     mpuIntExtiInit();
 
-    acc_1G = 512 * 4;
+    acc_1G = 512 * 8;
 }
 
 
@@ -331,7 +331,7 @@ static void mpu6000AccAndGyroInit(void) {
     delayMicroseconds(15);
 
     // Accel +/- 8 G Full Scale
-    mpu6000WriteRegister(MPU_RA_ACCEL_CONFIG, INV_FSR_16G << 3);
+    mpu6000WriteRegister(MPU_RA_ACCEL_CONFIG, INV_FSR_8G << 3);
     delayMicroseconds(15);
 
 

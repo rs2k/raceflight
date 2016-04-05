@@ -427,7 +427,6 @@ const struct serialPortVTable uartVTable[] = {
         uartSetBaudRate,
         isUartTransmitBufferEmpty,
         uartSetMode,
-        .writeBuf = NULL,
         .beginWrite = NULL,
         .endWrite = NULL,
     }

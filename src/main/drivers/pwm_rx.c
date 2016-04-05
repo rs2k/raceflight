@@ -32,7 +32,7 @@
 #include "timer.h"
 
 #include "pwm_mapping.h"
-#include "pwm_output.h"
+
 #include "pwm_rx.h"
 
 #define PPM_CAPTURE_COUNT 12
@@ -81,7 +81,7 @@ static uint16_t captures[PWM_PORTS_OR_PPM_CAPTURE_COUNT];
 
 static uint8_t ppmFrameCount = 0;
 static uint8_t lastPPMFrameCount = 0;
-static uint8_t ppmCountDivisor = 1;
+static uint8_t ppmCountShift = 1;
 
 typedef struct ppmDevice_s {
     uint8_t  pulseIndex;
@@ -158,9 +158,9 @@ static void ppmEdgeCallback(timerCCHandlerRec_t* cbRec, captureCompare_t capture
     /* Convert to 32-bit timer result */
     ppmDev.currentTime += ppmDev.largeCounter;
 
-    // Divide value if Oneshot, Multishot or brushed motors are active and the timer is shared
-    if (ppmCountDivisor > 1) {
-    	ppmDev.currentTime = ppmDev.currentTime / ppmCountDivisor;
+    // Divide by 12 if Oneshot125 is active and this is a CC3D board
+    if (ppmCountShift > 1) {
+    	ppmDev.currentTime = ppmDev.currentTime / ppmCountShift;
     }
 
     /* Capture computation */
@@ -326,22 +326,10 @@ void pwmInConfig(const timerHardware_t *timerHardwarePtr, uint8_t channel)
 #define UNUSED_PPM_TIMER_REFERENCE 0
 #define FIRST_PWM_PORT 0
 
-void ppmAvoidPWMTimerClash(const timerHardware_t *timerHardwarePtr, TIM_TypeDef *sharedPwmTimer, drv_pwm_config_t *init)
+void ppmAvoidPWMTimerClash(const timerHardware_t *timerHardwarePtr, TIM_TypeDef *sharedPwmTimer)
 {
     if (timerHardwarePtr->tim == sharedPwmTimer) {
-        if (init->useOneshot) {
-            if (init->useOneshot42) {
-                ppmCountDivisor = ONESHOT42_TIMER_MHZ;
-            } else {
-                ppmCountDivisor = ONESHOT125_TIMER_MHZ;
-            }
-        }
-        if (init->useMultiShot) {
-            ppmCountDivisor = MULTISHOT_TIMER_MHZ;
-        }
-        if (isMotorBrushed(init->motorPwmRate) && (!init->useOneshot || !init->useMultiShot)) {
-            ppmCountDivisor = PWM_BRUSHED_TIMER_MHZ;
-        }
+        ppmCountShift = 12;  // Divide by 12 if the timer is running at 12 MHz
     }
 }
 

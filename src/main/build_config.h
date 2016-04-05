@@ -21,15 +21,10 @@
 #define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
 
 #ifdef UNIT_TEST
-// make these visible to unit test
-#define STATIC_UNIT_TESTED
-#define STATIC_INLINE_UNIT_TESTED
-#define INLINE_UNIT_TESTED
+#define STATIC_UNIT_TESTED // make visible to unit test
 #define UNIT_TESTED
 #else
 #define STATIC_UNIT_TESTED static
-#define STATIC_INLINE_UNIT_TESTED static inline
-#define INLINE_UNIT_TESTED inline
 #define UNIT_TESTED
 #endif
 

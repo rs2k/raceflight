@@ -146,7 +146,6 @@ static bool detectSPISensorsAndUpdateDetectionResult(void)
         mpuConfiguration.slowread = mpu6500SlowReadRegister;
         mpuConfiguration.verifywrite = verifympu6500WriteRegister;
         mpuConfiguration.write = mpu6500WriteRegister;
-        mpuConfiguration.reset = mpu6500ResetGyro;
         return true;
     }
 #endif
@@ -159,7 +158,6 @@ static bool detectSPISensorsAndUpdateDetectionResult(void)
         mpuConfiguration.slowread = mpu6000SlowReadRegister;
         mpuConfiguration.verifywrite = verifympu6000WriteRegister;
         mpuConfiguration.write = mpu6000WriteRegister;
-        mpuConfiguration.reset = mpu6000ResetGyro;
         return true;
     }
 #endif
@@ -172,7 +170,6 @@ static bool detectSPISensorsAndUpdateDetectionResult(void)
         mpuConfiguration.slowread = mpu9250SlowReadRegister;
         mpuConfiguration.verifywrite = verifympu9250WriteRegister;
         mpuConfiguration.write = mpu9250WriteRegister;
-        mpuConfiguration.reset = mpu9250ResetGyro;
         return true;
     }
 #endif
@@ -201,8 +198,6 @@ static void mpu6050FindRevision(void)
         if (revision == 1) {
             mpuDetectionResult.resolution = MPU_HALF_RESOLUTION;
         } else if (revision == 2) {
-            mpuDetectionResult.resolution = MPU_FULL_RESOLUTION;
-        } else if ((revision == 3) || (revision == 7)) {
             mpuDetectionResult.resolution = MPU_FULL_RESOLUTION;
         } else {
             failureMode(FAILURE_ACC_INCOMPATIBLE);

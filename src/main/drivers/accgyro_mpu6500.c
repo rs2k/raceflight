@@ -39,7 +39,7 @@ extern uint16_t acc_1G;
 
 #define BIT_I2C_IF_DIS              0x10
 
-void mpu6500ResetGyro (void) {
+void resetGyro (void) {
     // Device Reset
     mpuConfiguration.write(MPU_RA_PWR_MGMT_1, MPU6500_BIT_RESET);
     delay(100);
@@ -77,7 +77,7 @@ void mpu6500AccInit(void)
 {
     mpuIntExtiInit();
 
-    acc_1G = 512 * 4;
+    acc_1G = 512 * 8;
 }
 
 void mpu6500GyroInit(uint8_t lpf)
@@ -107,7 +107,7 @@ void mpu6500GyroInit(uint8_t lpf)
 
     mpuConfiguration.write(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | FCB_DISABLED); //Fchoice_b defaults to 00 which makes fchoice 11
     delay(15);
-    mpuConfiguration.write(MPU_RA_ACCEL_CONFIG, INV_FSR_16G << 3);
+    mpuConfiguration.write(MPU_RA_ACCEL_CONFIG, INV_FSR_8G << 3);
     delay(15);
 
     if (lpf == 4) {

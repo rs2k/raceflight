@@ -71,7 +71,7 @@
 #include "sensors/sonar.h"
 #include "sensors/initialisation.h"
 
-#ifdef USE_HARDWARE_REVISION_DETECTION
+#ifdef NAZE
 #include "hardware_revision.h"
 #endif
 
@@ -112,21 +112,6 @@ const extiConfig_t *selectMPUIntExtiConfig(void)
 #endif
 #endif
 
-#ifdef ALIENFLIGHTF3
-    // MPU_INT output on V1 PA15
-    static const extiConfig_t alienFlightF3V1MPUIntExtiConfig = {
-            .io = IO_TAG(PA15)
-    };
-    // MPU_INT output on V2 PB13
-    static const extiConfig_t alienFlightF3V2MPUIntExtiConfig = {
-            .io = IO_TAG(PB13)
-    };
-    if (hardwareRevision == AFF3_REV_1) {
-        return &alienFlightF3V1MPUIntExtiConfig;
-    } else {
-        return &alienFlightF3V2MPUIntExtiConfig;
-    }
-#endif
     return NULL;
 }
 
@@ -242,7 +227,7 @@ bool detectGyro(void)
             ; // fallthrough
 
         case GYRO_MPU6500:
-#if defined(USE_GYRO_MPU6500) || defined(USE_GYRO_SPI_MPU6500)
+#ifdef USE_GYRO_MPU6500
 #ifdef USE_GYRO_SPI_MPU6500
             if (mpu6500GyroDetect(&gyro) || mpu6500SpiGyroDetect(&gyro))
 #else
@@ -388,7 +373,7 @@ retry:
 #endif
             ; // fallthrough
         case ACC_MPU6500:
-#if defined(USE_ACC_MPU6500) || defined(USE_ACC_SPI_MPU6500)
+#ifdef USE_ACC_MPU6500
 #ifdef USE_ACC_SPI_MPU6500
             if (mpu6500AccDetect(&acc) || mpu6500SpiAccDetect(&acc))
 #else
@@ -405,7 +390,7 @@ retry:
 
             ; // fallthrough
         case ACC_MPU9250:
-#ifdef USE_ACC_SPI_MPU9250
+#ifdef USE_ACC_MPU9250
             if (mpu9250SpiAccDetect(&acc))
             {
 #ifdef ACC_MPU9250_ALIGN
@@ -633,7 +618,7 @@ void reconfigureAlignment(sensorAlignmentConfig_t *sensorAlignmentConfig)
     }
 }
 
-bool sensorsAutodetect(sensorAlignmentConfig_t *sensorAlignmentConfig, uint8_t accHardwareToUse, uint8_t magHardwareToUse, uint8_t baroHardwareToUse, int16_t magDeclinationFromConfig, uint8_t gyroLpf, uint8_t gyroSyncDenominator)
+bool sensorsAutodetect(sensorAlignmentConfig_t *sensorAlignmentConfig, uint8_t accHardwareToUse, uint8_t magHardwareToUse, uint8_t baroHardwareToUse, int16_t magDeclinationFromConfig, uint8_t gyroLpf)
 {
     int16_t deg, min;
 
@@ -665,7 +650,7 @@ bool sensorsAutodetect(sensorAlignmentConfig_t *sensorAlignmentConfig, uint8_t a
     	//debug[3]=33;
     }
     // this is safe because either mpu6050 or mpu3050 or lg3d20 sets it, and in case of fail, we never get here.
-    gyroUpdateSampleRate(gyroLpf, gyroSyncDenominator);    // Set gyro refresh rate before initialisation
+    gyroUpdateSampleRate(gyroLpf);    // Set gyro refresh rate before initialisation
     gyro.init(gyroLpf);
 
     detectMag(magHardwareToUse);

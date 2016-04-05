@@ -55,7 +55,7 @@ static IO_t mpuSpi9250CsPin = IO_NONE;
 #define DISABLE_MPU9250       IOHi(mpuSpi9250CsPin)
 #define ENABLE_MPU9250        IOLo(mpuSpi9250CsPin)
 
-void mpu9250ResetGyro (void) {
+void resetGyro (void) {
     // Device Reset
     mpu9250WriteRegister(MPU_RA_PWR_MGMT_1, MPU9250_BIT_RESET);
     delay(150);

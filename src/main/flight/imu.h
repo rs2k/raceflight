@@ -21,6 +21,7 @@ extern int16_t throttleAngleCorrection;
 extern uint32_t accTimeSum;
 extern int accSumCount;
 extern float accVelScale;
+extern int16_t accSmooth[XYZ_AXIS_COUNT];
 extern int32_t accSum[XYZ_AXIS_COUNT];
 
 #define DEGREES_TO_DECIDEGREES(angle) (angle * 10)
@@ -73,17 +74,16 @@ void imuConfigure(
     imuRuntimeConfig_t *initialImuRuntimeConfig,
     pidProfile_t *initialPidProfile,
     accDeadband_t *initialAccDeadband,
+    float accz_lpf_cutoff,
     uint16_t throttle_correction_angle
 );
 
-float getCosTiltAngle(void);
 void calculateEstimatedAltitude(uint32_t currentTime);
 void imuUpdateAccelerometer(rollAndPitchTrims_t *accelerometerTrims);
-void imuUpdateGyro(void);
-void imuUpdateAttitude(void);
+void imuUpdateGyroAndAttitude(void);
 float calculateThrottleAngleScale(uint16_t throttle_correction_angle);
 int16_t calculateThrottleAngleCorrection(uint8_t throttle_correction_value);
-float calculateAccZLowPassFilterRCTimeConstant(float accz_lpf_hz);
+float calculateAccZLowPassFilterRCTimeConstant(float accz_lpf_cutoff);
 
 int16_t imuCalculateHeading(t_fp_vector *vec);
 

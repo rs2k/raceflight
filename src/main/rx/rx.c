@@ -39,7 +39,6 @@
 
 #include "drivers/gpio.h"
 #include "drivers/timer.h"
-#include "drivers/pwm_mapping.h"
 #include "drivers/pwm_rx.h"
 #include "drivers/system.h"
 #include "drivers/gyro_sync.h"
@@ -51,7 +50,6 @@
 #include "rx/msp.h"
 #include "rx/xbus.h"
 #include "rx/ibus.h"
-#include "rx/jetiexbus.h"
 
 #include "rx/rx.h"
 
@@ -238,10 +236,6 @@ void serialRxInit(rxConfig_t *rxConfig)
             rxRefreshRate = 20000; // TODO - Verify speed
             enabled = ibusInit(rxConfig, &rxRuntimeConfig, &rcReadRawFunc);
             break;
-        case SERIALRX_JETIEXBUS:
-            rxRefreshRate = 5500;
-            enabled = jetiExBusInit(rxConfig, &rxRuntimeConfig, &rcReadRawFunc);
-            break;
     }
 
     if (!enabled) {
@@ -276,8 +270,6 @@ uint8_t serialRxFrameStatus(rxConfig_t *rxConfig)
             return xBusFrameStatus();
         case SERIALRX_IBUS:
             return ibusFrameStatus();
-        case SERIALRX_JETIEXBUS:
-            return jetiExBusFrameStatus();
     }
     return SERIAL_RX_FRAME_PENDING;
 }
@@ -461,14 +453,12 @@ static uint8_t getRxChannelCount(void) {
     static uint8_t maxChannelsAllowed;
 
     if (!maxChannelsAllowed) {
-        uint8_t maxChannels = rxConfig->max_aux_channel + NON_AUX_CHANNEL_COUNT;
-        if (maxChannels > rxRuntimeConfig.channelCount) {
+        if (BASE_CHANNELS + rxConfig->max_aux_channels > rxRuntimeConfig.channelCount) {
             maxChannelsAllowed = rxRuntimeConfig.channelCount;
         } else {
-            maxChannelsAllowed = maxChannels;
+            maxChannelsAllowed = BASE_CHANNELS + rxConfig->max_aux_channels;
         }
     }
-
     return maxChannelsAllowed;
 }
 
