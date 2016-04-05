@@ -203,38 +203,23 @@ void resetPidProfile(pidProfile_t *pidProfile)
 
     pidProfile->yaw_p_limit = YAW_P_LIMIT_MAX;
     pidProfile->dterm_average_count = 4;
-    pidProfile->dterm_lpf_hz = 0;    // filtering ON by default
+    pidProfile->dterm_lpf_hz = 70;    // filtering ON by default
     pidProfile->deltaMethod = DELTA_FROM_MEASUREMENT;
 
-#if defined(STM32F4)
-    pidProfile->dterm_lpf_hz = 60;   // filtering ON by default
-    pidProfile->P_f[ROLL] = 5.012f;     // new PID for raceflight. test carefully
-    pidProfile->I_f[ROLL] = 1.021f;
-    pidProfile->D_f[ROLL] = 0.020f;
-    pidProfile->P_f[PITCH] = 6.121f;
-    pidProfile->I_f[PITCH] = 1.400f;
-    pidProfile->D_f[PITCH] = 0.025f;
-    pidProfile->P_f[YAW] = 8.420f;
-    pidProfile->I_f[YAW] = 1.725f;
-    pidProfile->D_f[YAW] = 0.020f;
+    pidProfile->dterm_lpf_hz = 70;   // filtering ON by default
+    pidProfile->P_f[ROLL] = 5.000f;
+    pidProfile->I_f[ROLL] = 1.000f;
+    pidProfile->D_f[ROLL] = 0.110f;
+    pidProfile->P_f[PITCH] = 6.500f;
+    pidProfile->I_f[PITCH] = 1.500f;
+    pidProfile->D_f[PITCH] = 0.140f;
+    pidProfile->P_f[YAW] = 9.300f;
+    pidProfile->I_f[YAW] = 1.750f;
+    pidProfile->D_f[YAW] = 0.000f;
     pidProfile->A_level = 3.000f;
     pidProfile->H_level = 3.000f;
     pidProfile->H_sensitivity = 100;
-#else
-    pidProfile->dterm_lpf_hz = 40;   // filtering ON by default
-    pidProfile->P_f[ROLL] = 1.1f;     // new PID with preliminary defaults test carefully
-    pidProfile->I_f[ROLL] = 0.4f;
-    pidProfile->D_f[ROLL] = 0.01f;
-    pidProfile->P_f[PITCH] = 1.4f;
-    pidProfile->I_f[PITCH] = 0.4f;
-    pidProfile->D_f[PITCH] = 0.01f;
-    pidProfile->P_f[YAW] = 4.0f;
-    pidProfile->I_f[YAW] = 0.4f;
-    pidProfile->D_f[YAW] = 0.00f;
-    pidProfile->A_level = 4.0f;
-    pidProfile->H_level = 4.0f;
-    pidProfile->H_sensitivity = 100;
-#endif
+
 
 #ifdef GTUNE
     pidProfile->gtune_lolimP[ROLL] = 10;          // [0..200] Lower limit of ROLL P during G tune.
