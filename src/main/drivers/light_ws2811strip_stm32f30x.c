@@ -24,7 +24,8 @@
 #include "nvic.h"
 
 #include "common/color.h"
-#include "drivers/light_ws2811strip.h"
+#include "light_ws2811strip.h"
+#include "dma.h"
 
 #ifndef WS2811_GPIO
 #define USE_LED_STRIP_ON_DMA1_CHANNEL3
@@ -38,6 +39,14 @@
 #define WS2811_DMA_CHANNEL              DMA1_Channel3
 #define WS2811_IRQ                      DMA1_Channel3_IRQn
 #endif
+
+void ws2811DMAHandler(DMA_Channel_TypeDef *channel) {
+    if (DMA_GetFlagStatus(WS2811_DMA_TC_FLAG)) {
+        ws2811LedDataTransferInProgress = 0;
+        DMA_Cmd(channel, DISABLE);
+        DMA_ClearFlag(WS2811_DMA_TC_FLAG);
+    }
+}
 
 void ws2811LedStripHardwareInit(void)
 {
@@ -61,6 +70,7 @@ void ws2811LedStripHardwareInit(void)
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(WS2811_GPIO, &GPIO_InitStructure);
 
+	dmaSetHandler(WS2811_DMA_HANDLER_IDENTIFER, ws2811DMAHandler);
 
     RCC_APB2PeriphClockCmd(WS2811_TIMER_APB2_PERIPHERAL, ENABLE);
 

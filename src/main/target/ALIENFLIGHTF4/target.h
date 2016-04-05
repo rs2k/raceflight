@@ -190,8 +190,8 @@
 #define BIND_PORT  GPIOA
 #define BIND_PIN   Pin_3
 
-// alternative defaults for AlienWii32 F4 target
-#define ALIENWII32
+// alternative defaults for ALIENFLIGHT F4 target
+#define ALIENFLIGHT
 
 // Hardware bind plug at PB2 (Pin 28)
 #define HARDWARE_BIND_PLUG
