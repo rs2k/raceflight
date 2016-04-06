@@ -36,6 +36,7 @@
 #include "drivers/system.h"
 #include "drivers/gpio.h"
 #include "drivers/timer.h"
+#include "drivers/pwm_mapping.h"
 #include "drivers/pwm_rx.h"
 #include "drivers/serial.h"
 #include "drivers/gyro_sync.h"
@@ -75,7 +76,11 @@
 #include "config/config_master.h"
 
 #define BRUSHED_MOTORS_PWM_RATE 16000
+#ifdef STM32F4
+#define BRUSHLESS_MOTORS_PWM_RATE 2600
+#else
 #define BRUSHLESS_MOTORS_PWM_RATE 400
+#endif // STM32F4
 
 void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, escAndServoConfig_t *escAndServoConfigToUse, pidProfile_t *pidProfileToUse);
 
@@ -208,7 +213,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->P_f[YAW] = 9.300f;
     pidProfile->I_f[YAW] = 1.750f;
     pidProfile->D_f[YAW] = 0.000f;
-    
     pidProfile->A_level = 3.000f;
     pidProfile->H_level = 3.000f;
     pidProfile->H_sensitivity = 100;
@@ -693,11 +697,18 @@ static void resetConf(void)
     // alternative defaults settings for ALIENFLIGHTF1 and ALIENFLIGHTF3 targets
 #ifdef ALIENFLIGHT
     featureSet(FEATURE_MOTOR_STOP);
+    featureClear(FEATURE_ONESHOT125);
+    featureClear(FEATURE_USE_PWM_RATE);
+#ifdef ALIENFLIGHTF3
+    masterConfig.batteryConfig.vbatscale = 20;
+    masterConfig.mag_hardware = MAG_NONE;            // disabled by default
+#endif
     masterConfig.rxConfig.spektrum_sat_bind = 5;
     masterConfig.escAndServoConfig.minthrottle = 1000;
     masterConfig.escAndServoConfig.maxthrottle = 2000;
     masterConfig.motor_pwm_rate = 32000;
     currentProfile->pidProfile.pidController = 2;
+#ifdef ALIENFLIGHTF4
     currentProfile->pidProfile.P_f[ROLL] = 5.000f;
     currentProfile->pidProfile.I_f[ROLL] = 1.000f;
     currentProfile->pidProfile.D_f[ROLL] = 0.020f;
@@ -707,12 +718,14 @@ static void resetConf(void)
     currentProfile->pidProfile.P_f[YAW] = 8.400f;
     currentProfile->pidProfile.I_f[YAW] = 1.500f;
     currentProfile->pidProfile.D_f[YAW] = 0.020f;
+#endif
     masterConfig.failsafeConfig.failsafe_delay = 2;
     masterConfig.failsafeConfig.failsafe_off_delay = 0;
+    masterConfig.mixerConfig.yaw_jump_prevention_limit = YAW_JUMP_PREVENTION_LIMIT_HIGH;
     currentControlRateProfile->rcRate8 = 100;
     currentControlRateProfile->rates[FD_PITCH] = 20;
     currentControlRateProfile->rates[FD_ROLL] = 20;
-    currentControlRateProfile->rates[FD_YAW] = 20;
+    currentControlRateProfile->rates[FD_YAW] = 30;
     parseRcChannels("TAER1234", &masterConfig.rxConfig);
 
     //  { 1.0f, -0.414178f,  1.0f, -1.0f },          // REAR_R

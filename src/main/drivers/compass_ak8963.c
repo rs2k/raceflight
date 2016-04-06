@@ -95,7 +95,7 @@ typedef struct ak8963Configuration_s {
 ak8963Configuration_t ak8963config;
 static float magGain[3] = { 1.0f, 1.0f, 1.0f };
 
-#ifdef USE_SPI
+#if defined(USE_SPI) && defined(USE_GYRO_SPI_MPU9250) 
 bool ak8963SPIRead(uint8_t addr_, uint8_t reg_, uint8_t len_, uint8_t *buf)
 {
     verifympu9250WriteRegister(MPU_RA_I2C_SLV0_ADDR, addr_ | READ_FLAG);   // set I2C slave address for read
@@ -147,7 +147,7 @@ bool ak8963Detect(mag_t *mag)
     }
 #endif
 
-#ifdef USE_SPI
+#if defined(USE_SPI) && defined(USE_GYRO_SPI_MPU9250) 
     // check for AK8963 on I2C master via SPI bus (as part of MPU9250)
 
     ack = verifympu9250WriteRegister(MPU_RA_INT_PIN_CFG, 0x10);               // INT_ANYRD_2CLEAR

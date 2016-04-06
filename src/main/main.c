@@ -188,11 +188,11 @@ void init(void)
 #endif
     //i2cSetOverclock(masterConfig.i2c_overclock);
 
+    systemInit();
+
 #ifdef USE_HARDWARE_REVISION_DETECTION
     detectHardwareRevision();
 #endif
-
-    systemInit();
 
     // Latch active features to be used for feature() in the remainder of init().
     latchActiveFeatures();
@@ -200,7 +200,15 @@ void init(void)
     // initialize IO (needed for all IO operations)
     IOInitGlobal();
 	
-    ledInit();
+#ifdef ALIENFLIGHTF3
+    if (hardwareRevision == AFF3_REV_1) {
+        ledInit(false);
+    } else {
+        ledInit(true);
+    }
+#else
+    ledInit(false);
+#endif
     
 #ifdef USE_EXTI
     EXTIInit();
@@ -294,21 +302,6 @@ void init(void)
     {
         pwm_params.idlePulse = masterConfig.flight3DConfig.neutral3d;
     }
-    else 
-    {
-        if ((pwm_params.motorPwmRate > 500 && !masterConfig.use_fast_pwm) && !feature(FEATURE_USE_PWM_RATE))
-        {
-            pwm_params.idlePulse = 0; // brushed motors
-        }
-        else
-        {
-        	if (feature(FEATURE_USE_PWM_RATE)) {
-        		pwm_params.idlePulse = (uint16_t)((float)(masterConfig.escAndServoConfig.mincommand-1000) / 4.1666f)+60;
-        	} else {
-        		pwm_params.idlePulse = (uint16_t)((float)masterConfig.escAndServoConfig.mincommand*1.5f);
-        	}
-        }
-    }    
 
     pwmOutputConfiguration_t *pwmOutputConfiguration = pwmInit(&pwm_params);
 
@@ -360,7 +353,13 @@ void init(void)
 #ifdef USE_SPI
     spiInit(SPIDEV_1);
     spiInit(SPIDEV_2);
+#ifdef ALIENFLIGHTF3
+    if (hardwareRevision == AFF3_REV_2) {
+        spiInit(SPIDEV_3);
+    }
+#else
     spiInit(SPIDEV_3);
+#endif
 #endif
 
 #ifdef USE_HARDWARE_REVISION_DETECTION
