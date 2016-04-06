@@ -18,7 +18,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <platform.h>
+#include "platform.h"
 
 #include "gpio.h"
 #include "nvic.h"
@@ -28,6 +28,7 @@
 #include "dma.h"
 
 #ifndef WS2811_GPIO
+#define USE_LED_STRIP_ON_DMA1_CHANNEL3
 #define WS2811_GPIO                     GPIOB
 #define WS2811_GPIO_AHB_PERIPHERAL      RCC_AHBPeriph_GPIOB
 #define WS2811_GPIO_AF                  GPIO_AF_1

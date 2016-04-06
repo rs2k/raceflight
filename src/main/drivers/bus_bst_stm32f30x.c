@@ -320,7 +320,7 @@ bool bstSlaveWrite(uint8_t* data) {
 uint32_t bstMasterWriteTimeout = 0;
 void bstMasterWriteLoop(void)
 {
-	while(bstWriteDataLen) {
+	if(bstWriteDataLen != 0) {
 		if(bufferPointer == 0) {
 			bool scl_set = false;
 			if(BSTx == I2C1)

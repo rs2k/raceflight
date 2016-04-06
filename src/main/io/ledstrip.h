@@ -95,3 +95,4 @@ void applyDefaultColors(hsvColor_t *colors, uint8_t colorCount);
 
 void ledStripEnable(void);
 void reevalulateLedConfig(void);
+

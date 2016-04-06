@@ -110,13 +110,7 @@ static void softSerialGPIOConfig(GPIO_TypeDef *gpio, uint16_t pin, GPIO_Mode mod
 
 void serialInputPortConfig(const timerHardware_t *timerHardwarePtr)
 {
-#ifdef STM32F10X
-    softSerialGPIOConfig(timerHardwarePtr->gpio, timerHardwarePtr->pin, Mode_IPU);
-#else
-#ifdef STM32F303xC
-    softSerialGPIOConfig(timerHardwarePtr->gpio, timerHardwarePtr->pin, Mode_AF_PP_PU);
-#endif
-#endif
+    softSerialGPIOConfig(timerHardwarePtr->gpio, timerHardwarePtr->pin, timerHardwarePtr->gpioInputMode);
 }
 
 static bool isTimerPeriodTooLarge(uint32_t timerPeriod)
@@ -485,8 +479,9 @@ const struct serialPortVTable softSerialVTable[] = {
         softSerialSetBaudRate,
         isSoftSerialTransmitBufferEmpty,
         softSerialSetMode,
-        .writeBuf = NULL,
-    }
+        .beginWrite = NULL,
+        .endWrite = NULL,
+  }
 };
 
 #endif

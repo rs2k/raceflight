@@ -29,6 +29,7 @@ typedef struct dmaHandlers_s {
 } dmaHandlers_t;
 
 #else
+
 typedef void (*dmaCallbackHandlerFuncPtr)(DMA_Channel_TypeDef *channel);
 
 typedef enum {

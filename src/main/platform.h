@@ -19,7 +19,6 @@
 
 #if defined(STM32F40_41xxx) || defined (STM32F411xE)
 #define STM32F4
-
 #include "stm32f4xx_conf.h"
 #include "stm32f4xx_rcc.h"
 #include "stm32f4xx_gpio.h"

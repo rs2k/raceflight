@@ -28,7 +28,7 @@ doc_files=(
 	'Blackbox.md'
 	'Migrating from baseflight.md'
 	'Boards.md'
-	'Board - AlienFlight.md'
+	'Board - AlienWii32.md'
 	'Board - CC3D.md'
 	'Board - CJMCU.md'
 	'Board - Naze32.md'

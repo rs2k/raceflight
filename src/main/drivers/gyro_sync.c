@@ -47,8 +47,9 @@ bool gyroSyncCheckUpdate(void) {
     return getMpuDataStatus(&gyro);
 }
 
-void gyroUpdateSampleRate(uint8_t lpf, uint8_t gyroSyncDenominator) {
-    int gyroSamplePeriod;
+void gyroUpdateSampleRate(uint8_t lpf) {
+
+    int gyroSamplePeriod, gyroSyncDenominator;
 
 #if defined(COLIBRI_RACE)
     switch (lpf) {

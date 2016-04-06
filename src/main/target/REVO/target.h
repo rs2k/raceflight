@@ -124,10 +124,9 @@
 
 #define SENSORS_SET (SENSOR_ACC)
 
-#define LED_STRIP
-#define LED_STRIP_TIMER TIM5
+//#define LED_STRIP
+//#define LED_STRIP_TIMER TIM5
 
-#define SOFTSERIAL
 #define GPS
 #define BLACKBOX
 #define TELEMETRY

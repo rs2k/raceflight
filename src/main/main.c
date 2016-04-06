@@ -19,7 +19,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "platform.h"
 #include "scheduler.h"
@@ -51,12 +50,10 @@
 #include "drivers/inverter.h"
 #include "drivers/flash_m25p16.h"
 #include "drivers/sonar_hcsr04.h"
+#include "drivers/sdcard.h"
 #include "drivers/gyro_sync.h"
 #include "drivers/exti.h"
 #include "drivers/io.h"
-#include "drivers/usb_io.h"
-#include "drivers/transponder_ir.h"
-#include "drivers/sdcard.h"
 
 #include "rx/rx.h"
 
@@ -70,7 +67,6 @@
 #include "io/ledstrip.h"
 #include "io/display.h"
 #include "io/asyncfatfs/asyncfatfs.h"
-#include "io/transponder_ir.h"
 
 #include "sensors/sensors.h"
 #include "sensors/sonar.h"
@@ -132,8 +128,6 @@ void ledStripInit(ledConfig_t *ledConfigsToUse, hsvColor_t *colorsToUse);
 void spektrumBind(rxConfig_t *rxConfig);
 const sonarHardware_t *sonarGetHardwareConfiguration(batteryConfig_t *batteryConfig);
 void sonarInit(const sonarHardware_t *sonarHardware);
-void transponderInit(uint8_t* transponderCode);
-//void usbCableDetectInit(void);
 
 #ifdef STM32F303xC
 // from system_stm32f30x.c
@@ -157,7 +151,6 @@ typedef enum {
     SYSTEM_STATE_CONFIG_LOADED  = (1 << 0),
     SYSTEM_STATE_SENSORS_READY  = (1 << 1),
     SYSTEM_STATE_MOTORS_READY   = (1 << 2),
-    SYSTEM_STATE_TRANSPONDER_ENABLED = (1 << 3),
     SYSTEM_STATE_READY          = (1 << 7)
 } systemState_e;
 
@@ -197,8 +190,6 @@ void init(void)
 
     systemInit();
 
-    debugMode = masterConfig.debug_mode;
-
 #ifdef USE_HARDWARE_REVISION_DETECTION
     detectHardwareRevision();
 #endif
@@ -219,41 +210,6 @@ void init(void)
     ledInit(false);
 #endif
     
-#ifdef SPRACINGF3MINI
-    gpio_config_t buttonAGpioConfig = {
-        BUTTON_A_PIN,
-        Mode_IPU,
-        Speed_2MHz
-    };
-    gpioInit(BUTTON_A_PORT, &buttonAGpioConfig);
-
-    gpio_config_t buttonBGpioConfig = {
-        BUTTON_B_PIN,
-        Mode_IPU,
-        Speed_2MHz
-    };
-    gpioInit(BUTTON_B_PORT, &buttonBGpioConfig);
-
-    // Check status of bind plug and exit if not active
-    delayMicroseconds(10);  // allow GPIO configuration to settle
-
-    if (!isMPUSoftReset()) {
-        uint8_t secondsRemaining = 5;
-        bool bothButtonsHeld;
-        do {
-            bothButtonsHeld = !digitalIn(BUTTON_A_PORT, BUTTON_A_PIN) && !digitalIn(BUTTON_B_PORT, BUTTON_B_PIN);
-            if (bothButtonsHeld) {
-                if (--secondsRemaining == 0) {
-                    resetEEPROM();
-                    systemReset();
-                }
-                delay(1000);
-                LED0_TOGGLE;
-            }
-        } while (bothButtonsHeld);
-    }
-#endif
-   
 #ifdef USE_EXTI
     EXTIInit();
 #endif
@@ -338,17 +294,12 @@ void init(void)
 #endif
 
 	pwm_params.useOneshot = feature(FEATURE_ONESHOT125);
-    pwm_params.useFixedPWM = masterConfig.force_motor_pwm_rate ? true : false;
+	pwm_params.useMultiShot = feature(FEATURE_MULTISHOT);
 	pwm_params.usePwmRate = feature(FEATURE_USE_PWM_RATE);
-    if (masterConfig.use_oneshot42) {
-        pwm_params.useOneshot42 = masterConfig.use_oneshot42 ? true : false;
-        masterConfig.use_multiShot = false;
-    } else {
-        pwm_params.useMultiShot = masterConfig.use_multiShot ? true : false;
-    }
+    pwm_params.useFastPWM = masterConfig.use_fast_pwm ? true : false;
     pwm_params.motorPwmRate = masterConfig.motor_pwm_rate;
-    pwm_params.idlePulse = masterConfig.escAndServoConfig.mincommand;
-    if (feature(FEATURE_3D)) {
+    if (feature(FEATURE_3D))
+    {
         pwm_params.idlePulse = masterConfig.flight3DConfig.neutral3d;
     }
 
@@ -429,12 +380,6 @@ void init(void)
     }
 #endif
 
-#if defined(SPRACINGF3MINI) && defined(SONAR) && defined(USE_SOFTSERIAL1)
-    if (feature(FEATURE_SONAR) && feature(FEATURE_SOFTSERIAL)) {
-        serialRemovePort(SERIAL_PORT_SOFTSERIAL1);
-    }
-#endif
-
 #ifdef USE_I2C
 #if defined(NAZE)
     if (hardwareRevision != NAZE32_SP) {
@@ -484,7 +429,7 @@ void init(void)
     }
 #endif
 
-    if (!sensorsAutodetect(&masterConfig.sensorAlignmentConfig,masterConfig.acc_hardware, masterConfig.mag_hardware, masterConfig.baro_hardware, masterConfig.mag_declination, masterConfig.gyro_lpf, masterConfig.gyro_sync_denom)) {
+    if (!sensorsAutodetect(&masterConfig.sensorAlignmentConfig,masterConfig.acc_hardware, masterConfig.mag_hardware, masterConfig.baro_hardware, currentProfile->mag_declination, masterConfig.rf_loop_ctrl)) {
         // if gyro was not detected due to whatever reason, we give up now.
         failureMode(FAILURE_MISSING_ACC);
     }
@@ -497,7 +442,7 @@ void init(void)
         LED1_TOGGLE;
         LED0_TOGGLE;
         delay(25);
-        if (!(getPreferedBeeperOffMask() & (1 << (BEEPER_SYSTEM_INIT - 1)))) BEEP_ON;
+        BEEP_ON;
         delay(25);
         BEEP_OFF;
     }
@@ -520,7 +465,7 @@ void init(void)
     failsafeInit(&masterConfig.rxConfig, masterConfig.flight3DConfig.deadband3d_throttle);
 
     masterConfig.rxConfig.rxSerialInverted = feature(FEATURE_SBUS_INVERTER);
-    rxInit(&masterConfig.rxConfig, masterConfig.modeActivationConditions);
+    rxInit(&masterConfig.rxConfig, currentProfile->modeActivationConditions);
 
 #ifdef GPS
     if (feature(FEATURE_GPS)) {
@@ -529,7 +474,7 @@ void init(void)
             &masterConfig.gpsConfig
         );
         navigationInit(
-            &masterConfig.gpsProfile,
+            &currentProfile->gpsProfile,
             &currentProfile->pidProfile
         );
     }
@@ -554,22 +499,6 @@ void init(void)
         telemetryInit();
     }
 #endif
-
-/* TODO - Fix in the future
-#ifdef USB_CABLE_DETECTION
-    usbCableDetectInit();
-#endif
-
-
-#ifdef TRANSPONDER
-    if (feature(FEATURE_TRANSPONDER)) {
-        transponderInit(masterConfig.transponderData);
-        transponderEnable();
-        transponderStartRepeating();
-        systemState |= SYSTEM_STATE_TRANSPONDER_ENABLED;
-    }
-#endif
-*/
 
 #ifdef USE_FLASHFS
 #ifdef NAZE
@@ -604,14 +533,6 @@ void init(void)
     afatfs_init();
 #endif
 
-    if (masterConfig.gyro_lpf > 0 && masterConfig.gyro_lpf < 7) {
-        masterConfig.pid_process_denom = 1; // When gyro set to 1khz always set pid speed 1:1 to sampling speed
-        masterConfig.gyro_sync_denom = 1;
-    }
-
-    setTargetPidLooptime(masterConfig.pid_process_denom); // Initialize pid looptime
-
-
 #ifdef BLACKBOX
     initBlackbox();
 #endif
@@ -619,7 +540,7 @@ void init(void)
     if (masterConfig.mixerMode == MIXER_GIMBAL) {
         accSetCalibrationCycles(CALIBRATING_ACC_CYCLES);
     }
-    gyroSetCalibrationCycles(calculateCalibratingCycles());
+    gyroSetCalibrationCycles(CALIBRATING_GYRO_CYCLES);
 #ifdef BARO
     baroSetCalibrationCycles(CALIBRATING_BARO_CYCLES);
 #endif
@@ -686,39 +607,39 @@ int main(void) {
     init();
 
     /* Setup scheduler */
-    schedulerInit();
-    rescheduleTask(TASK_GYROPID, targetLooptime);
+    rescheduleTask(TASK_GYROPID, targetLooptime - INTERRUPT_WAIT_TIME);
+
     setTaskEnabled(TASK_GYROPID, true);
 
     if(sensors(SENSOR_ACC)) {
     	uint32_t accTargetLooptime = 0;
         setTaskEnabled(TASK_ACCEL, true);
-        switch(targetLooptime) {  // Switch statement kept in place to change acc rates in the future
+        switch(targetLooptime) {
         	case(62):
 				accTargetLooptime = 10000;
                 break;
-             case(500):
-             case(375):
-             case(250):
-             case(125):
-                 accTargetLooptime = 1000;
-                 break;
-             default:
-                 case(1000):
+        	case(125):
+				accTargetLooptime = 10000;
+                break;
+        	case(250):
+				accTargetLooptime = 10000;
+                break;
+            case(500):
+				accTargetLooptime = 10000;
+                break;
+            default:
+            case(1000):
 #ifdef STM32F10X
-                accTargetLooptime = 3000;
+                accTargetLooptime = 5000;
 #else
                 accTargetLooptime = 1000;
 #endif
         }
         rescheduleTask(TASK_ACCEL, accTargetLooptime);
     }
-    setTaskEnabled(TASK_ACCEL, sensors(SENSOR_ACC));
-    setTaskEnabled(TASK_ATTITUDE, sensors(SENSOR_ACC));
+
     setTaskEnabled(TASK_SERIAL, true);
-#ifdef BEEPER
     setTaskEnabled(TASK_BEEPER, true);
-#endif
     setTaskEnabled(TASK_BATTERY, feature(FEATURE_VBAT) || feature(FEATURE_CURRENT_METER));
     setTaskEnabled(TASK_RX, true);
 #ifdef GPS
@@ -741,15 +662,11 @@ int main(void) {
 #endif
 #ifdef TELEMETRY
     setTaskEnabled(TASK_TELEMETRY, feature(FEATURE_TELEMETRY));
-    // Reschedule telemetry to 500hz for Jeti Exbus
-    if (feature(FEATURE_TELEMETRY) || masterConfig.rxConfig.serialrx_provider == SERIALRX_JETIEXBUS) rescheduleTask(TASK_TELEMETRY, 2000);
 #endif
 #ifdef LED_STRIP
     setTaskEnabled(TASK_LEDSTRIP, feature(FEATURE_LED_STRIP));
 #endif
-#ifdef TRANSPONDER
-    setTaskEnabled(TASK_TRANSPONDER, feature(FEATURE_TRANSPONDER));
-#endif
+
 #ifdef USE_BST
     setTaskEnabled(TASK_BST_READ_WRITE, true);
     setTaskEnabled(TASK_BST_MASTER_PROCESS, true);
@@ -763,19 +680,11 @@ int main(void) {
 
 void HardFault_Handler(void) {
     // fall out of the sky
-    uint8_t requiredStateForMotors = SYSTEM_STATE_CONFIG_LOADED | SYSTEM_STATE_MOTORS_READY;
-    if ((systemState & requiredStateForMotors) == requiredStateForMotors) {
+    uint8_t requiredState = SYSTEM_STATE_CONFIG_LOADED | SYSTEM_STATE_MOTORS_READY;
+    if ((systemState & requiredState) == requiredState) {
        stopMotorsNoDelay();
     }
-    
-#ifdef TRANSPONDER
-    // prevent IR LEDs from burning out.
-    uint8_t requiredStateForTransponder = SYSTEM_STATE_CONFIG_LOADED | SYSTEM_STATE_TRANSPONDER_ENABLED;
-    if ((systemState & requiredStateForTransponder) == requiredStateForTransponder) {
-        transponderIrDisable();
-    }
-#endif
-    
+
     LED1_OFF;
     LED0_OFF;
 
