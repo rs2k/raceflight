@@ -136,39 +136,6 @@ void ws2811LedStripHardwareInit(void)
     ws2811UpdateStrip();
 }
 
-#ifdef USE_LED_STRIP_ON_DMA1_CHANNEL3
-void DMA1_Channel3_IRQHandler(void)
-{
-    if (DMA_GetFlagStatus(DMA1_FLAG_TC3)) {
-        ws2811LedDataTransferInProgress = 0;
-        DMA_Cmd(DMA1_Channel3, DISABLE);            // disable DMA channel
-        DMA_ClearFlag(DMA1_FLAG_TC3);               // clear DMA1 Channel transfer complete flag
-    }
-}
-#endif
-
-#ifdef USE_LED_STRIP_ON_DMA1_CHANNEL2
-void DMA1_Channel2_IRQHandler(void)
-{
-    if (DMA_GetFlagStatus(DMA1_FLAG_TC2)) {
-        ws2811LedDataTransferInProgress = 0;
-        DMA_Cmd(DMA1_Channel2, DISABLE);            // disable DMA channel
-        DMA_ClearFlag(DMA1_FLAG_TC2);               // clear DMA1 Channel transfer complete flag
-    }
-}
-#endif
-
-#ifdef USE_LED_STRIP_ON_DMA1_CHANNEL7
-void DMA1_Channel7_IRQHandler(void)
-{
-    if (DMA_GetFlagStatus(DMA1_FLAG_TC7)) {
-        ws2811LedDataTransferInProgress = 0;
-        DMA_Cmd(DMA1_Channel7, DISABLE);            // disable DMA channel
-        DMA_ClearFlag(DMA1_FLAG_TC7);               // clear DMA1 Channel transfer complete flag
-    }
-}
-#endif
-
 void ws2811LedStripDMAEnable(void)
 {
     DMA_SetCurrDataCounter(WS2811_DMA_CHANNEL, WS2811_DMA_BUFFER_SIZE);  // load number of bytes to be transferred
