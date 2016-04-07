@@ -77,7 +77,7 @@
 
 #define BRUSHED_MOTORS_PWM_RATE 16000
 #ifdef STM32F4
-#define BRUSHLESS_MOTORS_PWM_RATE 2600
+#define BRUSHLESS_MOTORS_PWM_RATE 2000
 #else
 #define BRUSHLESS_MOTORS_PWM_RATE 400
 #endif // STM32F4
@@ -445,7 +445,7 @@ static void resetConf(void)
 #endif
 
     featureSet(FEATURE_FAILSAFE);
-    featureSet(FEATURE_ONESHOT125);
+    featureSet(FEATURE_ONESHOT);
     featureSet(FEATURE_SBUS_INVERTER);
 
     // global settings
@@ -635,7 +635,8 @@ static void resetConf(void)
     featureSet(FEATURE_RX_SERIAL);
 #endif
 #ifdef CONFIG_FEATURE_ONESHOT125
-    featureSet(FEATURE_ONESHOT125);
+    featureSet(FEATURE_ONESHOT);
+    masterConfig.motor_pwm_protocol = MOTOR_PWM_PROTOCOL_125;
 #endif
 #ifdef CONFIG_MSP_PORT
     masterConfig.serialConfig.portConfigs[CONFIG_MSP_PORT].functionMask = FUNCTION_MSP; 
@@ -1159,11 +1160,7 @@ void handleOneshotFeatureChangeOnRestart(void)
     StopPwmAllMotors();
     delay(50);
     // Apply additional delay when OneShot125 feature changed from on to off state
-    if (feature(FEATURE_ONESHOT125) && !featureConfigured(FEATURE_ONESHOT125)) {
-            delay(ONESHOT_FEATURE_CHANGED_DELAY_ON_BOOT_MS);
-    } else if (feature(FEATURE_MULTISHOT) && !featureConfigured(FEATURE_MULTISHOT)) {
-            delay(ONESHOT_FEATURE_CHANGED_DELAY_ON_BOOT_MS);
-    }
+    delay(ONESHOT_FEATURE_CHANGED_DELAY_ON_BOOT_MS);
 }
 
 void latchActiveFeatures()

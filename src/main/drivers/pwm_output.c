@@ -196,38 +196,34 @@ void pwmBrushlessMotorConfig(const timerHardware_t *timerHardware, uint8_t motor
     motors[motorIndex]->pwmWritePtr = pwmWriteStandard;
 }
 
-void pwmOneshotPwmRateMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, uint16_t motorPwmRate, uint8_t useOneshot42)
+void pwmOneShotMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, uint16_t motorPwmRate, pwmMotorProtocol_e protocol)
 {
-    uint8_t mhz = ONESHOT125_TIMER_MHZ;
-    if (useOneshot42) {
+    uint8_t mhz;
+    switch (protocol) {
+    case MOTOR_PWM_PROTOCOL_MULTI:
+        mhz = MULTISHOT_TIMER_MHZ;
+        break;
+    case MOTOR_PWM_PROTOCOL_42:
         mhz = ONESHOT42_TIMER_MHZ;
+        break;
+    default:
+        mhz = ONESHOT125_TIMER_MHZ;
     }
-    uint32_t hz = mhz * 1000000;
-    motors[motorIndex] = pwmOutConfig(timerHardware, mhz, hz / motorPwmRate, 0);
-    motors[motorIndex]->pwmWritePtr = pwmWriteOneshot;
-}
-
-void pwmOneshotMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, uint8_t useOneshot42)
-{
-    uint8_t mhz = ONESHOT125_TIMER_MHZ;
-    if (useOneshot42) {
-        mhz = ONESHOT42_TIMER_MHZ;
+    
+    if (motorPwmRate > 0) {
+        uint32_t hz = mhz * 1000000;
+        motors[motorIndex] = pwmOutConfig(timerHardware, mhz, hz / motorPwmRate, 0);
+    } else {
+        motors[motorIndex] = pwmOutConfig(timerHardware, mhz, 0xFFFF, 0);
     }
-    motors[motorIndex] = pwmOutConfig(timerHardware, mhz, 0xFFFF, 0);
-    motors[motorIndex]->pwmWritePtr = pwmWriteOneshot;
-}
-
-void pwmMultiShotPwmRateMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, uint16_t motorPwmRate)
-{
-    uint32_t hz = MULTISHOT_TIMER_MHZ * 1000000;
-    motors[motorIndex] = pwmOutConfig(timerHardware, MULTISHOT_TIMER_MHZ, hz / motorPwmRate, 0);
-    motors[motorIndex]->pwmWritePtr = pwmWriteMultiShot;
-}
-
-void pwmMultiShotMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex)
-{
-    motors[motorIndex] = pwmOutConfig(timerHardware, MULTISHOT_TIMER_MHZ, 0xFFFF, 0);
-    motors[motorIndex]->pwmWritePtr = pwmWriteMultiShot;
+    
+    switch (protocol) {
+    case MOTOR_PWM_PROTOCOL_MULTI:
+        motors[motorIndex]->pwmWritePtr = pwmWriteMultiShot;
+        break;
+    default:
+        motors[motorIndex]->pwmWritePtr = pwmWriteOneshot;
+    }
 }
 
 #ifdef USE_SERVOS

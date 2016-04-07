@@ -328,21 +328,24 @@ void pwmInConfig(const timerHardware_t *timerHardwarePtr, uint8_t channel)
 
 void ppmAvoidPWMTimerClash(const timerHardware_t *timerHardwarePtr, TIM_TypeDef *sharedPwmTimer, drv_pwm_config_t *init)
 {
-    if (timerHardwarePtr->tim == sharedPwmTimer) {
-        if (init->useOneshot) {
-            if (init->useOneshot42) {
-                ppmCountDivisor = ONESHOT42_TIMER_MHZ;
-            } else {
-                ppmCountDivisor = ONESHOT125_TIMER_MHZ;
-            }
-        }
-        if (init->useMultiShot) {
-            ppmCountDivisor = MULTISHOT_TIMER_MHZ;
-        }
-        if (isMotorBrushed(init->motorPwmRate) && (!init->useOneshot || !init->useMultiShot)) {
-            ppmCountDivisor = PWM_BRUSHED_TIMER_MHZ;
-        }
-    }
+	if (timerHardwarePtr->tim == sharedPwmTimer) {
+		switch (init->motorPwmProtocol)
+		{
+		case MOTOR_PWM_PROTOCOL_125:
+			ppmCountDivisor = ONESHOT125_TIMER_MHZ;
+			break;
+		case MOTOR_PWM_PROTOCOL_42:
+			ppmCountDivisor = ONESHOT42_TIMER_MHZ;
+			break;
+		case MOTOR_PWM_PROTOCOL_MULTI:
+			ppmCountDivisor = MULTISHOT_TIMER_MHZ;
+			break;
+		default:
+			if (init->brushedMotors) {
+				ppmCountDivisor = PWM_BRUSHED_TIMER_MHZ;
+			}
+		}
+	}
 }
 
 void ppmInConfig(const timerHardware_t *timerHardwarePtr)

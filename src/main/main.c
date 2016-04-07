@@ -293,11 +293,12 @@ void init(void)
     pwm_params.servoPwmRate = masterConfig.servo_pwm_rate;
 #endif
 
-	pwm_params.useOneshot = feature(FEATURE_ONESHOT125);
-	pwm_params.useMultiShot = feature(FEATURE_MULTISHOT);
-	pwm_params.usePwmRate = feature(FEATURE_USE_PWM_RATE);
+	pwm_params.motorPwmProtocol = masterConfig.motor_pwm_protocol;
+	pwm_params.motorPwmRate = masterConfig.motor_pwm_rate;
+	pwm_params.useOneshot = feature(FEATURE_ONESHOT);
     pwm_params.useFastPWM = masterConfig.use_fast_pwm ? true : false;
-    pwm_params.motorPwmRate = masterConfig.motor_pwm_rate;
+    pwm_params.brushedMotors = masterConfig.brushedMotors ? true : false;
+    
     if (feature(FEATURE_3D))
     {
         pwm_params.idlePulse = masterConfig.flight3DConfig.neutral3d;
@@ -307,7 +308,7 @@ void init(void)
 
     mixerUsePWMOutputConfiguration(pwmOutputConfiguration);
 
-    if (!feature(FEATURE_ONESHOT125) && !feature(FEATURE_MULTISHOT))
+    if (!feature(FEATURE_ONESHOT))
         motorControlEnable = true;
 
     systemState |= SYSTEM_STATE_MOTORS_READY;

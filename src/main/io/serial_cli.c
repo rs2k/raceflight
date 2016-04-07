@@ -381,6 +381,13 @@ static const char * const lookupTableRFLoopCtrl[] = {
 	"M8"
 };
 
+static const char * const lookupTablePwmProtocol[] = {
+    "PWM",
+    "125",
+    "42",
+    "MULTI"
+};
+
 typedef struct lookupTableEntry_s {
     const char * const *values;
     const uint8_t valueCount;
@@ -402,6 +409,7 @@ typedef enum {
     TABLE_PID_CONTROLLER,
     TABLE_SERIAL_RX,
 	TABLE_RF_LOOP_CTRL,
+    TABLE_PWM_PROTOCOL
 } lookupTableIndex_e;
 
 static const lookupTableEntry_t lookupTables[] = {
@@ -419,7 +427,8 @@ static const lookupTableEntry_t lookupTables[] = {
     { lookupTableGimbalMode, sizeof(lookupTableGimbalMode) / sizeof(char *) },
     { lookupTablePidController, sizeof(lookupTablePidController) / sizeof(char *) },
     { lookupTableSerialRX, sizeof(lookupTableSerialRX) / sizeof(char *) },
-    { lookupTableRFLoopCtrl, sizeof(lookupTableRFLoopCtrl) / sizeof(char *) }
+    { lookupTableRFLoopCtrl, sizeof(lookupTableRFLoopCtrl) / sizeof(char *) },
+    { lookupTablePwmProtocol, sizeof(lookupTablePwmProtocol) / sizeof(char *) }
 };
 
 #define VALUE_TYPE_OFFSET 0
@@ -499,7 +508,11 @@ const clivalue_t valueTable[] = {
     { "enable_buzzer_p6",           VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.use_buzzer_p6, .config.lookup = { TABLE_OFF_ON } },
 #endif
     { "motor_pwm_rate",             VAR_UINT16 | MASTER_VALUE,  &masterConfig.motor_pwm_rate, .config.minmax = { 50,  32000 } },
+    { "motor_pwm_protocol",         VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.motor_pwm_protocol, .config.lookup = { TABLE_PWM_PROTOCOL } },
     { "servo_pwm_rate",             VAR_UINT16 | MASTER_VALUE,  &masterConfig.servo_pwm_rate, .config.minmax = { 50,  498 } },
+#ifdef BRUSHED_MOTORS 
+    { "enable_brushed_motors", VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, &masterConfig.brushedMotors, .config.lookup = { TABLE_OFF_ON } },
+#endif  
 
     { "disarm_kill_switch",         VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.disarm_kill_switch, .config.lookup = { TABLE_OFF_ON } },
     { "auto_disarm_delay",          VAR_UINT8  | MASTER_VALUE,  &masterConfig.auto_disarm_delay, .config.minmax = { 0,  60 } },
