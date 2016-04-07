@@ -1254,7 +1254,7 @@ if (init->useBuzzerP6) {
         }
 #endif
 
-#define AVOIDANCE_CONDITION (!(init->motorPwmProtocol == MOTOR_PWM_PROTOCOL_STD) || init->brushedMotors)
+#define AVOIDANCE_CONDITION (!(init->motorPwmProtocol == MOTOR_PWM_PROTOCOL_STD) || init->motorPwmProtocol == MOTOR_PWM_PROTOCOL_BRUSHED)
         
         if (type == MAP_TO_PPM_INPUT) {
 #ifdef REVO
@@ -1307,26 +1307,25 @@ if (init->useBuzzerP6) {
             }
 #endif  
         
-			switch (init->motorPwmProtocol)
-			{
-			case MOTOR_PWM_PROTOCOL_125: // oneshot125
-			case MOTOR_PWM_PROTOCOL_42:  // oneshot42
-				pwmOneShotMotorConfig(timerHardwarePtr, pwmOutputConfiguration.motorCount, init->motorPwmRate, init->motorPwmProtocol);
-				pwmOutputConfiguration.portConfigurations[pwmOutputConfiguration.outputCount].flags = PWM_PF_MOTOR | PWM_PF_OUTPUT_PROTOCOL_ONESHOT | PWM_PF_OUTPUT_PROTOCOL_PWM;
-				break;
-			case MOTOR_PWM_PROTOCOL_MULTI: // multishot
-				pwmOneShotMotorConfig(timerHardwarePtr, pwmOutputConfiguration.motorCount, init->motorPwmRate, init->motorPwmProtocol);
-				pwmOutputConfiguration.portConfigurations[pwmOutputConfiguration.outputCount].flags = PWM_PF_MOTOR | PWM_PF_OUTPUT_PROTOCOL_MULTISHOT | PWM_PF_OUTPUT_PROTOCOL_PWM;
-				break;
-			default:
-    			if (init->brushedMotors) {
-					pwmBrushedMotorConfig(timerHardwarePtr, pwmOutputConfiguration.motorCount, init->motorPwmRate);
-					pwmOutputConfiguration.portConfigurations[pwmOutputConfiguration.outputCount].flags = PWM_PF_MOTOR | PWM_PF_MOTOR_MODE_BRUSHED | PWM_PF_OUTPUT_PROTOCOL_PWM;
-				} else {
-                    pwmBrushlessMotorConfig(timerHardwarePtr, pwmOutputConfiguration.motorCount, init->motorPwmRate, init->idlePulse);
-                    pwmOutputConfiguration.portConfigurations[pwmOutputConfiguration.outputCount].flags = PWM_PF_MOTOR | PWM_PF_OUTPUT_PROTOCOL_PWM;
-                }                
-            }
+	        switch (init->motorPwmProtocol)
+	        {
+	        case MOTOR_PWM_PROTOCOL_125: // oneshot125
+	        case MOTOR_PWM_PROTOCOL_42:  // oneshot42
+		        pwmOneShotMotorConfig(timerHardwarePtr, pwmOutputConfiguration.motorCount, init->motorPwmRate, init->motorPwmProtocol);
+		        pwmOutputConfiguration.portConfigurations[pwmOutputConfiguration.outputCount].flags = PWM_PF_MOTOR | PWM_PF_OUTPUT_PROTOCOL_ONESHOT | PWM_PF_OUTPUT_PROTOCOL_PWM;
+		        break;
+	        case MOTOR_PWM_PROTOCOL_MULTI: // multishot
+		        pwmOneShotMotorConfig(timerHardwarePtr, pwmOutputConfiguration.motorCount, init->motorPwmRate, init->motorPwmProtocol);
+		        pwmOutputConfiguration.portConfigurations[pwmOutputConfiguration.outputCount].flags = PWM_PF_MOTOR | PWM_PF_OUTPUT_PROTOCOL_MULTISHOT | PWM_PF_OUTPUT_PROTOCOL_PWM;
+		        break;
+	        case MOTOR_PWM_PROTOCOL_BRUSHED: 
+		        pwmBrushedMotorConfig(timerHardwarePtr, pwmOutputConfiguration.motorCount, init->motorPwmRate);
+		        pwmOutputConfiguration.portConfigurations[pwmOutputConfiguration.outputCount].flags = PWM_PF_MOTOR | PWM_PF_MOTOR_MODE_BRUSHED | PWM_PF_OUTPUT_PROTOCOL_PWM;
+    	        break;
+	        default:
+		        pwmBrushlessMotorConfig(timerHardwarePtr, pwmOutputConfiguration.motorCount, init->motorPwmRate, init->idlePulse);
+		        pwmOutputConfiguration.portConfigurations[pwmOutputConfiguration.outputCount].flags = PWM_PF_MOTOR | PWM_PF_OUTPUT_PROTOCOL_PWM;
+	        }
            			
             pwmOutputConfiguration.portConfigurations[pwmOutputConfiguration.outputCount].index = pwmOutputConfiguration.motorCount;
             pwmOutputConfiguration.portConfigurations[pwmOutputConfiguration.outputCount].timerHardware = timerHardwarePtr;

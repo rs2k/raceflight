@@ -340,10 +340,9 @@ void ppmAvoidPWMTimerClash(const timerHardware_t *timerHardwarePtr, TIM_TypeDef 
 		case MOTOR_PWM_PROTOCOL_MULTI:
 			ppmCountDivisor = MULTISHOT_TIMER_MHZ;
 			break;
-		default:
-			if (init->brushedMotors) {
-				ppmCountDivisor = PWM_BRUSHED_TIMER_MHZ;
-			}
+		case MOTOR_PWM_PROTOCOL_BRUSHED:
+			ppmCountDivisor = PWM_BRUSHED_TIMER_MHZ;
+            break;
 		}
 	}
 }

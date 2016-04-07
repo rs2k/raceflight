@@ -445,7 +445,6 @@ static void resetConf(void)
 #endif
 
     featureSet(FEATURE_FAILSAFE);
-    featureSet(FEATURE_ONESHOT);
     featureSet(FEATURE_SBUS_INVERTER);
 
     // global settings
@@ -487,7 +486,7 @@ static void resetConf(void)
     masterConfig.acc_hardware = 0;     // default/autodetect
 #endif
         
-#if defined(STM32F40_41xxx) || defined (STM32F411xE)
+#ifdef STM32F4
     masterConfig.rxConfig.max_aux_channels = 99;
 #elif defined(STM32F303xC)
     masterConfig.rxConfig.max_aux_channels = 6;
@@ -531,13 +530,8 @@ static void resetConf(void)
     resetEscAndServoConfig(&masterConfig.escAndServoConfig);
     resetFlight3DConfig(&masterConfig.flight3DConfig);
 
-#ifdef BRUSHED_MOTORS
-    masterConfig.motor_pwm_rate = BRUSHED_MOTORS_PWM_RATE;
-#else
-    masterConfig.motor_pwm_rate = BRUSHLESS_MOTORS_PWM_RATE;
-#endif
     masterConfig.servo_pwm_rate = 50;
-    masterConfig.use_fast_pwm = 0;
+
 #ifdef CC3D
     masterConfig.use_buzzer_p6 = 0;
 #endif
@@ -630,7 +624,6 @@ static void resetConf(void)
     masterConfig.blackbox_rate_denom = 1;
 #endif
 
-
 #ifdef CONFIG_FEATURE_RX_SERIAL
     featureSet(FEATURE_RX_SERIAL);
 #endif
@@ -638,6 +631,8 @@ static void resetConf(void)
     featureSet(FEATURE_ONESHOT);
     masterConfig.motor_pwm_protocol = MOTOR_PWM_PROTOCOL_125;
 #endif
+    masterConfig.motor_pwm_rate = BRUSHLESS_MOTORS_PWM_RATE;
+
 #ifdef CONFIG_MSP_PORT
     masterConfig.serialConfig.portConfigs[CONFIG_MSP_PORT].functionMask = FUNCTION_MSP; 
     masterConfig.serialConfig.portConfigs[CONFIG_MSP_PORT].msp_baudrateIndex = BAUD_9600;
@@ -650,7 +645,8 @@ static void resetConf(void)
 #ifdef ALIENFLIGHT
     featureSet(FEATURE_MOTOR_STOP);
     featureClear(FEATURE_ONESHOT);
-    masterConfig.motor_pwm_protocol = MOTOR_PWM_PROTOCOL_STD;
+    masterConfig.motor_pwm_protocol = MOTOR_PWM_PROTOCOL_BRUSHED;
+	masterConfig.motor_pwm_rate = BRUSHED_MOTORS_PWM_RATE;
     
 #ifdef ALIENFLIGHTF3
     masterConfig.batteryConfig.vbatscale = 20;

@@ -80,7 +80,6 @@ typedef struct drv_pwm_config_s {
     uint16_t servoPwmRate;
     uint16_t servoCenterPulse;
 #endif
-    bool brushedMotors;
     bool airplane;       // fixed wing hardware config, lots of servos etc
     uint16_t motorPwmRate;
     uint8_t motorPwmProtocol;
@@ -102,10 +101,11 @@ typedef enum {
 } pwmPortFlags_e;
 
 typedef enum {
-	MOTOR_PWM_PROTOCOL_STD   = 0,
-	MOTOR_PWM_PROTOCOL_125   = 1,
-	MOTOR_PWM_PROTOCOL_42    = 2,
-	MOTOR_PWM_PROTOCOL_MULTI = 3,
+	MOTOR_PWM_PROTOCOL_STD = 0,
+	MOTOR_PWM_PROTOCOL_125,
+	MOTOR_PWM_PROTOCOL_42,
+	MOTOR_PWM_PROTOCOL_MULTI,
+	MOTOR_PWM_PROTOCOL_BRUSHED,
 } pwmMotorProtocol_e;
 
 typedef struct pwmPortConfiguration_s {

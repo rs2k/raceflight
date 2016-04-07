@@ -296,8 +296,6 @@ void init(void)
 	pwm_params.motorPwmProtocol = masterConfig.motor_pwm_protocol;
 	pwm_params.motorPwmRate = masterConfig.motor_pwm_rate;
 	pwm_params.useOneshot = feature(FEATURE_ONESHOT);
-    pwm_params.useFastPWM = masterConfig.use_fast_pwm ? true : false;
-    pwm_params.brushedMotors = masterConfig.brushedMotors ? true : false;
     
     if (feature(FEATURE_3D))
     {
