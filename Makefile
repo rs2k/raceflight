@@ -5,7 +5,7 @@
 # this stuff is worth it, you can buy me a beer in return
 ###############################################################################
 #
-# Makefile for building the cleanflight firmware.
+# Makefile for building the RACEFLIGHT firmware.
 #
 # Invoke this with 'make help' to see the list of supported targets.
 #
@@ -15,16 +15,16 @@
 #
 
 # The target to build, see VALID_TARGETS below
-TARGET		?= NAZE
+TARGET	  ?= NAZE
 
 # Compile-time options
-OPTIONS		?=
+OPTIONS	  ?=
 
 # compile for OpenPilot BootLoader support
-OPBL ?=no
+OPBL      ?= no
 
 # Debugger optons, must be empty or GDB
-DEBUG ?= 
+DEBUG     ?= 
 
 # Serial port/Device for flashing
 SERIAL_DEVICE	?= $(firstword $(wildcard /dev/ttyUSB*) no-port-found)
@@ -36,11 +36,11 @@ FLASH_SIZE ?=
 # Things that need to be maintained as the source changes
 #
 
-FORKNAME			 = raceflight
+FORKNAME		 = raceflight
 
 CC3D_TARGETS     = CC3D CC3D_OPBL
 F1_TARGETS       = NAZE OLIMEXINO CJMCU EUSTM32F103RC PORT103R ALIENFLIGHTF1 AFROMINI
-F3_TARGETS       = STM32F3DISCOVERY CHEBUZZF3 NAZE32PRO SPRACINGF3 IRCFUSIONF3 SPARKY ALIENFLIGHTF3 COLIBRI_RACE MOTOLAB RMDO LUX_RACE SPRACINGF3MINI
+F3_TARGETS       = STM32F3DISCOVERY CHEBUZZF3 NAZE32PRO SPRACINGF3 IRCFUSIONF3 SPARKY ALIENFLIGHTF3 COLIBRI_RACE MOTOLAB RMDO LUX_RACE SPRACINGF3MINI ZCOREF3
 F4_TARGETS       = REVO REVO_OPBL SPARKY2 SPARKY2_OPBL REVONANO REVONANO_OPBL ALIENFLIGHTF4 BLUEJAYF4 VRCORE QUANTON QUANTON_OPBL AQ32_V2
 
 F405_TARGETS     = REVO REVO_OPBL SPARKY2 SPARKY2_OPBL ALIENFLIGHTF4 BLUEJAYF4 VRCORE QUANTON AQ32_V2
@@ -56,7 +56,7 @@ OPBL_VALID_TARGETS = CC3D_OPBL REVO_OPBL REVONANO_OPBL SPARKY2_OPBL QUANTON_OPBL
 
 64K_TARGETS  = CJMCU
 128K_TARGETS = ALIENFLIGHTF1 $(CC3D_TARGETS) NAZE OLIMEXINO RMDO AFROMINI
-256K_TARGETS = EUSTM32F103RC PORT103R STM32F3DISCOVERY CHEBUZZF3 NAZE32PRO SPRACINGF3 IRCFUSIONF3 SPARKY ALIENFLIGHTF3 COLIBRI_RACE MOTOLAB LUX_RACE SPRACINGF3MINI $(F4_TARGETS)
+256K_TARGETS = EUSTM32F103RC PORT103R STM32F3DISCOVERY CHEBUZZF3 NAZE32PRO SPRACINGF3 IRCFUSIONF3 SPARKY ALIENFLIGHTF3 COLIBRI_RACE MOTOLAB LUX_RACE SPRACINGF3MINI ZCOREF3 $(F4_TARGETS)
 
 # Configure default flash sizes for the targets
 ifeq ($(FLASH_SIZE),)
@@ -162,8 +162,17 @@ EXCLUDES = stm32f4xx_crc.c \
 		stm32f4xx_fmpi2c.c \
 		stm32f4xx_lptim.c \
 		stm32f4xx_qspi.c \
-		stm32f4xx_spdifrx.c
-		
+		stm32f4xx_spdifrx.c \
+		stm32f4xx_cryp.c \
+		stm32f4xx_cryp_aes.c \
+		stm32f4xx_hash_md5.c \
+		stm32f4xx_cryp_des.c \
+		stm32f4xx_rtc.c \
+		stm32f4xx_hash.c \
+		stm32f4xx_dbgmcu.c \
+		stm32f4xx_cryp_tdes.c \
+		stm32f4xx_hash_sha1.c
+
 
 ifeq ($(TARGET),$(filter $(TARGET), $(F411_TARGETS)))
 EXCLUDES += stm32f4xx_fsmc.c
@@ -316,6 +325,12 @@ ifeq ($(TARGET),ALIENFLIGHTF1)
 # ALIENFLIGHTF1 is a VARIANT of NAZE
 TARGET_FLAGS := $(TARGET_FLAGS) -DNAZE -DALIENFLIGHT
 TARGET_DIR = $(ROOT)/src/main/target/NAZE
+endif
+
+ifeq ($(TARGET),ZCOREF3)
+# ZCOREF3 is a VARIANT of SPRACINGF3
+TARGET_FLAGS := $(TARGET_FLAGS) -DSPRACINGF3 -DZCORE
+TARGET_DIR = $(ROOT)/src/main/target/SPRACINGF3
 endif
 
 ifeq ($(TARGET),$(filter $(TARGET), $(CC3D_TARGETS)))
@@ -755,26 +770,6 @@ VRCORE_SRC = \
 		   $(COMMON_SRC) \
 		   $(VCPF4_SRC)
 		   
-STM32F30x_COMMON_SRC = \
-		   startup_stm32f30x_md_gcc.S \
-		   drivers/adc.c \
-		   drivers/adc_stm32f30x.c \
-		   drivers/bus_i2c_stm32f30x.c \
-		   drivers/bus_spi.c \
-		   drivers/gpio_stm32f30x.c \
-		   drivers/light_led.c \
-		   drivers/light_ws2811strip.c \
-		   drivers/light_ws2811strip_stm32f30x.c \
-		   drivers/pwm_mapping.c \
-		   drivers/pwm_output.c \
-		   drivers/pwm_rx.c \
-		   drivers/serial_uart.c \
-		   drivers/serial_uart_stm32f30x.c \
-		   drivers/sound_beeper.c \
-		   drivers/system_stm32f30x.c \
-		   drivers/timer.c \
-		   drivers/timer_stm32f30x.c
-
 NAZE32PRO_SRC = \
 		   $(STM32F30x_COMMON_SRC) \
 		   $(HIGHEND_SRC) \
@@ -903,8 +898,10 @@ SPRACINGF3_SRC = \
 		   $(STM32F30x_COMMON_SRC) \
 		   drivers/accgyro_mpu.c \
 		   drivers/accgyro_mpu6050.c \
+		   drivers/accgyro_mpu6500.c \
 		   drivers/barometer_ms5611.c \
 		   drivers/compass_ak8975.c \
+		   drivers/compass_ak8963.c \
 		   drivers/barometer_bmp085.c \
 		   drivers/barometer_bmp280.c \
 		   drivers/compass_hmc5883l.c \
@@ -917,6 +914,8 @@ SPRACINGF3_SRC = \
 		   io/flashfs.c \
 		   $(HIGHEND_SRC) \
 		   $(COMMON_SRC)
+
+ZCOREF3_SRC = $(SPRACINGF3_SRC)
 
 IRCFUSIONF3_SRC = \
 		   $(STM32F30x_COMMON_SRC) \
