@@ -177,11 +177,6 @@ void pwmCompleteOneshotMotorUpdate(uint8_t motorCount)
     }
 }
 
-bool isMotorBrushed(uint16_t motorPwmRate)
-{
-    return (motorPwmRate > 500);
-}
-
 void pwmBrushedMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, uint16_t motorPwmRate)
 {
     uint32_t hz = PWM_BRUSHED_TIMER_MHZ * 1000000;
