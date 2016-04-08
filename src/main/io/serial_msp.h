@@ -220,6 +220,11 @@ static const char * const boardIdentifier = TARGET_BOARD_IDENTIFIER;
 #define MSP_RC_DEADBAND          125    //out message         deadbands for yaw alt pitch roll
 #define MSP_SENSOR_ALIGNMENT     126    //out message         orientation of acc,gyro,mag
 
+/* raceflight (counting down from 200 for compatibility) */
+#define MSP_MOTOR_PWM            199    // out message        configuration of the motor PWM details.
+#define MSP_SET_MOTOR_PWM        198    // in message         configuration of the motor PWM details.
+
+/* cleanflight beta flight */
 #define MSP_SET_RAW_RC           200    //in message          8 rc chan
 #define MSP_SET_RAW_GPS          201    //in message          fix, numsat, lat, lon, alt, speed
 #define MSP_SET_PID              202    //in message          P I D coeff (9 are used currently)
