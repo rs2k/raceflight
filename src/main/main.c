@@ -294,20 +294,23 @@ void init(void)
 #endif
 
 	pwm_params.motorPwmProtocol = masterConfig.motor_pwm_protocol;
-	pwm_params.motorPwmRate = masterConfig.motor_pwm_rate;
 	pwm_params.useOneshot = feature(FEATURE_ONESHOT);
+
+	if (feature(FEATURE_ONESHOT)) {
+        pwm_params.motorPwmRate = 0;
+	} else {
+        pwm_params.motorPwmRate = masterConfig.motor_pwm_rate;
+        motorControlEnable = true;
+	}
     
-    if (feature(FEATURE_3D))
-    {
+    if (!feature(FEATURE_3D))
+        pwm_params.idlePulse = masterConfig.escAndServoConfig.mincommand;
+    else
         pwm_params.idlePulse = masterConfig.flight3DConfig.neutral3d;
-    }
 
     pwmOutputConfiguration_t *pwmOutputConfiguration = pwmInit(&pwm_params);
 
     mixerUsePWMOutputConfiguration(pwmOutputConfiguration);
-
-    if (!feature(FEATURE_ONESHOT))
-        motorControlEnable = true;
 
     systemState |= SYSTEM_STATE_MOTORS_READY;
 

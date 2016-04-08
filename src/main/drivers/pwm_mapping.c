@@ -1254,7 +1254,7 @@ if (init->useBuzzerP6) {
         }
 #endif
 
-#define AVOIDANCE_CONDITION (!(init->motorPwmProtocol == MOTOR_PWM_PROTOCOL_STD) || init->motorPwmProtocol == MOTOR_PWM_PROTOCOL_BRUSHED)
+#define AVOIDANCE_CONDITION (!(init->motorPwmProtocol == MOTOR_PWM_PROTOCOL_STD))
         
         if (type == MAP_TO_PPM_INPUT) {
 #ifdef REVO
