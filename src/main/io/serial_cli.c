@@ -49,6 +49,7 @@
 #include "drivers/pwm_rx.h"
 #include "drivers/sdcard.h"
 
+#include "drivers/buf_writer.h"
 
 #include "io/escservo.h"
 #include "io/gps.h"
@@ -100,6 +101,8 @@ extern uint16_t cycleTime; // FIXME dependency on mw.c
 void gpsEnablePassthrough(serialPort_t *gpsPassthroughPort);
 
 static serialPort_t *cliPort;
+static bufWriter_t *cliWriter;
+static uint8_t cliWriteBuffer[sizeof(*cliWriter) + 16];
 
 static void cliAux(char *cmdline);
 static void cliRxFail(char *cmdline);
@@ -183,7 +186,7 @@ static const char * const featureNames[] = {
     "SERVO_TILT", "SOFTSERIAL", "GPS", "FAILSAFE",
     "SONAR", "TELEMETRY", "CURRENT_METER", "3D", "RX_PARALLEL_PWM",
     "RX_MSP", "RSSI_ADC", "LED_STRIP", "DISPLAY", "ONESHOT",
-    "BLACKBOX", "CHANNEL_FORWARDING", "RESERVED_MULTISHOT", "RESERVED_USE_PWM_RATE",
+    "BLACKBOX", "CHANNEL_FORWARDING", "TRANSPONDER", "RESERVED_USE_PWM_RATE",
 	"RESERVED", "TX_STYLE_EXPO", "SBUS_INVERTER", NULL
 };
 
@@ -282,8 +285,7 @@ const clicmd_t cmdTable[] = {
         "[<index>]\r\n", cliPlaySound),
     CLI_COMMAND_DEF("profile", "change profile",
         "[<index>]", cliProfile),
-    CLI_COMMAND_DEF("rateprofile", "change rate profile",
-        "[<index>]", cliRateProfile),
+	CLI_COMMAND_DEF("rateprofile", "change rate profile", "[<index>]", cliRateProfile),
     CLI_COMMAND_DEF("rxrange", "configure rx channel ranges", NULL, cliRxRange),
     CLI_COMMAND_DEF("rxfail", "show/set rx failsafe settings", NULL, cliRxFail),
     CLI_COMMAND_DEF("save", "save and reboot", NULL, cliSave),
@@ -308,6 +310,7 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("tasks", "show task stats", NULL, cliTasks),
 #endif
     CLI_COMMAND_DEF("version", "show version", NULL, cliVersion),
+
 };
 #define CMD_COUNT (sizeof(cmdTable) / sizeof(clicmd_t))
 
@@ -355,7 +358,7 @@ static const char * const lookupTableBlackboxDevice[] = {
 
 
 static const char * const lookupTablePidController[] = {
-    "UNUSED", "MWREWRITE", "LUX"
+    "MW23", "MWREWRITE", "LUX"
 };
 
 static const char * const lookupTableSerialRX[] = {
@@ -366,7 +369,62 @@ static const char * const lookupTableSerialRX[] = {
     "SUMH",
     "XB-B",
     "XB-B-RJ01",
-    "IBUS"
+    "IBUS",
+    "JETIEXBUS"
+};
+
+static const char * const lookupTableGyroLpf[] = {
+    "OFF",
+    "188HZ",
+    "98HZ",
+    "42HZ",
+    "20HZ",
+    "10HZ",
+    "5HZ",
+    "EXPERIMENTAL"
+};
+
+static const char * const lookupTableAccHardware[] = {
+	"AUTO",
+	"NONE",
+	"ADXL345",
+	"MPU6050",
+	"MMA8452",
+	"BMA280",
+	"LSM303DLHC",
+	"MPU6000",
+	"MPU6500",
+	"FAKE"
+};
+
+static const char * const lookupTableBaroHardware[] = {
+	"AUTO",
+    "NONE",
+    "BMP085",
+    "MS5611",
+    "BMP280"
+};
+
+static const char * const lookupTableMagHardware[] = {
+    "AUTO",
+    "NONE",
+    "HMC5883",
+    "AK8975",
+    "AK8963"
+};
+
+static const char * const lookupDeltaMethod[] = {
+    "ERROR", "MEASUREMENT"
+};
+
+static const char * const lookupTableDebug[] = {
+    "NONE",
+    "CYCLETIME",
+    "BATTERY",
+    "GYRO",
+    "ACCELEROMETER",
+    "MIXER",
+    "AIRMODE"
 };
 
 static const char * const lookupTableRFLoopCtrl[] = {
@@ -410,7 +468,13 @@ typedef enum {
     TABLE_PID_CONTROLLER,
     TABLE_SERIAL_RX,
 	TABLE_RF_LOOP_CTRL,
-    TABLE_PWM_PROTOCOL
+    TABLE_PWM_PROTOCOL,
+    TABLE_GYRO_LPF,
+    TABLE_ACC_HARDWARE,
+    TABLE_BARO_HARDWARE,
+    TABLE_MAG_HARDWARE,
+    TABLE_DELTA_METHOD,
+	TABLE_DEBUG,
 } lookupTableIndex_e;
 
 static const lookupTableEntry_t lookupTables[] = {
@@ -429,7 +493,13 @@ static const lookupTableEntry_t lookupTables[] = {
     { lookupTablePidController, sizeof(lookupTablePidController) / sizeof(char *) },
     { lookupTableSerialRX, sizeof(lookupTableSerialRX) / sizeof(char *) },
     { lookupTableRFLoopCtrl, sizeof(lookupTableRFLoopCtrl) / sizeof(char *) },
-    { lookupTablePwmProtocol, sizeof(lookupTablePwmProtocol) / sizeof(char *) }
+    { lookupTablePwmProtocol, sizeof(lookupTablePwmProtocol) / sizeof(char *) },
+    { lookupTableGyroLpf, sizeof(lookupTableGyroLpf) / sizeof(char *) },
+    { lookupTableAccHardware, sizeof(lookupTableAccHardware) / sizeof(char *) },
+    { lookupTableBaroHardware, sizeof(lookupTableBaroHardware) / sizeof(char *) },
+    { lookupTableMagHardware, sizeof(lookupTableMagHardware) / sizeof(char *) },
+    { lookupDeltaMethod, sizeof(lookupDeltaMethod) / sizeof(char *) },
+    { lookupTableDebug, sizeof(lookupTableDebug) / sizeof(char *) }
 };
 
 #define VALUE_TYPE_OFFSET 0
@@ -482,7 +552,7 @@ typedef struct {
 } clivalue_t;
 
 const clivalue_t valueTable[] = {
-    { "emf_avoidance",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.emf_avoidance, .config.lookup = { TABLE_OFF_ON } },
+//    { "emf_avoidance",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.emf_avoidance, .config.lookup = { TABLE_OFF_ON } },
 
 	{ "mid_rc",                     VAR_UINT16 | MASTER_VALUE,  &masterConfig.rxConfig.midrc, .config.minmax = { 1200,  1700 } },
     { "min_check",                  VAR_UINT16 | MASTER_VALUE,  &masterConfig.rxConfig.mincheck, .config.minmax = { PWM_RANGE_ZERO,  PWM_RANGE_MAX } },
@@ -493,6 +563,8 @@ const clivalue_t valueTable[] = {
     { "input_filtering_mode",       VAR_INT8   | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.inputFilteringMode, .config.lookup = { TABLE_OFF_ON } },
     { "rc_smoothing",               VAR_INT8   | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.rxConfig.rcSmoothing, .config.lookup = { TABLE_OFF_ON } },
     { "roll_yaw_cam_mix_degrees",   VAR_UINT8  | MASTER_VALUE,  &masterConfig.rxConfig.fpvCamAngleDegrees, .config.minmax = { 0,  50 } },
+    { "max_aux_channels",           VAR_UINT8  | MASTER_VALUE,  &masterConfig.rxConfig.max_aux_channel, .config.minmax = { 0,  13 } },
+    { "debug_mode",                 VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP,  &masterConfig.debug_mode, .config.lookup = { TABLE_DEBUG } },
 
     { "min_throttle",               VAR_UINT16 | MASTER_VALUE,  &masterConfig.escAndServoConfig.minthrottle, .config.minmax = { PWM_RANGE_ZERO,  PWM_RANGE_MAX } },
     { "max_throttle",               VAR_UINT16 | MASTER_VALUE,  &masterConfig.escAndServoConfig.maxthrottle, .config.minmax = { PWM_RANGE_ZERO,  PWM_RANGE_MAX } },
@@ -631,7 +703,6 @@ const clivalue_t valueTable[] = {
 
     { "rx_min_usec",                VAR_UINT16 | MASTER_VALUE,  &masterConfig.rxConfig.rx_min_usec, .config.minmax = { PWM_PULSE_MIN,  PWM_PULSE_MAX } },
     { "rx_max_usec",                VAR_UINT16 | MASTER_VALUE,  &masterConfig.rxConfig.rx_max_usec, .config.minmax = { PWM_PULSE_MIN,  PWM_PULSE_MAX } },
-    { "max_aux_channels",            VAR_UINT8  | MASTER_VALUE,  &masterConfig.rxConfig.max_aux_channels, .config.minmax = { 0, 99 } },
 
 #ifdef USE_SERVOS
     { "gimbal_mode",                VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, &masterConfig.profile[0].gimbalConfig.mode, .config.lookup = { TABLE_GIMBAL_MODE } },
@@ -724,14 +795,15 @@ typedef union {
 
 static void cliSetVar(const clivalue_t *var, const int_float_value_t value);
 static void cliPrintVar(const clivalue_t *var, uint32_t full);
+static void cliPrintVarRange(const clivalue_t *var);
 static void cliPrint(const char *str);
-static void cliPutch(void *port, char ch);
 static void cliPrintf(const char *fmt, ...); 
 static void cliWrite(uint8_t ch);
 
 static void cliPrompt(void)
 {
     cliPrint("\r\n# ");
+    bufWriterFlush(cliWriter);
 }
 
 static void cliShowParseError(void)
@@ -1152,7 +1224,7 @@ static void cliMotorMix(char *cmdline)
                 cliMotorMix("");
             }
         } else {
-            cliShowArgumentRangeError("index", 1, MAX_SUPPORTED_MOTORS);
+            cliShowArgumentRangeError("index", 0, MAX_SUPPORTED_MOTORS - 1);
         }
     }
 #endif
@@ -1869,6 +1941,9 @@ void cliEnter(serialPort_t *serialPort)
     cliMode = 1;
     cliPort = serialPort;
     setPrintfSerialPort(cliPort);
+    cliWriter = bufWriterInit(cliWriteBuffer, sizeof(cliWriteBuffer),
+                              (bufWrite_t)serialWriteBufShim, serialPort);
+
     cliPrint("\r\nEntering CLI Mode, type 'exit' to return, or 'help'\r\n");
     cliPrompt();
     ENABLE_ARMING_FLAG(PREVENT_ARMING);
@@ -1879,6 +1954,8 @@ static void cliExit(char *cmdline)
     UNUSED(cmdline);
 
     cliPrint("\r\nLeaving CLI mode, unsaved changes lost.\r\n");
+    bufWriterFlush(cliWriter);
+
     *cliBuffer = '\0';
     bufferIndex = 0;
     cliMode = 0;
@@ -1886,7 +1963,7 @@ static void cliExit(char *cmdline)
     mixerResetDisarmedMotors();
     cliReboot();
 
-    cliPort = NULL;
+    cliWriter = NULL;
 }
 
 static void cliFeature(char *cmdline)
@@ -1959,6 +2036,7 @@ static void cliFeature(char *cmdline)
         }
     }
 }
+
 
 #ifdef GPS
 static void cliGpsPassthrough(char *cmdline)
@@ -2081,7 +2159,7 @@ static void cliMotor(char *cmdline)
     }
 
     if (motor_index < 0 || motor_index >= MAX_SUPPORTED_MOTORS) {
-        cliShowArgumentRangeError("index", 0, MAX_SUPPORTED_MOTORS);
+        cliShowArgumentRangeError("index", 0, MAX_SUPPORTED_MOTORS - 1);
         return;
     }
 
@@ -2152,14 +2230,11 @@ static void cliProfile(char *cmdline)
     }
 }
 
-static void cliRateProfile(char *cmdline)
-{
+static void cliRateProfile(char *cmdline) {
     int i;
 
     if (isEmpty(cmdline)) {
-
         cliPrintf("rateprofile %d\r\n", getCurrentControlRateProfile());
-
         return;
     } else {
         i = atoi(cmdline);
@@ -2171,7 +2246,8 @@ static void cliRateProfile(char *cmdline)
 }
 
 static void cliReboot(void) {
-    cliPrint("\r\nRebooting^");
+    cliPrint("\r\nRebooting");
+    bufWriterFlush(cliWriter);
     waitForSerialPortToFinishTransmitting(cliPort);
     stopMotors();
     handleOneshotFeatureChangeOnRestart();
@@ -2199,39 +2275,26 @@ static void cliDefaults(char *cmdline)
 
 static void cliPrint(const char *str)
 {
-    serialBeginWrite(cliPort);
     while (*str)
-        serialWrite(cliPort, *(str++));
-    serialEndWrite(cliPort);
+        bufWriterAppend(cliWriter, *str++);
 }
 
-static void cliPutch(void *port, char ch)
+static void cliPutp(void *p, char ch)
 {
-    serialWrite(port, ch);
+    bufWriterAppend(p, ch);
 }
 
-static void cliPrintf(const char* fmt, ...)
+static void cliPrintf(const char *fmt, ...)
 {
-
-	va_list va;
+    va_list va;
     va_start(va, fmt);
-    
-    serialBeginWrite(cliPort);
-    tfp_format(cliPort, cliPutch, fmt, va);
-#ifndef STM32F40_41xxx
-    delayMicroseconds(1000);
-#endif
-    serialEndWrite(cliPort);
-#ifndef STM32F40_41xxx
-    delayMicroseconds(1000);
-#endif
+    tfp_format(cliWriter, cliPutp, fmt, va);
     va_end(va);
-
 }
-  
+
 static void cliWrite(uint8_t ch)
 {
-    serialWrite(cliPort, ch);
+    bufWriterAppend(cliWriter, ch);
 }
 
 static void cliPrintVar(const clivalue_t *var, uint32_t full)
@@ -2290,6 +2353,27 @@ static void cliPrintVar(const clivalue_t *var, uint32_t full)
     }
 }
 
+static void cliPrintVarRange(const clivalue_t *var) 
+{
+    switch (var->type & VALUE_MODE_MASK) {
+        case (MODE_DIRECT): {
+            cliPrintf("Allowed range: %d - %d\n", var->config.minmax.min, var->config.minmax.max);
+        }
+        break;
+        case (MODE_LOOKUP): {
+            const lookupTableEntry_t *tableEntry = &lookupTables[var->config.lookup.tableIndex];
+            cliPrint("Allowed values:");
+            uint8_t i;
+            for (i = 0; i < tableEntry->valueCount ; i++) {
+                if (i > 0) 
+                    cliPrint(",");
+                cliPrintf(" %s", tableEntry->values[i]);
+            }
+            cliPrint("\n");
+        }
+        break;
+    }
+}
 static void cliSetVar(const clivalue_t *var, const int_float_value_t value)
 {
     void *ptr = var->ptr;
@@ -2403,6 +2487,7 @@ static void cliSet(char *cmdline)
                     cliPrintVar(val, 0);
                 } else {
                     cliPrint("Invalid value\r\n");
+                    cliPrintVarRange(val);
                 }
 
                 return;
@@ -2426,6 +2511,8 @@ static void cliGet(char *cmdline)
             val = &valueTable[i];
             cliPrintf("%s = ", valueTable[i].name);
             cliPrintVar(val, 0);
+            cliPrint("\n");
+            cliPrintVarRange(val);
             cliPrint("\r\n");
 
             matchedCommands++;
@@ -2505,7 +2592,7 @@ static void cliTasks(char *cmdline)
 static void cliVersion(char *cmdline)
 {
     UNUSED(cmdline);
-    printf("# RaceFlight %s%s - %s /%s %s / %s (%s)",
+    cliPrintf("# RaceFlight %s%s - %s /%s %s / %s (%s)",
 		FC_VERSION_STRING,
 		FC_VERSION_LETTER,
 		FC_VERSION_COMMENT,
@@ -2518,9 +2605,12 @@ static void cliVersion(char *cmdline)
 
 void cliProcess(void)
 {
-    if (!cliPort) {
+    if (!cliWriter) {
         return;
     }
+
+    // Be a little bit tricky.  Flush the last inputs buffer, if any.
+    bufWriterFlush(cliWriter);
 
     while (serialRxBytesWaiting(cliPort)) {
         uint8_t c = serialRead(cliPort);

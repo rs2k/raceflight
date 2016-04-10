@@ -15,21 +15,26 @@
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * telemetry_MSP.h
- *
- *  Created on: 22 Apr 2014
- *      Author: trey marc
- */
+#pragma once
 
-#ifndef TELEMETRY_MSP_H_
-#define TELEMETRY_MSP_H_
+#include <stdint.h>
 
-void initMSPTelemetry(telemetryConfig_t *initialTelemetryConfig);
-void handleMSPTelemetry(void);
-void checkMSPTelemetryState(void);
+// Called to flush the buffer.
+typedef void (*bufWrite_t)(void *arg, void *data, int count);
 
-void freeMSPTelemetryPort(void);
-void configureMSPTelemetryPort(void);
+typedef struct bufWriter_s {
+    bufWrite_t writer;
+    void *arg;
+    uint8_t capacity;
+    uint8_t at;
+    uint8_t data[];
+} bufWriter_t;
 
-#endif /* TELEMETRY_MSP_H_ */
+// Initialise a block of memory as a buffered writer.
+//
+// b should be sizeof(bufWriter_t) + the number of bytes to buffer.
+// total_size should be the total size of b.
+//
+bufWriter_t *bufWriterInit(uint8_t *b, int total_size, bufWrite_t writer, void *p);
+void bufWriterAppend(bufWriter_t *b, uint8_t ch);
+void bufWriterFlush(bufWriter_t *b);

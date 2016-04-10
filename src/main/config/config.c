@@ -487,11 +487,11 @@ static void resetConf(void)
 #endif
         
 #ifdef STM32F4
-    masterConfig.rxConfig.max_aux_channels = 99;
+    masterConfig.rxConfig.max_aux_channel = 99;
 #elif defined(STM32F303xC)
-    masterConfig.rxConfig.max_aux_channels = 6;
+    masterConfig.rxConfig.max_aux_channel = 6;
 #else
-    masterConfig.rxConfig.max_aux_channels = 4;
+    masterConfig.rxConfig.max_aux_channel = 4;
 #endif
     
     masterConfig.rxConfig.spektrum_sat_bind = 0;
