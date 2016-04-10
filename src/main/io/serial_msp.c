@@ -86,7 +86,7 @@
 #include "config/config_master.h"
 
 #include "version.h"
-#ifdef NAZE
+#ifdef USE_HARDWARE_REVISION_DETECTION
 #include "hardware_revision.h"
 #endif
 
@@ -956,6 +956,12 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize8(masterConfig.mag_hardware);
         break;
 
+    case MSP_MOTOR_PWM:
+        headSerialReply(3); 
+        serialize16(masterConfig.motor_pwm_rate);
+        serialize8(masterConfig.motor_pwm_protocol);
+        break;
+        
     case MSP_MOTOR_PINS:
         // FIXME This is hardcoded and should not be.
         headSerialReply(8);
@@ -1444,6 +1450,12 @@ static bool processInCommand(void)
             masterConfig.mag_hardware = read8();
         }
         break;
+        
+    case MSP_SET_MOTOR_PWM:
+        masterConfig.motor_pwm_rate = read16();
+        masterConfig.motor_pwm_protocol = read8();
+        break;
+        
     case MSP_SET_MOTOR:
         for (i = 0; i < 8; i++) {
             const int16_t disarmed = read16();
