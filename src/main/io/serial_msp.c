@@ -42,9 +42,9 @@
 #include "drivers/timer.h"
 #include "drivers/pwm_mapping.h"
 #include "drivers/pwm_rx.h"
-#include "drivers/sdcard.h"
 #include "drivers/gyro_sync.h"
-
+#include "drivers/sdcard.h"
+#include "drivers/buf_writer.h"
 #include "rx/rx.h"
 #include "rx/msp.h"
 
@@ -92,9 +92,10 @@
 
 #include "serial_msp.h"
 
-#ifdef USE_SERIAL_1WIRE
-#include "io/serial_1wire.h"
+#ifdef USE_SERIAL_4WAY_BLHELI_INTERFACE
+#include "io/serial_4way.h"
 #endif
+
 static serialPort_t *mspSerialPort;
 
 extern uint16_t cycleTime; // FIXME dependency on mw.c
@@ -179,13 +180,15 @@ typedef enum {
     MSP_SDCARD_STATE_READY       = 4
 } mspSDCardState_e;
 
-static mspPort_t mspPorts[MAX_MSP_PORT_COUNT];
 
-static mspPort_t *currentPort;
+STATIC_UNIT_TESTED mspPort_t mspPorts[MAX_MSP_PORT_COUNT];
+
+STATIC_UNIT_TESTED mspPort_t *currentPort;
+STATIC_UNIT_TESTED bufWriter_t *writer;
 
 static void serialize8(uint8_t a)
 {
-    serialWrite(mspSerialPort, a);
+    bufWriterAppend(writer, a);
     currentPort->checksum ^= a;
 }
 
@@ -223,6 +226,7 @@ static uint32_t read32(void)
 static void headSerialResponse(uint8_t err, uint8_t responseBodySize)
 {
     serialBeginWrite(mspSerialPort);
+    
     serialize8('$');
     serialize8('M');
     serialize8(err ? '!' : '>');
@@ -247,14 +251,12 @@ static void tailSerialReply(void)
     serialEndWrite(mspSerialPort);
 }
 
-#ifdef USE_SERVOS
 static void s_struct(uint8_t *cb, uint8_t siz)
 {
     headSerialReply(siz);
     while (siz--)
         serialize8(*cb++);
 }
-#endif
 
 static void serializeNames(const char *s)
 {
@@ -411,12 +413,11 @@ static void serializeDataflashReadReply(uint32_t address, uint8_t size)
 }
 #endif
 
-static void resetMspPort(mspPort_t *mspPortToReset, serialPort_t *serialPort, mspPortUsage_e usage)
+static void resetMspPort(mspPort_t *mspPortToReset, serialPort_t *serialPort)
 {
     memset(mspPortToReset, 0, sizeof(mspPort_t));
 
     mspPortToReset->port = serialPort;
-    mspPortToReset->mspPortUsage = usage;
 }
 
 void mspAllocateSerialPorts(serialConfig_t *serialConfig)
@@ -431,14 +432,14 @@ void mspAllocateSerialPorts(serialConfig_t *serialConfig)
 
     while (portConfig && portIndex < MAX_MSP_PORT_COUNT) {
         mspPort_t *mspPort = &mspPorts[portIndex];
-        if (mspPort->mspPortUsage != UNUSED_PORT) {
+        if (mspPort->port) {
             portIndex++;
             continue;
         }
 
         serialPort = openSerialPort(portConfig->identifier, FUNCTION_MSP, NULL, baudRates[portConfig->msp_baudrateIndex], MODE_RXTX, SERIAL_NOT_INVERTED);
         if (serialPort) {
-            resetMspPort(mspPort, serialPort, FOR_GENERAL_MSP);
+            resetMspPort(mspPort, serialPort);
             portIndex++;
         }
 
@@ -595,7 +596,7 @@ static uint32_t packFlightModeFlags(void)
         if (flag)
             junk |= 1 << i;
     }
-    
+
     return junk;
 }
 
@@ -644,7 +645,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         for (i = 0; i < BOARD_IDENTIFIER_LENGTH; i++) {
             serialize8(boardIdentifier[i]);
         }
-#ifdef NAZE
+#ifdef USE_HARDWARE_REVISION_DETECTION
         serialize16(hardwareRevision);
 #else
         serialize16(0); // No other build targets currently have hardware revision detection.
@@ -749,10 +750,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         break;
 #endif
     case MSP_MOTOR:
-        headSerialReply(16);
-        for (i = 0; i < 8; i++) {
-            serialize16(i < MAX_SUPPORTED_MOTORS ? motor[i] : 0);
-        }
+        s_struct((uint8_t *)motor, 16);
         break;
     case MSP_RC:
         headSerialReply(2 * rxRuntimeConfig.channelCount);
@@ -1205,8 +1203,18 @@ static bool processOutCommand(uint8_t cmdMSP)
         break;
 
     case MSP_TRANSPONDER_CONFIG:
+#ifdef TRANSPONDER
+        headSerialReply(1 + sizeof(masterConfig.transponderData));
+
+        serialize8(1); //Transponder supported
+
+        for (i = 0; i < sizeof(masterConfig.transponderData); i++) {
+            serialize8(masterConfig.transponderData[i]);
+        }
+#else
         headSerialReply(1);
         serialize8(0); // Transponder not supported
+#endif
         break;
 
     case MSP_BF_BUILD_INFO:
@@ -1564,6 +1572,21 @@ static bool processInCommand(void)
         break;
 #endif
 
+#ifdef TRANSPONDER
+    case MSP_SET_TRANSPONDER_CONFIG:
+        if (currentPort->dataSize != sizeof(masterConfig.transponderData)) {
+            headSerialError(0);
+            break;
+        }
+
+        for (i = 0; i < sizeof(masterConfig.transponderData); i++) {
+            masterConfig.transponderData[i] = read8();
+        }
+
+        transponderUpdateData(masterConfig.transponderData);
+        break;
+#endif
+
 #ifdef USE_FLASHFS
     case MSP_DATAFLASH_ERASE:
         flashfsEraseCompletely();
@@ -1775,68 +1798,26 @@ static bool processInCommand(void)
         isRebootScheduled = true;
         break;
 
-#ifdef USE_SERIAL_1WIRE
-    case MSP_SET_1WIRE:
+#ifdef USE_SERIAL_4WAY_BLHELI_INTERFACE
+    case MSP_SET_4WAY_IF:
         // get channel number
-        i = read8();
-        // we do not give any data back, assume channel number is transmitted OK
-        if (i == 0xFF) {
-            // 0xFF -> preinitialize the Passthrough
-            // switch all motor lines HI
-            usb1WireInitialize();
-            // reply the count of ESC found
-            headSerialReply(1);
-            serialize8(escCount);
-
-            // and come back right afterwards
-            // rem: App: Wait at least appx. 500 ms for BLHeli to jump into
-            // bootloader mode before try to connect any ESC
-
-            return true;
-        }
-        else {
-            // Check for channel number 0..ESC_COUNT-1
-            if (i < escCount) {
-                // because we do not come back after calling usb1WirePassthrough
-                // proceed with a success reply first
-                headSerialReply(0);
-                tailSerialReply();
-                // wait for all data to send
-                waitForSerialPortToFinishTransmitting(currentPort->port);
-                // Start to activate here
-                // motor 1 => index 0
-
-                // search currentPort portIndex
-                /* next lines seems to be unnecessary, because the currentPort always point to the same mspPorts[portIndex]
-                uint8_t portIndex;
-				for (portIndex = 0; portIndex < MAX_MSP_PORT_COUNT; portIndex++) {
-					if (currentPort == &mspPorts[portIndex]) {
-						break;
-					}
-				}
-				*/
-                mspReleasePortIfAllocated(mspSerialPort); // CloseSerialPort also marks currentPort as UNUSED_PORT
-                usb1WirePassthrough(i);
-                // Wait a bit more to let App read the 0 byte and switch baudrate
-                // 2ms will most likely do the job, but give some grace time
-                delay(10);
-                // rebuild/refill currentPort structure, does openSerialPort if marked UNUSED_PORT - used ports are skiped
-                mspAllocateSerialPorts(&masterConfig.serialConfig);
-                /* restore currentPort and mspSerialPort
-                setCurrentPort(&mspPorts[portIndex]); // not needed same index will be restored
-                */
-                // former used MSP uart is active again
-                // restore MSP_SET_1WIRE as current command for correct headSerialReply(0)
-                currentPort->cmdMSP = MSP_SET_1WIRE;
-            } else {
-                // ESC channel higher than max. allowed
-                // rem: BLHeliSuite will not support more than 8
-                headSerialError(0);
-            }
-            // proceed as usual with MSP commands
-            // and wait to switch to next channel
-            // rem: App needs to call MSP_BOOT to deinitialize Passthrough
-        }
+        // switch all motor lines HI
+        // reply the count of ESC found
+        headSerialReply(1);
+        serialize8(Initialize4WayInterface());
+        // because we do not come back after calling Process4WayInterface
+        // proceed with a success reply first
+        tailSerialReply();
+        // flush the transmit buffer
+        bufWriterFlush(writer);
+        // wait for all data to send
+        waitForSerialPortToFinishTransmitting(currentPort->port);
+        // rem: App: Wait at least appx. 500 ms for BLHeli to jump into
+        // bootloader mode before try to connect any ESC
+        // Start to activate here
+        Process4WayInterface(currentPort, writer);
+        // former used MSP uart is still active
+        // proceed as usual with MSP commands
         break;
 #endif
     default:
@@ -1847,7 +1828,7 @@ static bool processInCommand(void)
     return true;
 }
 
-static void mspProcessReceivedCommand() {
+STATIC_UNIT_TESTED void mspProcessReceivedCommand() {
     if (!(processOutCommand(currentPort->cmdMSP) || processInCommand())) {
         headSerialError(0);
     }
@@ -1896,7 +1877,7 @@ static bool mspProcessReceivedData(uint8_t c)
     return true;
 }
 
-void setCurrentPort(mspPort_t *port)
+STATIC_UNIT_TESTED void setCurrentPort(mspPort_t *port)
 {
     currentPort = port;
     mspSerialPort = currentPort->port;
@@ -1909,11 +1890,15 @@ void mspProcess(void)
 
     for (portIndex = 0; portIndex < MAX_MSP_PORT_COUNT; portIndex++) {
         candidatePort = &mspPorts[portIndex];
-        if (candidatePort->mspPortUsage != FOR_GENERAL_MSP) {
+        if (!candidatePort->port) {
             continue;
         }
 
         setCurrentPort(candidatePort);
+        // Big enough to fit a MSP_STATUS in one write.
+        uint8_t buf[sizeof(bufWriter_t) + 20];
+        writer = bufWriterInit(buf, sizeof(buf),
+                               (bufWrite_t)serialWriteBufShim, currentPort->port);
 
         while (serialRxBytesWaiting(mspSerialPort)) {
 
@@ -1929,6 +1914,8 @@ void mspProcess(void)
                 break; // process one command at a time so as not to block.
             }
         }
+
+        bufWriterFlush(writer);
 
         if (isRebootScheduled) {
             waitForSerialPortToFinishTransmitting(candidatePort->port);
