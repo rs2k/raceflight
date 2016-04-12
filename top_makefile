@@ -26,6 +26,7 @@ clean_motolab motolab :                   opts := TARGET=MOTOLAB
 clean_rmdo rmdo :                         opts := TARGET=RMDO
 clean_ircfusionf3 ircfusionf3 :           opts := TARGET=IRCFUSIONF3
 clean_lux_race lux_race :                 opts := TARGET=LUX_RACE
+clean_afromini afromini :                 opts := TARGET=AFROMINI
 clean_VRCORE VRCORE :                     opts := TARGET=VRCORE
 clean_afromini afromini :                 opts := TARGET=AFROMINI
 clean_BLUEJAYF4 BLUEJAYF4 :               opts := TARGET=BLUEJAYF4
