@@ -7,14 +7,15 @@
 #ALL_TARGETS += chebuzzf3
 #ALL_TARGETS += cjmcu
 #ALL_TARGETS += eustm32f103rc
-#ALL_TARGETS += spracingf3
+ALL_TARGETS += spracingf3
 #ALL_TARGETS += port103r
 #ALL_TARGETS += sparky
 #ALL_TARGETS += alienwiif1
 #ALL_TARGETS += alienwiif3
 #ALL_TARGETS += colibri_race
-#ALL_TARGETS += motolab
-#ALL_TARGETS += rmdo
+ALL_TARGETS += motolab
+ALL_TARGETS += rmdo
+ALL_TARGETS += lux_race
 #ALL_TARGETS += ircfusionf3
 #ALL_TARGETS += afromini
 ALL_TARGETS += REVO
@@ -46,6 +47,7 @@ clean_alienwiif3 alienwiif3  :            opts := TARGET=ALIENWIIF3
 clean_colibri_race colibri_race :         opts := TARGET=COLIBRI_RACE
 clean_motolab motolab :                   opts := TARGET=MOTOLAB
 clean_rmdo rmdo :                         opts := TARGET=RMDO
+clean_lux_race lux_race :                 opts := TARGET=LUX_RACE
 clean_afromini afromini :                 opts := TARGET=AFROMINI
 clean_VRCORE VRCORE :                     opts := TARGET=VRCORE
 clean_BLUEJAYF4 BLUEJAYF4 :               opts := TARGET=BLUEJAYF4
