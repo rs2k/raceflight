@@ -67,9 +67,9 @@
 #define FC_VERSION_MAJOR            16  // build year
 #define FC_VERSION_MINOR            04  // build month
 #define FC_VERSION_PATCH_LEVEL      12  // build day
-#define FC_VERSION_LETTER           "b" // build of day
+#define FC_VERSION_LETTER           "g" // build of day
 
-#define FC_VERSION_COMMENT          "RaceFlight Release 1 RC9 - RevoNano timer fix"
+#define FC_VERSION_COMMENT          "RaceFlight Release 1 RC9 - Change Lux Gyro"
 
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
