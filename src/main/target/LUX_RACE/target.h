@@ -26,8 +26,8 @@
 #define BEEPER PB13
 #define BEEPER_INVERTED
 
-#define MPU6500_CS_PIN                   PA4
-#define MPU6500_SPI_INSTANCE             SPI1
+#define MPU9250_CS_PIN                   PA4
+#define MPU9250_SPI_INSTANCE             SPI1
 
 #define USE_EXTI
 #define MPU_INT_EXTI PA5
@@ -42,15 +42,16 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 11
 
-#define GYRO
-#define USE_GYRO_MPU6500
-#define USE_GYRO_SPI_MPU6500
-#define GYRO_MPU6500_ALIGN CW270_DEG
 
 #define ACC
-#define USE_ACC_MPU6500
-#define USE_ACC_SPI_MPU6500
-#define ACC_MPU6500_ALIGN CW270_DEG
+#define USE_ACC_MPU9250
+#define USE_ACC_SPI_MPU9250
+#define ACC_MPU9250_ALIGN CW270_DEG
+
+#define GYRO
+#define USE_GYRO_MPU9250
+#define USE_GYRO_SPI_MPU9250
+#define GYRO_MPU9250_ALIGN CW270_DEG
 
 // MPU6500 interrupt
 //#define DEBUG_MPU_DATA_READY_INTERRUPT
