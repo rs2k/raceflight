@@ -439,7 +439,7 @@ static void resetConf(void)
     masterConfig.acc_hardware = ACC_DEFAULT;     // default/autodetect
     masterConfig.max_angle_inclination = 700;    // 70 degrees
     masterConfig.yaw_control_direction = 1;
-    masterConfig.gyroConfig.gyroMovementCalibrationThreshold = 32;
+    masterConfig.gyroConfig.gyroMovementCalibrationThreshold = 16;
 
     // xxx_hardware: 0:default/autodetect, 1: disable
     masterConfig.mag_hardware = 1;

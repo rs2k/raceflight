@@ -127,7 +127,7 @@ static pwmOutputPort_t *pwmOutConfig(const timerHardware_t *timerHardware, uint8
 
 static void pwmWriteBrushed(uint8_t index, uint16_t value)
 {
-    *motors[index]->ccr = (uint16_t)((float)((value - 1000) * motors[index]->period / 1000)*1.5f); //Expecting 8MHz timer, multiply by 1.5 to scale to 12MHz timer
+    *motors[index]->ccr = (uint16_t)((float)((value - 1000) * motors[index]->period / 1000));
 }
 
 static void pwmWriteStandard(uint8_t index, uint16_t value)
@@ -137,14 +137,16 @@ static void pwmWriteStandard(uint8_t index, uint16_t value)
 
 static void pwmWriteOneshot(uint8_t index, uint16_t value)
 {
-	//value = value >> 2;
-	//value = value << 2;
-    *motors[index]->ccr = (uint16_t)((float)value*1.5f);  //Expecting 8MHz timer, multiply by 1.5 to scale to 12MHz timer
+    *motors[index]->ccr = (uint16_t)((float)value);
 }
 
 static void pwmWriteMultiShot(uint8_t index, uint16_t value)
 {
-    *motors[index]->ccr = (uint16_t)((float)(value-1000) / 4.1666f)+ 60;
+#if defined(STM32F40_41xxx) || defined(STM32F411xE)
+    *motors[index]->ccr = (uint16_t)((float)(value-1000) / 1.04166f)+ 240;
+#else
+    *motors[index]->ccr = (uint16_t)((float)(value-1000) / 2.08333f)+ 120;
+#endif
 }
 
 void pwmWriteMotor(uint8_t index, uint16_t value)
