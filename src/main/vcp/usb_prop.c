@@ -87,6 +87,11 @@ VIRTUAL_COM_PORT_SIZ_CONFIG_DESC };
  *******************************************************************************/
 void Virtual_Com_Port_init(void)
 {
+
+    /* Update the serial number string descriptor with the data from the unique
+     ID*/
+    Get_SerialNum();
+
     pInformation->Current_Configuration = 0;
 
     /* Connect the device */
@@ -402,6 +407,18 @@ uint8_t *Virtual_Com_Port_SetLineCoding(uint16_t Length)
         return NULL;
     }
     return (uint8_t *)&linecoding;
+}
+
+/*******************************************************************************
+ * Function Name  : Virtual_Com_Port_GetBaudRate.
+ * Description    : Get the current baudrate
+ * Input          : None.
+ * Output         : None.
+ * Return         : baudrate in bps
+ *******************************************************************************/
+uint32_t Virtual_Com_Port_GetBaudRate(void)
+{
+    return linecoding.bitrate;
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
