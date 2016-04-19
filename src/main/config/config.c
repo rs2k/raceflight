@@ -447,7 +447,6 @@ static void resetConf(void)
 #endif
 
     featureSet(FEATURE_FAILSAFE);
-    featureSet(FEATURE_USE_PWM_RATE);
     featureSet(FEATURE_SBUS_INVERTER);
 
     // global settings
@@ -486,7 +485,7 @@ static void resetConf(void)
 	masterConfig.rf_loop_ctrl = 2;                 // High DLPF, H4
 
 #if defined(CC3D) || defined(MOTOLAB) || defined(LUX_RACE)
-    masterConfig.acc_hardware = 1;     // default/autodetect
+	masterConfig.acc_hardware = ACC_NONE;     // default/autodetect
 #endif
         
 #ifdef STM32F4
