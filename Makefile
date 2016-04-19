@@ -15,7 +15,7 @@
 #
 
 # The target to build, see VALID_TARGETS below
-TARGET	  ?= NAZE
+TARGET	  ?= REVO
 
 # Compile-time options
 OPTIONS	  ?=
