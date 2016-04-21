@@ -66,11 +66,9 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 11
 
-#define USE_SERIAL_1WIRE
-#define S1W_TX_GPIO         GPIOB
-#define S1W_TX_PIN          GPIO_Pin_10
-#define S1W_RX_GPIO         GPIOB
-#define S1W_RX_PIN          GPIO_Pin_11
+#define USE_SERIAL_4WAY_BLHELI_INTERFACE
+
+#define USE_QUATERNION
 
 #define USE_VCP
 #define VBUS_SENSING_PIN PA8

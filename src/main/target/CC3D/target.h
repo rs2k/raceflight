@@ -120,16 +120,9 @@
 #define USE_SERVOS
 #define USE_CLI
 
-#define USE_SERIAL_1WIRE
+#define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
-// FlexPort (pin 21/22, TX/RX respectively):
-// Note, FlexPort has 10k pullups on both TX and RX
-// JST Pin3 TX - connect to external UART/USB RX
-#define S1W_TX_GPIO         GPIOB
-#define S1W_TX_PIN          GPIO_Pin_10
-// JST Pin4 RX - connect to external UART/USB TX
-#define S1W_RX_GPIO         GPIOB
-#define S1W_RX_PIN          GPIO_Pin_11
+#define USE_QUATERNION
 
 #undef DISPLAY
 #undef SONAR
@@ -146,8 +139,6 @@
 // USART3, PB11 (Flexport)
 #define BIND_PORT  GPIOB
 #define BIND_PIN   Pin_11
-
-#define USE_QUATERNION
 
 #define USE_EXTI
 // IO - from schematics

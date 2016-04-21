@@ -16,8 +16,8 @@
  */
 
 #define FC_VERSION_MAJOR            16  // build year
-#define FC_VERSION_MINOR            03  // build month
-#define FC_VERSION_PATCH_LEVEL      18  // build day
+#define FC_VERSION_MINOR            04  // build month
+#define FC_VERSION_PATCH_LEVEL      21  // build day
 #define FC_VERSION_LETTER           "a" // build of day
 
 #define FC_VERSION_COMMENT          "RaceFlight Next - Beta"
