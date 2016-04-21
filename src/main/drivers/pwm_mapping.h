@@ -36,9 +36,14 @@
 #define MAX_INPUTS  8
 
 #define PWM_TIMER_MHZ 1
-#define ONESHOT125_TIMER_MHZ 4
-#define ONESHOT42_TIMER_MHZ 12
-#define MULTISHOT_TIMER_MHZ 12
+#define ONESHOT42_TIMER_MHZ 24
+#define ONESHOT125_TIMER_MHZ 8
+
+#ifdef STM32F4
+#define MULTISHOT_TIMER_MHZ 48
+#else
+#define MULTISHOT_TIMER_MHZ 24
+#endif
 #define PWM_BRUSHED_TIMER_MHZ 24
 
 typedef struct sonarGPIOConfig_s {

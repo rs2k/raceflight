@@ -15,7 +15,7 @@
 #
 
 # The target to build, see VALID_TARGETS below
-TARGET	  ?= NAZE
+TARGET	  ?= REVO
 
 # Compile-time options
 OPTIONS	  ?=
@@ -852,9 +852,7 @@ LUX_RACE_SRC = \
 		   $(STM32F30x_COMMON_SRC) \
 		   drivers/display_ug2864hsweg01.c \
 		   drivers/accgyro_mpu.c \
-		   drivers/accgyro_mpu6500.c \
-		   drivers/accgyro_spi_mpu6500.c \
-		   drivers/accgyro_mpu6500.c \
+		   drivers/accgyro_spi_mpu9250.c \
 		   drivers/barometer_ms5611.c \
 		   drivers/compass_ak8975.c \
 		   drivers/compass_hmc5883l.c \
@@ -1014,9 +1012,7 @@ ifeq ($(DEBUG),GDB)
 OPTIMIZE	 = -O0
 LTO_FLAGS	 = $(OPTIMIZE)
 else
-ifeq ($(TARGET),$(filter $(TARGET),SPARKY2 SPARKY2_OPBL YOUPIF4 YOUPIF4_OPBL))
-OPTIMIZE	 = -O0
-else ifeq ($(TARGET),$(filter $(TARGET),REVO REVO_OPBL REVONANO REVONANO_OPBL ALIENFLIGHTF4 BLUEJAYF4 VRCORE AQ32_V2))
+ifeq ($(TARGET),$(filter $(TARGET),REVO REVO_OPBL REVONANO REVONANO_OPBL ALIENFLIGHTF4 BLUEJAYF4 VRCORE AQ32_V2 SPARKY2 SPARKY2_OPBL YOUPIF4 YOUPIF4_OPBL))
 OPTIMIZE	 = -O2
 else
 OPTIMIZE	 = -Os

@@ -126,7 +126,7 @@ static pwmOutputPort_t *pwmOutConfig(const timerHardware_t *timerHardware, uint8
 
 static void pwmWriteBrushed(uint8_t index, uint16_t value)
 {
-    *motors[index]->ccr = (value - 1000) * motors[index]->period / 1000;
+    *motors[index]->ccr = (((value - 1000) * motors[index]->period / 1000));
 }
 
 static void pwmWriteStandard(uint8_t index, uint16_t value)
@@ -136,12 +136,16 @@ static void pwmWriteStandard(uint8_t index, uint16_t value)
 
 static void pwmWriteOneshot(uint8_t index, uint16_t value)
 {
-    *motors[index]->ccr = value >> 1;
+    *motors[index]->ccr = value;
 }
 
 static void pwmWriteMultiShot(uint8_t index, uint16_t value)
 {
-    *motors[index]->ccr = 60001 * (value - 1000) / 250000 + 60;
+#ifdef STM32F4
+    *motors[index]->ccr = ((value-1000) / 1.04166f) + 240;
+#else
+    *motors[index]->ccr = ((value-1000) / 2.08333f) + 120;
+#endif
 }
 
 void pwmWriteMotor(uint8_t index, uint16_t value)
@@ -223,13 +227,7 @@ void pwmOneShotMotorConfig(const timerHardware_t *timerHardware, uint8_t motorIn
         motors[motorIndex] = pwmOutConfig(timerHardware, mhz, 0xFFFF, 0);
     }
     
-    switch (protocol) {
-    case MOTOR_PWM_PROTOCOL_MULTI:
-        motors[motorIndex]->pwmWritePtr = pwmWriteMultiShot;
-        break;
-    default:
-        motors[motorIndex]->pwmWritePtr = pwmWriteOneshot;
-    }
+    motors[motorIndex]->pwmWritePtr = (protocol == MOTOR_PWM_PROTOCOL_MULTI) ? pwmWriteMultiShot : pwmWriteOneshot;
 }
 
 #ifdef USE_SERVOS

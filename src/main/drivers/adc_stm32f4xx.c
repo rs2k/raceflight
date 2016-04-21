@@ -160,4 +160,3 @@ void adcInit(drv_adc_config_t *init)
 
     ADC_SoftwareStartConv(ADC1);
 }
-

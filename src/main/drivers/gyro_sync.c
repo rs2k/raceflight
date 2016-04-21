@@ -80,7 +80,7 @@ void gyroUpdateSampleRate(uint8_t lpf) {
     		mpuDividerDropsOverride = false; // do not override mpuDividerDrops
             break;
     }
-#elif defined(STM32F303xC)
+#elif defined(STM32F303xC) && !defined(MOTOLAB) && !defined(LUX_RACE)
     switch (lpf) {
 		case 0:
         	gyroSamplePeriod = 125;
@@ -109,7 +109,7 @@ void gyroUpdateSampleRate(uint8_t lpf) {
     		mpuDividerDropsOverride = false; // do not override mpuDividerDrops
            break;
     }
-#elif defined(STM32F40_41xxx) || defined(STM32F411xE)
+#elif defined(STM32F40_41xxx) || defined(STM32F411xE) || defined(MOTOLAB) || defined(LUX_RACE)
     switch (lpf) {
 		case 0:
 		case 1:

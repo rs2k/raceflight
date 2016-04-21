@@ -1,18 +1,4 @@
-ALL_TARGETS := naze
-ALL_TARGETS += cc3d
-ALL_TARGETS += cc3d_opbl
-ALL_TARGETS += spracingf3
-ALL_TARGETS += spracingf3mini
-ALL_TARGETS += sparky
-ALL_TARGETS += alienflightf1
-ALL_TARGETS += alienflightf3
-#ALL_TARGETS += colibri_race
-ALL_TARGETS += lux_race
-ALL_TARGETS += motolab
-ALL_TARGETS += rmdo
-#ALL_TARGETS += ircfusionf3
-ALL_TARGETS += afromini
-ALL_TARGETS += REVO
+ALL_TARGETS := REVO
 ALL_TARGETS += REVO_OPBL
 ALL_TARGETS += SPARKY2
 ALL_TARGETS += SPARKY2_OPBL
@@ -41,6 +27,8 @@ clean_lux_race lux_race :                 opts := TARGET=LUX_RACE
 clean_motolab motolab :                   opts := TARGET=MOTOLAB
 clean_rmdo rmdo :                         opts := TARGET=RMDO
 clean_ircfusionf3 ircfusionf3 :           opts := TARGET=IRCFUSIONF3
+clean_lux_race lux_race :                 opts := TARGET=LUX_RACE
+clean_afromini afromini :                 opts := TARGET=AFROMINI
 clean_VRCORE VRCORE :                     opts := TARGET=VRCORE
 clean_afromini afromini :                 opts := TARGET=AFROMINI
 clean_BLUEJAYF4 BLUEJAYF4 :               opts := TARGET=BLUEJAYF4

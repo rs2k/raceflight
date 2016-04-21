@@ -80,7 +80,7 @@
 #define BRUSHLESS_MOTORS_PWM_RATE 2000
 #else
 #define BRUSHLESS_MOTORS_PWM_RATE 400
-#endif // STM32F4
+#endif
 
 void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, escAndServoConfig_t *escAndServoConfigToUse, pidProfile_t *pidProfileToUse);
 
@@ -169,17 +169,22 @@ static void resetAccelerometerTrims(flightDynamicsTrims_t *accelerometerTrims)
 
 void resetPidProfile(pidProfile_t *pidProfile)
 {
-    pidProfile->pidController = 2; //default is LUX
 
-    pidProfile->P8[ROLL] = 42;
-    pidProfile->I8[ROLL] = 40;
-    pidProfile->D8[ROLL] = 13;
-    pidProfile->P8[PITCH] = 54;
-    pidProfile->I8[PITCH] = 40;
-    pidProfile->D8[PITCH] = 18;
-    pidProfile->P8[YAW] = 100;
-    pidProfile->I8[YAW] = 50;
-    pidProfile->D8[YAW] = 5;
+#if defined(STM32F411xE) || defined(STM32F40_41xxx)
+    pidProfile->pidController = 2; //default is LUX
+#else
+    pidProfile->pidController = 1; //default is MWRW
+#endif
+
+    pidProfile->P8[ROLL] = 55;
+    pidProfile->I8[ROLL] = 80;
+    pidProfile->D8[ROLL] = 18;
+    pidProfile->P8[PITCH] = 65;
+    pidProfile->I8[PITCH] = 100;
+    pidProfile->D8[PITCH] = 22;
+    pidProfile->P8[YAW] = 110;
+    pidProfile->I8[YAW] = 180;
+    pidProfile->D8[YAW] = 0;
     pidProfile->P8[PIDALT] = 50;
     pidProfile->I8[PIDALT] = 0;
     pidProfile->D8[PIDALT] = 0;
@@ -200,11 +205,11 @@ void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->I8[PIDVEL] = 45;
     pidProfile->D8[PIDVEL] = 1;
 
-    pidProfile->gyro_lpf_hz = 60;    // filtering ON by default
-
+    pidProfile->gyro_lpf_hz = 70;    // filtering ON by default
 #ifdef STM32F4
     pidProfile->dterm_lpf_hz = 70;   // filtering ON by default
-    pidProfile->P_f[ROLL] = 5.000f;
+    pidProfile->yaw_pterm_cut_hz = 30;
+    pidProfile->P_f[ROLL] = 5.000f;     // new PID for raceflight. test carefully
     pidProfile->I_f[ROLL] = 1.000f;
     pidProfile->D_f[ROLL] = 0.110f;
     pidProfile->P_f[PITCH] = 6.500f;
@@ -434,9 +439,6 @@ static void resetConf(void)
     masterConfig.version = EEPROM_CONF_VERSION;
     masterConfig.mixerMode = MIXER_QUADX;
     featureClearAll();
-#if defined(CJMCU) || defined(SPARKY) || defined(COLIBRI_RACE) || defined(MOTOLAB)
-    featureSet(FEATURE_RX_PPM);
-#endif
 
 #ifdef BOARD_HAS_VOLTAGE_DIVIDER
     // only enable the VBAT feature by default if the board has a voltage divider otherwise
@@ -462,7 +464,7 @@ static void resetConf(void)
     masterConfig.acc_hardware = ACC_DEFAULT;     // default/autodetect
     masterConfig.max_angle_inclination = 700;    // 70 degrees
     masterConfig.yaw_control_direction = 1;
-    masterConfig.gyroConfig.gyroMovementCalibrationThreshold = 32;
+    masterConfig.gyroConfig.gyroMovementCalibrationThreshold = 16;
 
     // xxx_hardware: 0:default/autodetect, 1: disable
     masterConfig.mag_hardware = 1;
@@ -476,14 +478,14 @@ static void resetConf(void)
 #endif
 
 #ifdef CONFIG_SERIALRX_PROVIDER
-	masterConfig.rxConfig.serialrx_provider = CONFIG_SERIALRX_PROVIDER;
+    masterConfig.rxConfig.serialrx_provider = CONFIG_SERIALRX_PROVIDER;
 #else
     masterConfig.rxConfig.serialrx_provider = SERIALRX_SPEKTRUM1024;
 #endif
-	masterConfig.rf_loop_ctrl = 4;                 // Low DLPF, 1KHz
+	masterConfig.rf_loop_ctrl = 2;                 // High DLPF, H4
 
-#if defined(CC3D)
-    masterConfig.acc_hardware = 0;     // default/autodetect
+#if defined(CC3D) || defined(MOTOLAB) || defined(LUX_RACE)
+	masterConfig.acc_hardware = ACC_NONE;     // default/autodetect
 #endif
         
 #ifdef STM32F4
