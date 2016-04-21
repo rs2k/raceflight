@@ -1398,6 +1398,30 @@ static bool processInCommand(void)
             currentControlRateProfile->rcExpo8 = read8();
             for (i = 0; i < 3; i++) {
                 rate = read8();
+                currentControlRateProfile->rates[i] = MIN(rate, i == YAW ? CONTROL_RATE_CONFIG_YAW_RATE_MAX : CONTROL_RATE_CONFIG_ROLL_PITCH_RATE_MAX);
+            }
+            rate = read8();
+            currentControlRateProfile->dynThrPID = MIN(rate, CONTROL_RATE_CONFIG_TPA_MAX);
+            currentControlRateProfile->thrMid8 = read8();
+            currentControlRateProfile->thrExpo8 = read8();
+            currentControlRateProfile->tpa_breakpoint = read16();
+            if (currentPort->dataSize >= 11) {
+                currentControlRateProfile->rcYawExpo8 = read8();
+            }
+        } else {
+            headSerialError(0);
+        }
+        break;
+
+
+/*
+    case MSP_SET_RC_TUNING:
+    	break;
+        if (currentPort->dataSize >= 10) {
+            currentControlRateProfile->rcRate8 = read8();
+            currentControlRateProfile->rcExpo8 = read8();
+            for (i = 0; i < 3; i++) {
+                rate = read8();
                 currentControlRateProfile->rates[i] = MIN(rate, i == FD_YAW ? CONTROL_RATE_CONFIG_YAW_RATE_MAX : CONTROL_RATE_CONFIG_ROLL_PITCH_RATE_MAX);
             }
             rate = read8();
@@ -1420,7 +1444,9 @@ static bool processInCommand(void)
             headSerialError(0);
         }
         break;
+*/
     case MSP_SET_MISC:
+    	break;
         tmp = read16();
         if (tmp < 1600 && tmp > 1400)
             masterConfig.rxConfig.midrc = tmp;
@@ -1458,7 +1484,7 @@ static bool processInCommand(void)
             masterConfig.mag_hardware = read8();
         }
         break;
-        
+
     case MSP_SET_MOTOR_PWM:
         masterConfig.motor_pwm_rate = read16();
         masterConfig.motor_pwm_protocol = read8();
