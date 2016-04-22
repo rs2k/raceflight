@@ -50,6 +50,7 @@
 
 extern float dT;
 float Throttle_p;
+extern bool FullKiLatched;
 extern bool motorLimitReached;
 extern bool allowITermShrinkOnly;
 
@@ -205,7 +206,11 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
         }
 
         // -----calculate I component.
-        errorGyroIf[axis] = constrainf(errorGyroIf[axis] + RateError * dT * (pidProfile->I_f[axis]/2)  * 10, -250.0f, 250.0f);
+        if (FullKiLatched) {
+            errorGyroIf[axis] = constrainf(errorGyroIf[axis] + RateError * dT * (pidProfile->I_f[axis]/2)  * 10, -250.0f, 250.0f);
+        } else {
+            errorGyroIf[axis] = constrainf(errorGyroIf[axis] + RateError * dT * (pidProfile->I_f[axis]/2)  * 10, -10.0f, 10.0f);
+        }
 
 
         if (IS_RC_MODE_ACTIVE(BOXAIRMODE)) {

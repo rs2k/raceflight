@@ -105,7 +105,7 @@ void mpu9250SpiGyroInit(uint8_t lpf)
 
     spiResetErrorCounter(MPU9250_SPI_INSTANCE);
 
-    spiSetDivisor(MPU9250_SPI_INSTANCE, SPI_ULTRAFAST_CLOCK); //high speed now that we don't need to write to the slow registers
+    spiSetDivisor(MPU9250_SPI_INSTANCE, 5); //high speed now that we don't need to write to the slow registers
 
     int16_t data[3];
     mpuGyroRead(data);

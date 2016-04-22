@@ -661,7 +661,7 @@ bool sensorsAutodetect(sensorAlignmentConfig_t *sensorAlignmentConfig, uint8_t a
     }
 
 #if defined(USE_GYRO_SPI_MPU6500)
-    spiSetDivisor(MPU6500_SPI_INSTANCE, SPI_ULTRAFAST_CLOCK);
+    spiSetDivisor(MPU6500_SPI_INSTANCE, 6);
 #endif
 
     return true;
