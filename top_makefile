@@ -27,6 +27,7 @@ ALL_TARGETS += REVONANO_OPBL
 ALL_TARGETS += ALIENFLIGHTF4
 ALL_TARGETS += BLUEJAYF4
 ALL_TARGETS += VRCORE
+ALL_TARGETS += KKNGF4
 
 CLEAN_TARGETS     := $(addprefix clean_, $(ALL_TARGETS)) 
 
@@ -58,6 +59,7 @@ clean_SPARKY2_OPBL SPARKY2_OPBL :         opts := TARGET=SPARKY2_OPBL
 clean_SPARKY2 SPARKY2 :                   opts := TARGET=SPARKY2
 clean_REVO_OPBL REVO_OPBL :               opts := TARGET=REVO_OPBL
 clean_REVO REVO :                         opts := TARGET=REVO
+clean_REVO KKNGF4 :                       opts := TARGET=KKNGF4
 
 .PHONY: all clean
 all: everything
