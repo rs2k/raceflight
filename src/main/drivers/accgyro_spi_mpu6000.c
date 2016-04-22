@@ -151,7 +151,7 @@ void mpu6000SpiGyroInit(uint8_t lpf)
 
     spiResetErrorCounter(MPU6000_SPI_INSTANCE);
 
-    spiSetDivisor(MPU6000_SPI_INSTANCE, SPI_FAST_CLOCK); //high speed now that we don't need to write to the slow registers
+    spiSetDivisor(MPU6000_SPI_INSTANCE, 5); //high speed now that we don't need to write to the slow registers
 
     int16_t data[3];
     mpuGyroRead(data);
@@ -294,61 +294,6 @@ bool mpu6000SpiDetect(void)
 
     return false;
 }
-/*
-static void mpu6000AccAndGyroInit(void) {
-
-    if (mpuSpi6000InitDone) {
-        return;
-    }
-
-    spiSetDivisor(MPU6000_SPI_INSTANCE, SPI_SLOW_CLOCK);
-
-    // Device Reset
-    mpu6000WriteRegister(MPU_RA_PWR_MGMT_1, BIT_H_RESET);
-    delay(150);
-
-    mpu6000WriteRegister(MPU_RA_SIGNAL_PATH_RESET, BIT_GYRO | BIT_ACC | BIT_TEMP);
-    delay(150);
-
-    // Clock Source PPL with Z axis gyro reference
-    mpu6000WriteRegister(MPU_RA_PWR_MGMT_1, MPU_CLK_SEL_PLLGYROZ);
-    delayMicroseconds(15);
-
-    // Disable Primary I2C Interface
-    mpu6000WriteRegister(MPU_RA_USER_CTRL, BIT_I2C_IF_DIS);
-    delayMicroseconds(15);
-
-    mpu6000WriteRegister(MPU_RA_PWR_MGMT_2, 0x00);
-    delayMicroseconds(15);
-
-    // Accel Sample Rate 1kHz
-    // Gyroscope Output Rate =  1kHz when the DLPF is enabled
-    mpu6000WriteRegister(MPU_RA_SMPLRT_DIV, gyroMPU6xxxGetDividerDrops());
-    delayMicroseconds(15);
-
-    // Gyro +/- 1000 DPS Full Scale
-    mpu6000WriteRegister(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3);
-    delayMicroseconds(15);
-
-    // Accel +/- 8 G Full Scale
-    mpu6000WriteRegister(MPU_RA_ACCEL_CONFIG, INV_FSR_8G << 3);
-    delayMicroseconds(15);
-
-
-    mpu6000WriteRegister(MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 1 << 4 | 0 << 3 | 0 << 2 | 0 << 1 | 0 << 0);  // INT_ANYRD_2CLEAR
-    delayMicroseconds(15);
-
-#ifdef USE_MPU_DATA_READY_SIGNAL
-    mpu6000WriteRegister(MPU_RA_INT_ENABLE, MPU_RF_DATA_RDY_EN);
-    delayMicroseconds(15);
-#endif
-
-    spiSetDivisor(MPU6000_SPI_INSTANCE, SPI_FAST_CLOCK);  // 18 MHz SPI clock
-    delayMicroseconds(1);
-
-    mpuSpi6000InitDone = true;
-}
-*/
 
 bool mpu6000SpiAccDetect(acc_t *acc)
 {
