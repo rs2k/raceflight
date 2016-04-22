@@ -394,7 +394,7 @@ void mwArm(void)
         }
         if (!ARMING_FLAG(PREVENT_ARMING)) {
             ENABLE_ARMING_FLAG(ARMED);
-            FullKiLatched = true;
+
             headFreeModeHold = DECIDEGREES_TO_DEGREES(attitude.values.yaw);
 
 #ifdef BLACKBOX

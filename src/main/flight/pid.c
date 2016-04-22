@@ -370,6 +370,10 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
 
         ITerm = errorGyroI[axis] >> 13;
 
+        if (!FullKiLatched) {
+        	ITerm = constrain(ITerm, -10, 10);
+        }
+
         if (IS_RC_MODE_ACTIVE(BOXAIRMODE)) {
             airModePlus(&airModePlusAxisState[axis], axis, controlRateConfig);
             errorGyroI[axis] *= airModePlusAxisState[axis].iTermScaler;
