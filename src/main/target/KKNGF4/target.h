@@ -56,6 +56,8 @@
 #define USE_BARO_MS5611
 #define MS5611_I2C_INSTANCE I2CDEV_1
 
+#define USE_FLASHFS
+#define USE_FLASH_M25P16
 #define M25P16_CS_PIN         PB3
 #define M25P16_SPI_INSTANCE   SPI3
 
@@ -106,10 +108,10 @@
 #define BOARD_HAS_VOLTAGE_DIVIDER
 
 #define VBAT_ADC_PIN           PC1
-#define VBAT_ADC_CHANNEL       ADC_Channel_1
+#define VBAT_ADC_CHANNEL       ADC_Channel_11
 
 #define RSSI_ADC_GPIO_PIN      PC2
-#define RSSI_ADC_CHANNEL       ADC_Channel_2
+#define RSSI_ADC_CHANNEL       ADC_Channel_12
 
 #define CURRENT_METER_ADC_PIN       PC3
 #define CURRENT_METER_ADC_CHANNEL   ADC_Channel_13
