@@ -306,7 +306,7 @@ void annexCode(void)
     rcCommand[THROTTLE] = lookupThrottleRC[tmp2] + (tmp - tmp2 * 100) * (lookupThrottleRC[tmp2 + 1] - lookupThrottleRC[tmp2]) / 100;    // [0;1000] -> expo -> [MINTHROTTLE;MAXTHROTTLE]
     Throttle_p = constrainf( ((float)rcCommand[THROTTLE] - (float)masterConfig.rxConfig.mincheck) / ((float)masterConfig.rxConfig.maxcheck - (float)masterConfig.rxConfig.mincheck), 0, 100);
 
-    if ( (Throttle_p > 10) && (ARMING_FLAG(ARMED)) && (IS_RC_MODE_ACTIVE(BOXALWAYSSTABILIZED)) && (!isUsingSticksForArming()) ) {
+    if ( (Throttle_p > 0.1f) && (ARMING_FLAG(ARMED)) && (IS_RC_MODE_ACTIVE(BOXALWAYSSTABILIZED)) && (!isUsingSticksForArming()) ) {
     	FullKiLatched = true;
     }
 
