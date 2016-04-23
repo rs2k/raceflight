@@ -707,7 +707,7 @@ void configTimeBase(TIM_TypeDef *tim, uint16_t period, uint8_t mhz)
     if(tim == TIM1 || tim == TIM9 || tim == TIM10 || tim == TIM11) {
 		TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock / ((uint32_t)mhz * 1000000)) - 1;
     } else {
-		TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock / 2 / ((uint32_t)mhz * 1000000)) - 1;
+		TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock  / ((uint32_t)mhz * 1000000)) - 1;
     }
 #else
     TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock / ((uint32_t)mhz * 1000000)) - 1;

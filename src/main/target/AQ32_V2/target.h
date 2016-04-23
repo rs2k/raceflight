@@ -188,12 +188,7 @@
 #define BIND_PORT  GPIOD
 #define BIND_PIN   Pin_6
 
-#define USE_SERIAL_1WIRE
-#define ESC_COUNT 8
-#define S1W_TX_GPIO         GPIOA
-#define S1W_TX_PIN          GPIO_Pin_9
-#define S1W_RX_GPIO         GPIOA
-#define S1W_RX_PIN          GPIO_Pin_10
+#define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 #define USE_QUATERNION
 

@@ -103,6 +103,8 @@ enum {
 
 #define GYRO_WATCHDOG_DELAY 100 // Watchdog delay for gyro sync
 
+bool FullKiLatched = false;
+
 // AIR MODE Reset timers
 #define ERROR_RESET_DEACTIVATE_DELAY (1 * 1000)   // 1 sec delay to disable AIR MODE Iterm resetting
 bool allowITermShrinkOnly = false;
@@ -304,6 +306,10 @@ void annexCode(void)
     rcCommand[THROTTLE] = lookupThrottleRC[tmp2] + (tmp - tmp2 * 100) * (lookupThrottleRC[tmp2 + 1] - lookupThrottleRC[tmp2]) / 100;    // [0;1000] -> expo -> [MINTHROTTLE;MAXTHROTTLE]
     Throttle_p = constrainf( ((float)rcCommand[THROTTLE] - (float)masterConfig.rxConfig.mincheck) / ((float)masterConfig.rxConfig.maxcheck - (float)masterConfig.rxConfig.mincheck), 0, 100);
 
+    if ( (Throttle_p > 0.1f) && (ARMING_FLAG(ARMED)) && (IS_RC_MODE_ACTIVE(BOXALWAYSSTABILIZED)) && (!isUsingSticksForArming()) ) {
+    	FullKiLatched = true;
+    }
+
     if (FLIGHT_MODE(HEADFREE_MODE)) {
         float radDiff = degreesToRadians(DECIDEGREES_TO_DEGREES(attitude.values.yaw) - headFreeModeHold);
         float cosDiff = cos_approx(radDiff);
@@ -356,6 +362,8 @@ void mwDisarm(void)
 {
     if (ARMING_FLAG(ARMED)) {
         DISABLE_ARMING_FLAG(ARMED);
+
+        FullKiLatched = false;
 
 #ifdef BLACKBOX
         if (feature(FEATURE_BLACKBOX)) {
@@ -755,7 +763,7 @@ void taskMainPidLoop(void)
     }
 #endif
 
-    if (ResetErrorActivated) {
+    if ( (ResetErrorActivated) && (!FullKiLatched) ) {
         pidResetErrorGyro();
     }
 
