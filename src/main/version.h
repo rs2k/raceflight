@@ -20,7 +20,7 @@
 #define FC_VERSION_PATCH_LEVEL      22  // build day
 #define FC_VERSION_LETTER           "b" // build of day
 
-#define FC_VERSION_COMMENT          "RaceFlight Next - Anti-windup"
+#define FC_VERSION_COMMENT          "RaceFlight Next - RFBL Support"
 
 
 // Example of __DATE__ string: "Jul 27 2012"
