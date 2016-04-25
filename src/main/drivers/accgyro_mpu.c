@@ -321,12 +321,13 @@ bool mpuGyroRead(int16_t *gyroADC)
 
 	int count;
 	for (count=0; count < 3; count++) {
-		if ( (last_data0[count] - current_data[count]) <= -32000) {
-			current_data[count] = -32677;
-		} else
-		if ( (-last_data0[count] + current_data[count]) <= -32000) {
-			current_data[count] = 32677;
-		}
+		//Overflow sanity check. Not working right yet.
+		//if ( (last_data0[count] - current_data[count]) <= -32000) {
+		//	current_data[count] = -32677;
+		//} else
+		//if ( (-last_data0[count] + current_data[count]) <= -32000) {
+		//	current_data[count] = 32677;
+		//}
 		gyroADC[count] = (int16_t)((current_data[count] + last_data0[count] + last_data1[count]) / 3);
 		last_data1[count] = last_data0[count];
 		last_data0[count] = current_data[count];
