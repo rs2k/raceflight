@@ -319,43 +319,18 @@ bool mpuGyroRead(int16_t *gyroADC)
 	current_data[1] = (int16_t)((data[2] << 8) | data[3]);
 	current_data[2] = (int16_t)((data[4] << 8) | data[5]);
 
-	if ( (last_data0[0] - current_data[0]) >= 32000) {
-		current_data[0] = 32677;
-	} else
-	if ( (last_data0[1] - current_data[1]) >= 32000) {
-		current_data[1] = 32677;
-	} else
-	if ( (last_data0[2] - current_data[2]) >= 32000) {
-		current_data[2] = 32677;
-	} else
-	if ( (-last_data0[0] + current_data[0]) >= 32000) {
-		current_data[0] = -32677;
-	} else
-	if ( (-last_data0[1] + current_data[1]) >= 32000) {
-		current_data[1] = -32677;
-	} else
-	if ( (-last_data0[2] + current_data[2]) >= 32000) {
-		current_data[2] = -32677;
+	int count;
+	for (count=0; count < 3; count++) {
+		if ( (last_data0[count] - current_data[count]) <= -32000) {
+			current_data[count] = -32677;
+		} else
+		if ( (-last_data0[count] + current_data[count]) <= -32000) {
+			current_data[count] = 32677;
+		}
+		gyroADC[count] = (int16_t)((current_data[count] + last_data0[count] + last_data1[count]) / 3);
+		last_data1[count] = last_data0[count];
+		last_data0[count] = current_data[count];
 	}
-
-	if (current_data[0] >= 32677) { current_data[0] = 32677; }
-	if (current_data[1] >= 32677) { current_data[1] = 32677; }
-	if (current_data[2] >= 32677) { current_data[2] = 32677; }
-	if (current_data[0] <= -32677) { current_data[0] = -32677; }
-	if (current_data[1] <= -32677) { current_data[1] = -32677; }
-	if (current_data[2] <= -32677) { current_data[2] = -32677; }
-
-    gyroADC[0] = (int16_t)((current_data[0] + last_data0[0] + last_data1[0]) / 3);
-    gyroADC[1] = (int16_t)((current_data[1] + last_data0[1] + last_data1[1]) / 3);
-    gyroADC[2] = (int16_t)((current_data[2] + last_data0[2] + last_data1[2]) / 3);
-
-    last_data1[0] = last_data0[0];
-    last_data1[1] = last_data0[1];
-    last_data1[2] = last_data0[2];
-
-    last_data0[0] = current_data[0];
-    last_data0[1] = current_data[1];
-    last_data0[2] = current_data[2];
 
     return true;
 }

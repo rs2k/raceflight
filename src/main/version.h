@@ -66,10 +66,10 @@
 
 #define FC_VERSION_MAJOR            16  // build year
 #define FC_VERSION_MINOR            04  // build month
-#define FC_VERSION_PATCH_LEVEL      22  // build day
+#define FC_VERSION_PATCH_LEVEL      24  // build day
 #define FC_VERSION_LETTER           "c" // build of day
 
-#define FC_VERSION_COMMENT          "RaceFlight Release 1 RC11 - Anti-windup."
+#define FC_VERSION_COMMENT          "RaceFlight Release 1 RC12 - Buttered Razors."
 
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)

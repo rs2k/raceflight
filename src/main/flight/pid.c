@@ -209,7 +209,7 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
         if (FullKiLatched) {
             errorGyroIf[axis] = constrainf(errorGyroIf[axis] + RateError * dT * (pidProfile->I_f[axis]/2)  * 10, -250.0f, 250.0f);
         } else {
-            errorGyroIf[axis] = constrainf(errorGyroIf[axis] + RateError * dT * (pidProfile->I_f[axis]/2)  * 10, -10.0f, 10.0f);
+            errorGyroIf[axis] = constrainf(errorGyroIf[axis] + RateError * dT * (pidProfile->I_f[axis]/2)  * 10, -20.0f, 20.0f);
         }
 
 
@@ -371,7 +371,7 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
         ITerm = errorGyroI[axis] >> 13;
 
         if (!FullKiLatched) {
-        	ITerm = constrain(ITerm, -10, 10);
+        	ITerm = constrain(ITerm, -20, 20);
         }
 
         if (IS_RC_MODE_ACTIVE(BOXAIRMODE)) {
