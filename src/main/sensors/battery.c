@@ -39,6 +39,10 @@
 #define VBATT_PRESENT_THRESHOLD_MV    10
 #define VBATT_LPF_FREQ  10
 
+#define VBATMINCELLVOLTAGE 33
+
+
+
 // Battery monitoring stuff
 uint8_t batteryCellCount = 3;       // cell count
 uint16_t batteryWarningVoltage;
@@ -56,11 +60,11 @@ batteryConfig_t *batteryConfig;
 static batteryState_e batteryState;
 static lowpass_t lowpassFilter;
 
-uint16_t batteryAdcToVoltage(uint16_t src)
-{
-    // calculate battery voltage based on ADC reading
-    // result is Vbatt in 0.1V steps. 3.3V = ADC Vref, 0xFFF = 12bit adc, 110 = 11:1 voltage divider (10k:1k) * 10 for 0.1V
-    return ((((uint32_t)src * batteryConfig->vbatscale * 33 + (0xFFF * 5)) / (0xFFF * batteryConfig->vbatresdivval))/batteryConfig->vbatresdivmultiplier);
+
+uint16_t batteryAdcToVoltage(uint16_t src)  // in perfect world vbatscale should be 33 for 3.3v
+{                                           //  vbatmincellvoltage is calculated by ((HIGH_RESISTOR+LOW_RESISTOR)/LOW_RESISTOR) stored as * 2
+    return ((uint16_t)((float)src * (float)((float)(batteryConfig->vbatscale/3)/0xFFF) * (float)(batteryConfig->vbatmincellvoltage/2)));
+// used for debugging    return(batteryConfig->vbatmincellvoltage);
 }
 
 static void updateBatteryVoltage(void)
@@ -101,7 +105,7 @@ void updateBattery(void)
         }
         batteryCellCount = cells;
         batteryWarningVoltage = batteryCellCount * batteryConfig->vbatwarningcellvoltage;
-        batteryCriticalVoltage = batteryCellCount * batteryConfig->vbatmincellvoltage;
+        batteryCriticalVoltage = batteryCellCount * VBATMINCELLVOLTAGE;
     }
     /* battery has been disconnected - can take a while for filter cap to disharge so we use a threshold of VBATT_PRESENT_THRESHOLD_MV */
     else if (batteryState != BATTERY_NOT_PRESENT && vbat <= VBATT_PRESENT_THRESHOLD_MV)
@@ -209,7 +213,7 @@ void updateCurrentMeter(int32_t lastUpdateAt, rxConfig_t *rxConfig, uint16_t dea
 
 uint8_t calculateBatteryPercentage(void)
 {
-    return (((uint32_t)vbat - (batteryConfig->vbatmincellvoltage * batteryCellCount)) * 100) / ((batteryConfig->vbatmaxcellvoltage - batteryConfig->vbatmincellvoltage) * batteryCellCount);
+    return (((uint32_t)vbat - (VBATMINCELLVOLTAGE * batteryCellCount)) * 100) / ((batteryConfig->vbatmaxcellvoltage - VBATMINCELLVOLTAGE) * batteryCellCount);
 }
 
 uint8_t calculateBatteryCapacityRemainingPercentage(void)
@@ -218,3 +222,4 @@ uint8_t calculateBatteryCapacityRemainingPercentage(void)
 
     return constrain((batteryCapacity - constrain(mAhDrawn, 0, 0xFFFF)) * 100.0f / batteryCapacity , 0, 100);
 }
+
