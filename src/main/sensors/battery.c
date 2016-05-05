@@ -72,6 +72,10 @@ static void updateBatteryVoltage(void)
     uint16_t vbatSample;
     uint16_t vbatFiltered;
 
+	if (batteryConfig->vbatmincellvoltage == 33)  // dirty hack, if people left min to defaults it makes it a 10:1 ratio
+		batteryConfig->vbatmincellvoltage = 20; 
+
+	
     // store the battery voltage with some other recent battery voltage readings
     vbatSample = vbatLatestADC = adcGetChannel(ADC_BATTERY);
     vbatFiltered = (uint16_t)lowpassFixed(&lowpassFilter, vbatSample, VBATT_LPF_FREQ);
@@ -82,14 +86,16 @@ static void updateBatteryVoltage(void)
 /* Batt Hysteresis of +/-100mV */
 #define VBATT_HYSTERESIS 1
 
+
 void updateBattery(void)
 {
     updateBatteryVoltage();
     
+	
     /* battery has just been connected*/
     if (batteryState == BATTERY_NOT_PRESENT && vbat > VBATT_PRESENT_THRESHOLD_MV)
     {
-        /* Actual battery state is calculated below, this is really BATTERY_PRESENT */
+        /* Actual battery state is calculated below, this is really BATTERY_PRESENT */14144
         batteryState = BATTERY_OK;
         /* wait for VBatt to stabilise then we can calc number of cells
         (using the filtered value takes a long time to ramp up) 
