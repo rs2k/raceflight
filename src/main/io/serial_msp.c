@@ -1392,6 +1392,7 @@ static bool processInCommand(void)
         masterConfig.disarm_kill_switch = read8();
         break;
     case MSP_SET_LOOP_TIME:
+        targetLooptime = read16();
         break;
     case MSP_SET_PID_CONTROLLER:
         currentProfile->pidProfile.pidController = constrain(read8(), 1, 2);  // Temporary configurator compatibility
