@@ -579,9 +579,36 @@ void processLoopback(void) {
 #define processLoopback()
 #endif
 
+
+//forwad dec for testing serial
+static void serial_test_callback(uint16_t c);
+bool serial_test_init(void);
+
+static serialPort_t *serial_test_port = NULL; //serial port ro tes
+
+bool serial_test_init(void)
+{
+
+    serialPortConfig_t *portConfig = findSerialPortConfig(FUNCTION_RSP);
+    if (!portConfig) {
+        return false;
+    }
+
+    //open serial port
+    serial_test_port = openSerialPort(portConfig->identifier, FUNCTION_RSP, serial_test_callback, baudRates[portConfig->msp_baudrateIndex], MODE_RXTX, SERIAL_NOT_INVERTED);
+
+    return true;
+}
+
+static void serial_test_callback(uint16_t c) {
+    serialWrite(serial_test_port, (uint8_t)c); //echo back!
+}
+
 int main(void) {
   
     init();
+
+    serial_test_init(); //init serial for testing
 
     /* Setup scheduler */
     rescheduleTask(TASK_GYROPID, targetLooptime - INTERRUPT_WAIT_TIME);
