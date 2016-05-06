@@ -95,7 +95,7 @@ void updateBattery(void)
     /* battery has just been connected*/
     if (batteryState == BATTERY_NOT_PRESENT && vbat > VBATT_PRESENT_THRESHOLD_MV)
     {
-        /* Actual battery state is calculated below, this is really BATTERY_PRESENT */14144
+        /* Actual battery state is calculated below, this is really BATTERY_PRESENT *///14144
         batteryState = BATTERY_OK;
         /* wait for VBatt to stabilise then we can calc number of cells
         (using the filtered value takes a long time to ramp up) 
