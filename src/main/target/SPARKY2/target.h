@@ -134,6 +134,7 @@
 #define GTUNE
 #define USE_SERVOS
 #define USE_CLI
+#define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 #define USE_QUATERNION
 
