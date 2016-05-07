@@ -20,8 +20,6 @@
 #include "io/serial.h"
 #include "drivers/serial.h"
 
-#define MSP_SET_ESCSERIAL        244    //in message          Sets escserial passthrough
-#define MSP_SET_4WAY_IF          245    //in message          Sets 4way interface
 // Each MSP port requires state and a receive buffer, revisit this default if someone needs more than 2 MSP ports.
 #define MAX_MSP_PORT_COUNT 2
 

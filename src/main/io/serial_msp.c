@@ -42,7 +42,7 @@
 #include "drivers/timer.h"
 #include "drivers/pwm_rx.h"
 #include "drivers/gyro_sync.h"
-#include "drivers/buf_writer.h"
+
 #include "rx/rx.h"
 #include "rx/msp.h"
 
@@ -87,10 +87,9 @@
 
 #include "serial_msp.h"
 
-#ifdef USE_SERIAL_4WAY_BLHELI_INTERFACE
-#include "io/serial_4way.h"
+#ifdef USE_SERIAL_1WIRE
+#include "io/serial_1wire.h"
 #endif
-
 static serialPort_t *mspSerialPort;
 
 extern uint16_t cycleTime; // FIXME dependency on mw.c
@@ -416,15 +415,13 @@ typedef struct mspPort_s {
     mspPortUsage_e mspPortUsage;
 } mspPort_t;
 
+static mspPort_t mspPorts[MAX_MSP_PORT_COUNT];
 
-STATIC_UNIT_TESTED mspPort_t mspPorts[MAX_MSP_PORT_COUNT];
-
-STATIC_UNIT_TESTED mspPort_t *currentPort;
-STATIC_UNIT_TESTED bufWriter_t *writer;
+static mspPort_t *currentPort;
 
 static void serialize8(uint8_t a)
 {
-    bufWriterAppend(writer, a);
+    serialWrite(mspSerialPort, a);
     currentPort->checksum ^= a;
 }
 
@@ -462,7 +459,6 @@ static uint32_t read32(void)
 static void headSerialResponse(uint8_t err, uint8_t responseBodySize)
 {
     serialBeginWrite(mspSerialPort);
-    
     serialize8('$');
     serialize8('M');
     serialize8(err ? '!' : '>');
@@ -599,11 +595,12 @@ static void serializeDataflashReadReply(uint32_t address, uint8_t size)
 }
 #endif
 
-static void resetMspPort(mspPort_t *mspPortToReset, serialPort_t *serialPort)
+static void resetMspPort(mspPort_t *mspPortToReset, serialPort_t *serialPort, mspPortUsage_e usage)
 {
     memset(mspPortToReset, 0, sizeof(mspPort_t));
 
     mspPortToReset->port = serialPort;
+    mspPortToReset->mspPortUsage = usage;
 }
 
 void mspAllocateSerialPorts(serialConfig_t *serialConfig)
@@ -618,14 +615,14 @@ void mspAllocateSerialPorts(serialConfig_t *serialConfig)
 
     while (portConfig && portIndex < MAX_MSP_PORT_COUNT) {
         mspPort_t *mspPort = &mspPorts[portIndex];
-        if (mspPort->port) {
+        if (mspPort->mspPortUsage != UNUSED_PORT) {
             portIndex++;
             continue;
         }
 
         serialPort = openSerialPort(portConfig->identifier, FUNCTION_MSP, NULL, baudRates[portConfig->msp_baudrateIndex], MODE_RXTX, SERIAL_NOT_INVERTED);
         if (serialPort) {
-            resetMspPort(mspPort, serialPort);
+            resetMspPort(mspPort, serialPort, FOR_GENERAL_MSP);
             portIndex++;
         }
 
@@ -735,56 +732,9 @@ void mspInit(serialConfig_t *serialConfig)
 
 #define IS_ENABLED(mask) (mask == 0 ? 0 : 1)
 
-static uint32_t packFlightModeFlags(void)
-{
-    uint32_t i, junk, tmp;
-
-    // Serialize the flags in the order we delivered them, ignoring BOXNAMES and BOXINDEXES
-    // Requires new Multiwii protocol version to fix
-    // It would be preferable to setting the enabled bits based on BOXINDEX.
-    junk = 0;
-    tmp = IS_ENABLED(FLIGHT_MODE(ANGLE_MODE)) << BOXANGLE |
-        IS_ENABLED(FLIGHT_MODE(HORIZON_MODE)) << BOXHORIZON |
-        IS_ENABLED(FLIGHT_MODE(BARO_MODE)) << BOXBARO |
-        IS_ENABLED(FLIGHT_MODE(MAG_MODE)) << BOXMAG |
-        IS_ENABLED(FLIGHT_MODE(HEADFREE_MODE)) << BOXHEADFREE |
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXHEADADJ)) << BOXHEADADJ |
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXCAMSTAB)) << BOXCAMSTAB |
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXCAMTRIG)) << BOXCAMTRIG |
-        IS_ENABLED(FLIGHT_MODE(GPS_HOME_MODE)) << BOXGPSHOME |
-        IS_ENABLED(FLIGHT_MODE(GPS_HOLD_MODE)) << BOXGPSHOLD |
-        IS_ENABLED(FLIGHT_MODE(PASSTHRU_MODE)) << BOXPASSTHRU |
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXBEEPERON)) << BOXBEEPERON |
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXLEDMAX)) << BOXLEDMAX |
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXLEDLOW)) << BOXLEDLOW |
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXLLIGHTS)) << BOXLLIGHTS |
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXCALIB)) << BOXCALIB |
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXGOV)) << BOXGOV |
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXOSD)) << BOXOSD |
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXTELEMETRY)) << BOXTELEMETRY |
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXGTUNE)) << BOXGTUNE |
-        IS_ENABLED(FLIGHT_MODE(SONAR_MODE)) << BOXSONAR |
-        IS_ENABLED(ARMING_FLAG(ARMED)) << BOXARM |
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXBLACKBOX)) << BOXBLACKBOX |
-        IS_ENABLED(FLIGHT_MODE(FAILSAFE_MODE)) << BOXFAILSAFE |
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXAIRMODE)) << BOXAIRMODE|
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXACROPLUS)) << BOXACROPLUS|
-	IS_ENABLED(IS_RC_MODE_ACTIVE(BOXALWAYSSTABILIZED)) << BOXALWAYSSTABILIZED|
-       	IS_ENABLED(IS_RC_MODE_ACTIVE(BOXTEST1)) << BOXTEST1|
-        IS_ENABLED(IS_RC_MODE_ACTIVE(BOXTEST2)) << BOXTEST2;
-
-    for (i = 0; i < activeBoxIdCount; i++) {
-        int flag = (tmp & (1 << activeBoxIds[i]));
-        if (flag)
-            junk |= 1 << i;
-    }
-
-    return junk;
-}
-
 static bool processOutCommand(uint8_t cmdMSP)
 {
-    uint32_t i;
+    uint32_t i, tmp, junk;
 
 #ifdef GPS
     uint8_t wp_no;
@@ -827,7 +777,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         for (i = 0; i < BOARD_IDENTIFIER_LENGTH; i++) {
             serialize8(boardIdentifier[i]);
         }
-#ifdef USE_HARDWARE_REVISION_DETECTION
+#ifdef NAZE
         serialize16(hardwareRevision);
 #else
         serialize16(0); // No other build targets currently have hardware revision detection.
@@ -871,7 +821,45 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize16(0);
 #endif
         serialize16(sensors(SENSOR_ACC) | sensors(SENSOR_BARO) << 1 | sensors(SENSOR_MAG) << 2 | sensors(SENSOR_GPS) << 3 | sensors(SENSOR_SONAR) << 4);
-        serialize32(packFlightModeFlags());
+        // Serialize the flags in the order we delivered them, ignoring BOXNAMES and BOXINDEXES
+        // Requires new Multiwii protocol version to fix
+        // It would be preferable to setting the enabled bits based on BOXINDEX.
+        junk = 0;
+        tmp = IS_ENABLED(FLIGHT_MODE(ANGLE_MODE)) << BOXANGLE |
+            IS_ENABLED(FLIGHT_MODE(HORIZON_MODE)) << BOXHORIZON |
+            IS_ENABLED(FLIGHT_MODE(BARO_MODE)) << BOXBARO |
+            IS_ENABLED(FLIGHT_MODE(MAG_MODE)) << BOXMAG |
+            IS_ENABLED(FLIGHT_MODE(HEADFREE_MODE)) << BOXHEADFREE |
+            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXHEADADJ)) << BOXHEADADJ |
+            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXCAMSTAB)) << BOXCAMSTAB |
+            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXCAMTRIG)) << BOXCAMTRIG |
+            IS_ENABLED(FLIGHT_MODE(GPS_HOME_MODE)) << BOXGPSHOME |
+            IS_ENABLED(FLIGHT_MODE(GPS_HOLD_MODE)) << BOXGPSHOLD |
+            IS_ENABLED(FLIGHT_MODE(PASSTHRU_MODE)) << BOXPASSTHRU |
+            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXBEEPERON)) << BOXBEEPERON |
+            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXLEDMAX)) << BOXLEDMAX |
+            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXLEDLOW)) << BOXLEDLOW |
+            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXLLIGHTS)) << BOXLLIGHTS |
+            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXCALIB)) << BOXCALIB |
+            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXGOV)) << BOXGOV |
+            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXOSD)) << BOXOSD |
+            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXTELEMETRY)) << BOXTELEMETRY |
+            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXGTUNE)) << BOXGTUNE |
+            IS_ENABLED(FLIGHT_MODE(SONAR_MODE)) << BOXSONAR |
+            IS_ENABLED(ARMING_FLAG(ARMED)) << BOXARM |
+            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXBLACKBOX)) << BOXBLACKBOX |
+            IS_ENABLED(FLIGHT_MODE(FAILSAFE_MODE)) << BOXFAILSAFE |
+            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXAIRMODE)) << BOXAIRMODE|
+            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXACROPLUS)) << BOXACROPLUS|
+			IS_ENABLED(IS_RC_MODE_ACTIVE(BOXALWAYSSTABILIZED)) << BOXALWAYSSTABILIZED|
+        	IS_ENABLED(IS_RC_MODE_ACTIVE(BOXTEST1)) << BOXTEST1|
+            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXTEST2)) << BOXTEST2;
+        for (i = 0; i < activeBoxIdCount; i++) {
+            int flag = (tmp & (1 << activeBoxIds[i]));
+            if (flag)
+                junk |= 1 << i;
+        }
+        serialize32(junk);
         serialize8(masterConfig.current_profile_index);
         break;
     case MSP_RAW_IMU:
@@ -987,7 +975,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         //serialize8(currentProfile->pidProfile.yaw_pterm_cut_hz);
         break;
     case MSP_PID:
-        headSerialReply(3 * PID_ITEM_COUNT);
+        headSerialReply( (3 * PID_ITEM_COUNT) );
         if (IS_PID_CONTROLLER_FP_BASED(currentProfile->pidProfile.pidController)) { // convert float stuff into uint8_t to keep backwards compatability with all 8-bit crap with new pid
             for (i = 0; i < 3; i++) {
                 serialize8(constrain(lrintf(currentProfile->pidProfile.P_f[i] * 10.0f), 0, 255));
@@ -1404,7 +1392,6 @@ static bool processInCommand(void)
         masterConfig.disarm_kill_switch = read8();
         break;
     case MSP_SET_LOOP_TIME:
-        targetLooptime = read16();
         break;
     case MSP_SET_PID_CONTROLLER:
         currentProfile->pidProfile.pidController = constrain(read8(), 1, 2);  // Temporary configurator compatibility
@@ -1840,26 +1827,68 @@ static bool processInCommand(void)
         isRebootScheduled = true;
         break;
 
-#ifdef USE_SERIAL_4WAY_BLHELI_INTERFACE
-    case MSP_SET_4WAY_IF:
+#ifdef USE_SERIAL_1WIRE
+    case MSP_SET_1WIRE:
         // get channel number
-        // switch all motor lines HI
-        // reply the count of ESC found
-        headSerialReply(1);
-        serialize8(Initialize4WayInterface());
-        // because we do not come back after calling Process4WayInterface
-        // proceed with a success reply first
-        tailSerialReply();
-        // flush the transmit buffer
-        bufWriterFlush(writer);
-        // wait for all data to send
-        waitForSerialPortToFinishTransmitting(currentPort->port);
-        // rem: App: Wait at least appx. 500 ms for BLHeli to jump into
-        // bootloader mode before try to connect any ESC
-        // Start to activate here
-        Process4WayInterface(currentPort, writer);
-        // former used MSP uart is still active
-        // proceed as usual with MSP commands
+        i = read8();
+        // we do not give any data back, assume channel number is transmitted OK
+        if (i == 0xFF) {
+            // 0xFF -> preinitialize the Passthrough
+            // switch all motor lines HI
+            usb1WireInitialize();
+            // reply the count of ESC found
+            headSerialReply(1);
+            serialize8(escCount);
+
+            // and come back right afterwards
+            // rem: App: Wait at least appx. 500 ms for BLHeli to jump into
+            // bootloader mode before try to connect any ESC
+
+            return true;
+        }
+        else {
+            // Check for channel number 0..ESC_COUNT-1
+            if (i < escCount) {
+                // because we do not come back after calling usb1WirePassthrough
+                // proceed with a success reply first
+                headSerialReply(0);
+                tailSerialReply();
+                // wait for all data to send
+                waitForSerialPortToFinishTransmitting(currentPort->port);
+                // Start to activate here
+                // motor 1 => index 0
+
+                // search currentPort portIndex
+                /* next lines seems to be unnecessary, because the currentPort always point to the same mspPorts[portIndex]
+                uint8_t portIndex;
+				for (portIndex = 0; portIndex < MAX_MSP_PORT_COUNT; portIndex++) {
+					if (currentPort == &mspPorts[portIndex]) {
+						break;
+					}
+				}
+				*/
+                mspReleasePortIfAllocated(mspSerialPort); // CloseSerialPort also marks currentPort as UNUSED_PORT
+                usb1WirePassthrough(i);
+                // Wait a bit more to let App read the 0 byte and switch baudrate
+                // 2ms will most likely do the job, but give some grace time
+                delay(10);
+                // rebuild/refill currentPort structure, does openSerialPort if marked UNUSED_PORT - used ports are skiped
+                mspAllocateSerialPorts(&masterConfig.serialConfig);
+                /* restore currentPort and mspSerialPort
+                setCurrentPort(&mspPorts[portIndex]); // not needed same index will be restored
+                */
+                // former used MSP uart is active again
+                // restore MSP_SET_1WIRE as current command for correct headSerialReply(0)
+                currentPort->cmdMSP = MSP_SET_1WIRE;
+            } else {
+                // ESC channel higher than max. allowed
+                // rem: BLHeliSuite will not support more than 8
+                headSerialError(0);
+            }
+            // proceed as usual with MSP commands
+            // and wait to switch to next channel
+            // rem: App needs to call MSP_BOOT to deinitialize Passthrough
+        }
         break;
 #endif
     default:
@@ -1870,7 +1899,7 @@ static bool processInCommand(void)
     return true;
 }
 
-STATIC_UNIT_TESTED void mspProcessReceivedCommand() {
+static void mspProcessReceivedCommand() {
     if (!(processOutCommand(currentPort->cmdMSP) || processInCommand())) {
         headSerialError(0);
     }
@@ -1919,7 +1948,7 @@ static bool mspProcessReceivedData(uint8_t c)
     return true;
 }
 
-STATIC_UNIT_TESTED void setCurrentPort(mspPort_t *port)
+void setCurrentPort(mspPort_t *port)
 {
     currentPort = port;
     mspSerialPort = currentPort->port;
@@ -1932,15 +1961,11 @@ void mspProcess(void)
 
     for (portIndex = 0; portIndex < MAX_MSP_PORT_COUNT; portIndex++) {
         candidatePort = &mspPorts[portIndex];
-        if (!candidatePort->port) {
+        if (candidatePort->mspPortUsage != FOR_GENERAL_MSP) {
             continue;
         }
 
         setCurrentPort(candidatePort);
-        // Big enough to fit a MSP_STATUS in one write.
-        uint8_t buf[sizeof(bufWriter_t) + 20];
-        writer = bufWriterInit(buf, sizeof(buf),
-                               (bufWrite_t)serialWriteBufShim, currentPort->port);
 
         while (serialRxBytesWaiting(mspSerialPort)) {
 
@@ -1956,8 +1981,6 @@ void mspProcess(void)
                 break; // process one command at a time so as not to block.
             }
         }
-
-        bufWriterFlush(writer);
 
         if (isRebootScheduled) {
             waitForSerialPortToFinishTransmitting(candidatePort->port);
@@ -1981,3 +2004,58 @@ static const uint8_t mspTelemetryCommandSequence[] = {
     MSP_SERVO
 };
 
+#define TELEMETRY_MSP_COMMAND_SEQUENCE_ENTRY_COUNT (sizeof(mspTelemetryCommandSequence) / sizeof(mspTelemetryCommandSequence[0]))
+
+static mspPort_t *mspTelemetryPort = NULL;
+
+void mspSetTelemetryPort(serialPort_t *serialPort)
+{
+    uint8_t portIndex;
+    mspPort_t *candidatePort = NULL;
+    mspPort_t *matchedPort = NULL;
+
+    // find existing telemetry port
+    for (portIndex = 0; portIndex < MAX_MSP_PORT_COUNT; portIndex++) {
+        candidatePort = &mspPorts[portIndex];
+        if (candidatePort->mspPortUsage == FOR_TELEMETRY) {
+            matchedPort = candidatePort;
+            break;
+        }
+    }
+
+    if (!matchedPort) {
+        // find unused port
+        for (portIndex = 0; portIndex < MAX_MSP_PORT_COUNT; portIndex++) {
+            candidatePort = &mspPorts[portIndex];
+            if (candidatePort->mspPortUsage == UNUSED_PORT) {
+                matchedPort = candidatePort;
+                break;
+            }
+        }
+    }
+    mspTelemetryPort = matchedPort;
+    if (!mspTelemetryPort) {
+        return;
+    }
+
+    resetMspPort(mspTelemetryPort, serialPort, FOR_TELEMETRY);
+}
+
+void sendMspTelemetry(void)
+{
+    static uint32_t sequenceIndex = 0;
+
+    if (!mspTelemetryPort) {
+        return;
+    }
+
+    setCurrentPort(mspTelemetryPort);
+
+    processOutCommand(mspTelemetryCommandSequence[sequenceIndex]);
+    tailSerialReply();
+
+    sequenceIndex++;
+    if (sequenceIndex >= TELEMETRY_MSP_COMMAND_SEQUENCE_ENTRY_COUNT) {
+        sequenceIndex = 0;
+    }
+}

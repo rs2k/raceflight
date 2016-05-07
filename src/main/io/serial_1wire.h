@@ -13,28 +13,24 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Ported from https://github.com/4712/BLHeliSuite/blob/master/Interfaces/Arduino1Wire/Source/Arduino1Wire_C/Arduino1Wire.c
+ *  by Nathan Tsoi <nathan@vertile.com>
  */
 
 #pragma once
 
-#include <stdint.h>
+#ifdef USE_SERIAL_1WIRE
 
-// Called to flush the buffer.
-typedef void (*bufWrite_t)(void *arg, void *data, int count);
+extern uint8_t escCount;
 
-typedef struct bufWriter_s {
-    bufWrite_t writer;
-    void *arg;
-    uint8_t capacity;
-    uint8_t at;
-    uint8_t data[];
-} bufWriter_t;
+typedef struct {
+    GPIO_TypeDef* gpio;
+    uint16_t pinpos;
+    uint16_t pin;
+} escHardware_t;
 
-// Initialise a block of memory as a buffered writer.
-//
-// b should be sizeof(bufWriter_t) + the number of bytes to buffer.
-// total_size should be the total size of b.
-//
-bufWriter_t *bufWriterInit(uint8_t *b, int total_size, bufWrite_t writer, void *p);
-void bufWriterAppend(bufWriter_t *b, uint8_t ch);
-void bufWriterFlush(bufWriter_t *b);
+
+void usb1WireInitialize();
+void usb1WirePassthrough(uint8_t escIndex);
+#endif
