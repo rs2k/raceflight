@@ -392,11 +392,14 @@ COMMON_SRC = build_config.c \
 		   drivers/sound_beeper.c \
 		   drivers/system.c \
 		   drivers/gyro_sync.c \
+		   drivers/buf_writer.c \
 		   io/beeper.c \
 		   io/rc_controls.c \
 		   io/rc_curves.c \
 		   io/serial.c \
-		   io/serial_1wire.c \
+		   io/serial_4way.c \
+		   io/serial_4way_avrootloader.c \
+		   io/serial_4way_stk500v2.c \
 		   io/serial_cli.c \
 		   io/serial_msp.c \
 		   io/statusindicator.c \
@@ -429,7 +432,6 @@ HIGHEND_SRC = \
 		   telemetry/telemetry.c \
 		   telemetry/frsky.c \
 		   telemetry/hott.c \
-		   telemetry/msp.c \
 		   telemetry/smartport.c \
 		   sensors/sonar.c \
 		   sensors/barometer.c \

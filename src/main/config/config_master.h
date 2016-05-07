@@ -106,6 +106,8 @@ typedef struct master_t {
 
     beeperOffConditions_t beeper_off;
 
+    uint8_t debug_mode;
+    
     uint8_t magic_ef;                       // magic number, should be 0xEF
     uint8_t chk;                            // XOR checksum
 } master_t;
