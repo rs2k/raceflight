@@ -65,11 +65,11 @@
 
 
 #define FC_VERSION_MAJOR            16  // build year
-#define FC_VERSION_MINOR            04  // build month
-#define FC_VERSION_PATCH_LEVEL      24  // build day
-#define FC_VERSION_LETTER           "c" // build of day
+#define FC_VERSION_MINOR            05  // build month
+#define FC_VERSION_PATCH_LEVEL      07  // build day
+#define FC_VERSION_LETTER           "b" // build of day
 
-#define FC_VERSION_COMMENT          "RaceFlight Release 1 RC12 - Buttered Razors."
+#define FC_VERSION_COMMENT          "RaceFlight Release 1 RC12 - Flip Fix 3."
 
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)

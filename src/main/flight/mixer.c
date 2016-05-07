@@ -765,7 +765,7 @@ void mixTable(void)
         axisPID[YAW] = constrain(axisPID[YAW], -mixerConfig->yaw_jump_prevention_limit - ABS(rcCommand[YAW]), mixerConfig->yaw_jump_prevention_limit + ABS(rcCommand[YAW]));
     }
 
-    if (!(IS_RC_MODE_ACTIVE(BOXAIRMODE)) && !(feature(BOXALWAYSSTABILIZED)) ) {
+    if (!(IS_RC_MODE_ACTIVE(BOXAIRMODE)) && !(IS_RC_MODE_ACTIVE(BOXALWAYSSTABILIZED)) ) {
     	motorLimitReached = false; // It  always needs to be reset so it can't get stuck when flipping back and fourth
         // motors for non-servo mixes
         for (i = 0; i < motorCount; i++) {
@@ -880,7 +880,7 @@ void mixTable(void)
     }
 
     if (ARMING_FLAG(ARMED)) {
-    	if (!(IS_RC_MODE_ACTIVE(BOXAIRMODE)) && !(feature(BOXALWAYSSTABILIZED)) ) {
+    	if (!(IS_RC_MODE_ACTIVE(BOXAIRMODE)) && !(IS_RC_MODE_ACTIVE(BOXALWAYSSTABILIZED)) ) {
             int16_t maxThrottleDifference = 0;
 
             if (!(feature(FEATURE_3D))) {
@@ -900,7 +900,7 @@ void mixTable(void)
                 }
             }
             for (i = 0; i < motorCount; i++) {
-                if (!(IS_RC_MODE_ACTIVE(BOXAIRMODE)) && !(feature(BOXALWAYSSTABILIZED)) && !(feature(FEATURE_3D))) {
+                if (!(IS_RC_MODE_ACTIVE(BOXAIRMODE)) && !(IS_RC_MODE_ACTIVE(BOXALWAYSSTABILIZED)) && !(feature(FEATURE_3D))) {
                     // this is a way to still have good gyro corrections if at least one motor reaches its max.
                     motor[i] -= maxThrottleDifference;
                 }

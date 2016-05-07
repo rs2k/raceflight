@@ -200,6 +200,7 @@ static void pidLuxFloat(pidProfile_t *pidProfile, controlRateConfig_t *controlRa
 
         // -----calculate P component
         PTerm = RateError * (pidProfile->P_f[axis]/4) * PIDweight[axis] / 100;
+        if (!FullKiLatched) { PTerm = PTerm / 2; }
 
         if (axis == YAW && pidProfile->yaw_pterm_cut_hz) {
             PTerm = filterApplyPt1(PTerm, &yawPTermState, pidProfile->yaw_pterm_cut_hz, dT);
@@ -352,6 +353,7 @@ static void pidRewrite(pidProfile_t *pidProfile, controlRateConfig_t *controlRat
 
         // -----calculate P component
 		PTerm = (RateError * pidProfile->P8[axis] * PIDweight[axis] / 100) >> 7;
+        if (!FullKiLatched) { PTerm = PTerm / 2; }
 
 		if (axis == YAW && pidProfile->yaw_pterm_cut_hz) {
 			PTerm = filterApplyPt1(PTerm, &yawPTermState, pidProfile->yaw_pterm_cut_hz, dT);

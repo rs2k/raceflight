@@ -105,7 +105,11 @@ void mpu9250SpiGyroInit(uint8_t lpf)
 
     spiResetErrorCounter(MPU9250_SPI_INSTANCE);
 
-    spiSetDivisor(MPU9250_SPI_INSTANCE, 5); //high speed now that we don't need to write to the slow registers
+#if defined(REVONANO) //revonano needs ultrafast clock for 24 MHz
+    spiSetDivisor(MPU9250_SPI_INSTANCE, SPI_ULTRAFAST_CLOCK); //high speed now that we don't need to write to the slow registers
+#else //Other F4s run fast clock for 24 MHz
+    spiSetDivisor(MPU9250_SPI_INSTANCE, SPI_FAST_CLOCK); //high speed now that we don't need to write to the slow registers
+#endif
 
     int16_t data[3];
     mpuGyroRead(data);
