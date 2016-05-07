@@ -53,6 +53,7 @@ extern __IO uint32_t receiveLength;                          // HJI
 
 uint8_t receiveBuffer[64];                                   // HJI
 uint32_t sendLength;                                          // HJI
+static void IntToUnicode(uint32_t value, uint8_t *pbuf, uint8_t len);
 /* Extern variables ----------------------------------------------------------*/
 
 /* Private function prototypes -----------------------------------------------*/
@@ -228,6 +229,53 @@ void USB_Cable_Config(FunctionalState NewState)
 }
 
 /*******************************************************************************
+ * Function Name  : Get_SerialNum.
+ * Description    : Create the serial number string descriptor.
+ * Input          : None.
+ * Output         : None.
+ * Return         : None.
+ *******************************************************************************/
+void Get_SerialNum(void)
+{
+    uint32_t Device_Serial0, Device_Serial1, Device_Serial2;
+
+    Device_Serial0 = *(uint32_t*)ID1;
+    Device_Serial1 = *(uint32_t*)ID2;
+    Device_Serial2 = *(uint32_t*)ID3;
+
+    Device_Serial0 += Device_Serial2;
+
+    if (Device_Serial0 != 0) {
+        IntToUnicode(Device_Serial0, &Virtual_Com_Port_StringSerial[2], 8);
+        IntToUnicode(Device_Serial1, &Virtual_Com_Port_StringSerial[18], 4);
+    }
+}
+
+/*******************************************************************************
+ * Function Name  : HexToChar.
+ * Description    : Convert Hex 32Bits value into char.
+ * Input          : None.
+ * Output         : None.
+ * Return         : None.
+ *******************************************************************************/
+static void IntToUnicode(uint32_t value, uint8_t *pbuf, uint8_t len)
+{
+    uint8_t idx = 0;
+
+    for (idx = 0; idx < len; idx++) {
+        if (((value >> 28)) < 0xA) {
+            pbuf[2 * idx] = (value >> 28) + '0';
+        } else {
+            pbuf[2 * idx] = (value >> 28) + 'A' - 10;
+        }
+
+        value = value << 4;
+
+        pbuf[2 * idx + 1] = 0;
+    }
+}
+
+/*******************************************************************************
  * Function Name  : Send DATA .
  * Description    : send the data received from the STM32 to the PC through USB  
  * Input          : None.
@@ -312,6 +360,19 @@ uint8_t usbIsConfigured(void)
 uint8_t usbIsConnected(void)
 {
     return (bDeviceState != UNCONNECTED);
+}
+
+
+/*******************************************************************************
+ * Function Name  : CDC_BaudRate.
+ * Description    : Get the current baud rate
+ * Input          : None.
+ * Output         : None.
+ * Return         : Baud rate in bps
+ *******************************************************************************/
+uint32_t CDC_BaudRate(void)
+{
+    return Virtual_Com_Port_GetBaudRate();
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
