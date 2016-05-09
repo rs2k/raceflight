@@ -665,12 +665,12 @@ static void resetConf(void)
     featureSet(FEATURE_FAILSAFE);
 #endif
 
-    // alternative defaults settings for ALIENWIIF1 and ALIENWIIF3 targets
-#ifdef ALIENWII32
+    // alternative defaults settings for ALIENFLIGHTF1 and ALIENFLIGHTF3 targets
+#ifdef ALIENFLIGHT
     featureSet(FEATURE_RX_SERIAL);
     featureSet(FEATURE_MOTOR_STOP);
     featureClear(FEATURE_ONESHOT125);
-#if defined(ALIENWIIF3) || defined(ALIENFLIGHTF4)
+#if defined(ALIENFLIGHTF3) || defined(ALIENFLIGHTF4)
     masterConfig.serialConfig.portConfigs[1].functionMask = FUNCTION_MSP; //default config USART1 for MSP at 9600 for use with 1wire.
     masterConfig.serialConfig.portConfigs[1].msp_baudrateIndex = BAUD_9600;
     masterConfig.serialConfig.portConfigs[2].functionMask = FUNCTION_RX_SERIAL;
