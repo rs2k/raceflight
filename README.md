@@ -4,6 +4,8 @@ Race prepared version of the cleanflight flight-controller - flight controllers 
 
 This fork differs from cleanflight in that it is focused towards racing / acro and adds support for STM32F4 targets.
 
+Its currently being developed with the help of VisualGDB, http://www.visualgdb.com
+
 ## Additional Features
 
 Raceflight also supports these additional features:
