@@ -67,9 +67,11 @@
 /* IMR_MSK */
 /* mask defining which events has to be handled */
 /* by the device application software */
-// HJI #define IMR_MSK (CNTR_CTRM  | CNTR_WKUPM | CNTR_SUSPM | CNTR_ERRM  | CNTR_SOFM | CNTR_ESOFM | CNTR_RESETM )
-// Disable Suspend/Resume response completely                                       // HJI
-#define IMR_MSK (CNTR_CTRM  | CNTR_WKUPM | CNTR_ERRM  | CNTR_SOFM | CNTR_RESETM )  // HJI
+// #define IMR_MSK (CNTR_CTRM  | CNTR_WKUPM | CNTR_SUSPM | CNTR_ERRM  | CNTR_SOFM | CNTR_ESOFM | CNTR_RESETM )
+// Disable Suspend/Resume response completely
+// #define IMR_MSK (CNTR_CTRM  | CNTR_WKUPM | CNTR_ERRM  | CNTR_SOFM | CNTR_RESETM )
+// Disable Error interrupt which wasn't really used anyway
+#define IMR_MSK (CNTR_CTRM  | CNTR_WKUPM | CNTR_SOFM | CNTR_RESETM )
 
 /*#define CTR_CALLBACK*/
 /*#define DOVR_CALLBACK*/
@@ -96,8 +98,6 @@
 #define  EP5_OUT_Callback   NOP_Process
 #define  EP6_OUT_Callback   NOP_Process
 #define  EP7_OUT_Callback   NOP_Process
-
-#define USB_MAX_STR_DESC_SIZ 50
 
 #endif /* __USB_CONF_H */
 

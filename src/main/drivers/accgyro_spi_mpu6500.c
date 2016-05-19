@@ -106,7 +106,7 @@ static void mpu6500SpiInit(void)
     IOInit(mpuSpi6500CsPin, OWNER_SYSTEM, RESOURCE_SPI);
 	IOConfigGPIO(mpuSpi6500CsPin, SPI_IO_CS_CFG);
 
-#if defined(STM32F40_41xxx) || defined (STM32F411xE)
+#if defined(STM32F4)
     spiSetDivisor(MPU6500_SPI_INSTANCE, SPI_SLOW_CLOCK);
 #else
     spiSetDivisor(MPU6500_SPI_INSTANCE, SPI_STANDARD_CLOCK);
@@ -123,7 +123,7 @@ bool mpu6500SpiDetect(void)
 
     mpu6500ReadRegister(MPU_RA_WHO_AM_I, 1, &tmp);
 
-    if (tmp == MPU6500_WHO_AM_I_CONST || tmp == MPU9250_WHO_AM_I_CONST) {
+    if (tmp == MPU6500_WHO_AM_I_CONST) {
         return true;
     }
 

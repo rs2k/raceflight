@@ -45,9 +45,6 @@ LINE_CODING linecoding = { 115200, /* baud rate*/
 0x08 /* no. of bits 8*/
 };
 
-static uint8_t UsbStringBuf[USB_MAX_STR_DESC_SIZ];
-static ONE_DESCRIPTOR UsbStringDesc;
-
 /* -------------------------------------------------------------------------- */
 /*  Structures initializations */
 /* -------------------------------------------------------------------------- */
@@ -73,6 +70,9 @@ VIRTUAL_COM_PORT_SIZ_DEVICE_DESC };
 
 ONE_DESCRIPTOR Config_Descriptor = { (uint8_t*)Virtual_Com_Port_ConfigDescriptor,
 VIRTUAL_COM_PORT_SIZ_CONFIG_DESC };
+
+ONE_DESCRIPTOR String_Descriptor[4] = { { (uint8_t*)Virtual_Com_Port_StringLangID, VIRTUAL_COM_PORT_SIZ_STRING_LANGID }, { (uint8_t*)Virtual_Com_Port_StringVendor, VIRTUAL_COM_PORT_SIZ_STRING_VENDOR }, { (uint8_t*)Virtual_Com_Port_StringProduct,
+        VIRTUAL_COM_PORT_SIZ_STRING_PRODUCT }, { (uint8_t*)Virtual_Com_Port_StringSerial, VIRTUAL_COM_PORT_SIZ_STRING_SERIAL } };
 
 /* Extern variables ----------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -290,36 +290,6 @@ uint8_t *Virtual_Com_Port_GetConfigDescriptor(uint16_t Length)
     return Standard_GetDescriptorData(Length, &Config_Descriptor);
 }
 
-static uint16_t Virtual_Com_Port_GetStringLength(const uint8_t *buf)
-{
-    uint8_t  len = 0;
-
-    while (*buf != 0) {
-        len++;
-        buf++;
-    }
-
-    return len;
-}
-
-static uint8_t *Virtual_Com_Port_GetString(const uint8_t *str, uint8_t *buf, uint16_t *len)
-{
-    uint8_t idx = 0;
-
-    if (str != NULL) {
-        *len =  Virtual_Com_Port_GetStringLength(str) * 2 + 2;
-        buf[idx++] = *len;
-        buf[idx++] =  USB_STRING_DESCRIPTOR_TYPE;
-
-        while (*str != 0) {
-            buf[idx++] = *str++;
-            buf[idx++] =  0x00;
-        }
-    } 
-
-    return buf;
-}
-
 /*******************************************************************************
  * Function Name  : Virtual_Com_Port_GetStringDescriptor
  * Description    : Gets the string descriptors according to the needed index
@@ -330,32 +300,11 @@ static uint8_t *Virtual_Com_Port_GetString(const uint8_t *str, uint8_t *buf, uin
 uint8_t *Virtual_Com_Port_GetStringDescriptor(uint16_t Length)
 {
     uint8_t wValue0 = pInformation->USBwValue0;
-    uint16_t descLength = 0;
-
-    switch (wValue0) {
-    case 0:
-        UsbStringBuf[0] = 4;
-        UsbStringBuf[1] = USB_STRING_DESCRIPTOR_TYPE;
-        UsbStringBuf[2] = 0x09;
-        UsbStringBuf[3] = 0x04;
-        descLength = 4;
-        break;
-    case 1:
-        Virtual_Com_Port_GetString((uint8_t *)USBD_MANUFACTURER_STRING, UsbStringBuf, &descLength);
-        break;
-    case 2:
-        Virtual_Com_Port_GetString((uint8_t *)USBD_PRODUCT_STRING, UsbStringBuf, &descLength);
-        break;
-    case 3:
-        Virtual_Com_Port_GetString((uint8_t *)USBD_SERIALNUMBER_STRING, UsbStringBuf, &descLength);
-        break;
-    default:
+    if (wValue0 > 4) {
         return NULL;
+    } else {
+        return Standard_GetDescriptorData(Length, &String_Descriptor[wValue0]);
     }
-
-    UsbStringDesc.Descriptor_Size = descLength;
-    UsbStringDesc.Descriptor = UsbStringBuf;
-    return Standard_GetDescriptorData(Length, &UsbStringDesc);
 }
 
 /*******************************************************************************
