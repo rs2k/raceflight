@@ -12,7 +12,7 @@ Raceflight also supports these additional features:
 
 ## Installation
 
-See: https://github.com/raceflight/raceflight/blob/master/docs/Installation.md 
+See: https://github.com/rs2k/raceflight/blob/master/docs/Installation.md
 
 ## Configuration Tool
 
